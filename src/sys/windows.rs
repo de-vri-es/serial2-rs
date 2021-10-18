@@ -1,4 +1,5 @@
 use std::ffi::OsStr;
+use std::ffi::OsString;
 use std::io::{IoSlice, IoSliceMut};
 use std::os::windows::io::AsRawHandle;
 use std::time::Duration;
@@ -140,6 +141,7 @@ pub fn discard_buffers(inner: &mut Inner, discard_input: bool, discard_output: b
 	}
 }
 
+/// Check the return value of a syscall for errors.
 fn check_bool(ret: BOOL) -> std::io::Result<()> {
 	if ret == 0 {
 		Err(std::io::Error::last_os_error())
@@ -148,6 +150,7 @@ fn check_bool(ret: BOOL) -> std::io::Result<()> {
 	}
 }
 
+/// Create an std::io::Error with custom message.
 fn other_error<E>(msg: E) -> std::io::Error
 where
 	E: Into<Box<dyn std::error::Error + Send + Sync>>,
@@ -155,6 +158,7 @@ where
 	std::io::Error::new(std::io::ErrorKind::Other, msg)
 }
 
+/// Functions to manipulate a DCB structure.
 mod dcb {
 	use super::*;
 	use winbase::DCB;

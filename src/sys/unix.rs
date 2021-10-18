@@ -142,6 +142,7 @@ pub fn discard_buffers(inner: &mut Inner, discard_input: bool, discard_output: b
 	}
 }
 
+/// Wait for a file to be readable or writable.
 fn poll(file: &mut std::fs::File, events: std::os::raw::c_short, timeout_ms: u32) -> std::io::Result<bool> {
 	unsafe {
 		let mut poll_fd = libc::pollfd {
@@ -154,6 +155,7 @@ fn poll(file: &mut std::fs::File, events: std::os::raw::c_short, timeout_ms: u32
 	}
 }
 
+/// Check the return value of a syscall for errors.
 fn check(ret: i32) -> std::io::Result<i32> {
 	if ret == -1 {
 		Err(std::io::Error::last_os_error())
@@ -162,6 +164,7 @@ fn check(ret: i32) -> std::io::Result<i32> {
 	}
 }
 
+/// Create an std::io::Error with custom message.
 fn other_error<E>(msg: E) -> std::io::Error
 where
 	E: Into<Box<dyn std::error::Error + Send + Sync>>,
@@ -169,6 +172,7 @@ where
 	std::io::Error::new(std::io::ErrorKind::Other, msg)
 }
 
+/// Functions to manipulate a termios structure.
 mod termios {
 	use super::{check, other_error};
 
