@@ -13,6 +13,10 @@
 //!
 //! You can set read/write timeouts using [`SerialPort::set_read_timeout`] and [`SerialPort::set_write_timeout`].
 //! The exact timeout behaviour is platform specific, so be sure to read the documentation for more details.
+//!
+//! You can also control or read some individual signal lines using
+//! [`SerialPort::set_rts()`], [`SerialPort::read_cts()`], [`SerialPort::set_dtr()`], [`SerialPort::read_dsr()`],
+//! [`SerialPort::read_ri()`] and [`SerialPort::read_cd()`].
 
 #![warn(missing_docs)]
 
@@ -123,6 +127,54 @@ impl SerialPort {
 	/// This function clears that buffer: any untransmitted data is discarded by the OS.
 	pub fn discard_output_buffer(&mut self) -> std::io::Result<()> {
 		sys::discard_buffers(&mut self.inner, false, true)
+	}
+
+	/// Set the state of the Ready To Send line.
+	///
+	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
+	/// The function may fail with an error or it may silently be ignored.
+	/// It may even succeed and interfere with the flow control.
+	pub fn set_rts(&mut self, state: bool) -> std::io::Result<()> {
+		sys::set_rts(&mut self.inner, state)
+	}
+
+	/// Read the state of the Clear To Send line.
+	///
+	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
+	/// The function may fail with an error, it may return a bogus value, or it may return the actual state of the CTS line.
+	pub fn read_cts(&mut self) -> std::io::Result<bool> {
+		sys::read_cts(&mut self.inner)
+	}
+
+	/// Set the state of the Data Terminal Ready line.
+	///
+	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
+	/// The function may fail with an error or it may silently be ignored.
+	pub fn set_dtr(&mut self, state: bool) -> std::io::Result<()> {
+		sys::set_dtr(&mut self.inner, state)
+	}
+
+	/// Read the state of the Data Set Ready line.
+	///
+	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
+	/// The function may fail with an error, it may return a bogus value, or it may return the actual state of the DSR line.
+	pub fn read_dsr(&mut self) -> std::io::Result<bool> {
+		sys::read_dsr(&mut self.inner)
+	}
+
+	/// Read the state of the Ring Indicator line.
+	///
+	/// This line is also sometimes also called the RNG or RING line.
+	pub fn read_ri(&mut self) -> std::io::Result<bool> {
+		sys::read_ri(&mut self.inner)
+	}
+
+	/// Read the state of the Carrier Detect (CD) line.
+	///
+	/// This line is also called the Data Carrier Detect (DCD) line
+	/// or the Receive Line Signal Detect (RLSD) line.
+	pub fn read_cd(&mut self) -> std::io::Result<bool> {
+		sys::read_cd(&mut self.inner)
 	}
 }
 

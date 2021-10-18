@@ -1,5 +1,6 @@
 use std::ffi::OsStr;
 use std::io::{IoSlice, IoSliceMut};
+use std::os::raw::c_int;
 use std::os::unix::io::AsRawFd;
 use std::time::Duration;
 
@@ -142,6 +143,30 @@ pub fn discard_buffers(inner: &mut Inner, discard_input: bool, discard_output: b
 	}
 }
 
+pub fn set_rts(inner: &mut Inner, state: bool) -> std::io::Result<()> {
+	set_pin(&mut inner.file, libc::TIOCM_RTS, state)
+}
+
+pub fn read_cts(inner: &mut Inner) -> std::io::Result<bool> {
+	read_pin(&mut inner.file, libc::TIOCM_CTS)
+}
+
+pub fn set_dtr(inner: &mut Inner, state: bool) -> std::io::Result<()> {
+	set_pin(&mut inner.file, libc::TIOCM_DTR, state)
+}
+
+pub fn read_dsr(inner: &mut Inner) -> std::io::Result<bool> {
+	read_pin(&mut inner.file, libc::TIOCM_DSR)
+}
+
+pub fn read_ri(inner: &mut Inner) -> std::io::Result<bool> {
+	read_pin(&mut inner.file, libc::TIOCM_RI)
+}
+
+pub fn read_cd(inner: &mut Inner) -> std::io::Result<bool> {
+	read_pin(&mut inner.file, libc::TIOCM_CD)
+}
+
 /// Wait for a file to be readable or writable.
 fn poll(file: &mut std::fs::File, events: std::os::raw::c_short, timeout_ms: u32) -> std::io::Result<bool> {
 	unsafe {
@@ -152,6 +177,25 @@ fn poll(file: &mut std::fs::File, events: std::os::raw::c_short, timeout_ms: u32
 		};
 		check(libc::poll(&mut poll_fd, 1, timeout_ms as i32))?;
 		Ok(poll_fd.revents != 0)
+	}
+}
+
+fn set_pin(file: &mut std::fs::File, pin: c_int, state: bool) -> std::io::Result<()> {
+	unsafe {
+		if state {
+			check(libc::ioctl(file.as_raw_fd(), libc::TIOCMBIS, &pin))?;
+		} else {
+			check(libc::ioctl(file.as_raw_fd(), libc::TIOCMBIC, &pin))?;
+		}
+		Ok(())
+	}
+}
+
+fn read_pin(file: &mut std::fs::File, pin: c_int) -> std::io::Result<bool> {
+	unsafe {
+		let mut bits: c_int = 0;
+		check(libc::ioctl(file.as_raw_fd(), libc::TIOCMGET, &mut bits))?;
+		Ok(bits & pin != 0)
 	}
 }
 

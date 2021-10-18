@@ -141,6 +141,56 @@ pub fn discard_buffers(inner: &mut Inner, discard_input: bool, discard_output: b
 	}
 }
 
+
+pub fn set_rts(inner: &mut Inner, state: bool) -> std::io::Result<()> {
+	if state {
+		escape_comm_function(&mut inner.file, winbase::SETRTS)
+	} else {
+		escape_comm_function(&mut inner.file, winbase::CLRRTS)
+	}
+}
+
+pub fn read_cts(inner: &mut Inner) -> std::io::Result<bool> {
+	read_pin(&mut inner.file, winbase::MS_CTS_ON)
+}
+
+pub fn set_dtr(inner: &mut Inner, state: bool) -> std::io::Result<()> {
+	if state {
+		escape_comm_function(&mut inner.file, winbase::SETDTR)
+	} else {
+		escape_comm_function(&mut inner.file, winbase::CLRDTR)
+	}
+}
+
+pub fn read_dsr(inner: &mut Inner) -> std::io::Result<bool> {
+	read_pin(&mut inner.file, winbase::MS_DSR_ON)
+}
+
+pub fn read_ri(inner: &mut Inner) -> std::io::Result<bool> {
+	read_pin(&mut inner.file, winbase::MS_RING_ON)
+}
+
+pub fn read_cd(inner: &mut Inner) -> std::io::Result<bool> {
+	// RLSD or Receive Line Signal Detect is the same as Carrier Detect.
+	//
+	// I think.
+	read_pin(&mut inner.file, winbase::MS_RLSD_ON)
+}
+
+fn escape_comm_function(file: &mut std::fs::File, function: u32) -> std::io::Result<()> {
+	unsafe {
+		check_bool(commapi::EscapeCommFunction(file.as_raw_handle(), function))
+	}
+}
+
+fn read_pin(file: &mut std::fs::File, pin: u32) -> std::io::Result<bool> {
+	unsafe {
+		let mut bits: u32 = 0;
+		check_bool(commapi::GetCommModemStatus(file.as_raw_handle(), &mut bits))?;
+		Ok(bits & pin != 0)
+	}
+}
+
 /// Check the return value of a syscall for errors.
 fn check_bool(ret: BOOL) -> std::io::Result<()> {
 	if ret == 0 {
