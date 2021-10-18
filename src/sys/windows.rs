@@ -121,13 +121,15 @@ pub fn flush_output(inner: &Inner) -> std::io::Result<()> {
 	}
 }
 
-pub fn discard_buffers(inner: &mut Inner, which: crate::DiscardBuffers) -> std::io::Result<()> {
+pub fn discard_buffers(inner: &mut Inner, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
 	unsafe {
-		let flags = match which {
-			crate::DiscardBoth => winbase::PURGE_RXCLEAR | winbase::PURGE_TXCLEAR,
-			crate::DiscardInput => winbase::PURGE_RXCLEAR,
-			crate::DiscardOutput => winbase::PURGE_TXCLEAR,
-		};
+		let mut flags = 0;
+		if discard_input {
+			flags |= winbase::PURGE_RXCLEAR;
+		}
+		if discard_output {
+			flags |= winbase::PURGE_TXCLEAR;
+		}
 		check_bool(commapi::PurgeComm(inner.file.as_raw_handle(), flags))
 	}
 }

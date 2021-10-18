@@ -128,13 +128,15 @@ pub fn flush_output(inner: &Inner) -> std::io::Result<()> {
 	}
 }
 
-pub fn discard_buffers(inner: &mut Inner, which: crate::DiscardBuffers) -> std::io::Result<()> {
+pub fn discard_buffers(inner: &mut Inner, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
 	unsafe {
-		let flags = match which {
-			crate::DiscardInput => libc::TCIFLUSH,
-			crate::DiscardOutput => libc::TCOFLUSH,
-			crate::DiscardBoth => libc::TCIFLUSH | libc::TCOFLUSH,
-		};
+		let mut flags = 0;
+		if discard_input {
+			flags |= libc::TCIFLUSH;
+		}
+		if discard_output {
+			flags |= libc::TCOFLUSH;
+		}
 		check(libc::tcflush(inner.file.as_raw_fd(), flags))?;
 		Ok(())
 	}

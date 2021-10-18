@@ -12,13 +12,6 @@ pub struct SerialPort {
 	inner: sys::Inner,
 }
 
-pub use DiscardBuffers::*;
-pub enum DiscardBuffers {
-	DiscardInput,
-	DiscardOutput,
-	DiscardBoth,
-}
-
 impl SerialPort {
 	pub fn open(name: impl AsRef<OsStr>, settings: &SerialSettings) -> std::io::Result<Self> {
 		let mut inner = sys::open(name.as_ref())?;
@@ -55,16 +48,16 @@ impl SerialPort {
 		sys::get_write_timeout(&self.inner)
 	}
 
-	pub fn discard_buffers(&mut self, buffers: DiscardBuffers) -> std::io::Result<()> {
-		sys::discard_buffers(&mut self.inner, buffers)
+	pub fn discard_buffers(&mut self) -> std::io::Result<()> {
+		sys::discard_buffers(&mut self.inner, true, true)
 	}
 
 	pub fn discard_input_buffer(&mut self) -> std::io::Result<()> {
-		self.discard_buffers(DiscardInput)
+		sys::discard_buffers(&mut self.inner, true, false)
 	}
 
 	pub fn discard_output_buffer(&mut self) -> std::io::Result<()> {
-		self.discard_buffers(DiscardOutput)
+		sys::discard_buffers(&mut self.inner, false, true)
 	}
 }
 
