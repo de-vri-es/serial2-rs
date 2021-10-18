@@ -1,4 +1,5 @@
 /// Settings for a serial port.
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct SerialSettings {
 	/// The baud rate.
 	///
