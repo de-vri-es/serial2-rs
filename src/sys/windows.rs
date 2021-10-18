@@ -11,7 +11,13 @@ pub struct Inner {
 	pub file: std::fs::File,
 }
 
-pub fn open(path: &OsStr) -> std::io::Result<Inner> {
+pub fn open(name: &OsStr) -> std::io::Result<Inner> {
+	// Use the win32 device namespace, otherwise we're limited to COM1-9.
+	// This also works with higher numbers.
+	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#win32-device-namespaces
+	let mut path = OsString::from("\\\\.\\");
+	path.push(name);
+
 	let file = std::fs::OpenOptions::new()
 		.read(true)
 		.write(true)
