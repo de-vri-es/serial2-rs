@@ -5,7 +5,7 @@ pub struct SerialSettings {
 	///
 	/// You can use one of the `BAUD_*` constants for portable baud rates.
 	/// Alternatively, you can try to set a custom baud rate.
-	/// Wether or not custom baud rates are supported is platform specific.
+	/// It is platform and device dependent if custom baud-rates are supported.
 	pub baud_rate: u32,
 
 	/// The number of data bits per character.
@@ -14,7 +14,7 @@ pub struct SerialSettings {
 	/// The number of stop bits per character.
 	pub stop_bits: StopBits,
 
-	/// The partity check per character.
+	/// The parity check per character.
 	pub parity: Parity,
 
 	/// The type of flow control for the serial port.
@@ -84,10 +84,10 @@ pub enum StopBits {
 
 pub use StopBits::*;
 
-/// The type of partity check for a serial port.
+/// The type of parity check for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Parity {
-	/// Do not add a partity bit and do not check for partity.
+	/// Do not add a parity bit and do not check for parity.
 	ParityNone,
 
 	/// Add a bit to ensure odd parity of all characters send over the serial port.
