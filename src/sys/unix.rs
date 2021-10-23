@@ -346,11 +346,11 @@ mod termios {
 				termios.c_iflag &= !(libc::IXON | libc::IXOFF);
 				termios.c_cflag &= !libc::CRTSCTS;
 			},
-			crate::FlowControlSoftware => {
+			crate::FlowControlXonXoff => {
 				termios.c_iflag |= libc::IXON | libc::IXOFF;
 				termios.c_cflag &= !libc::CRTSCTS;
 			},
-			crate::FlowControlHardware => {
+			crate::FlowControlRtsCts => {
 				termios.c_iflag &= !(libc::IXON | libc::IXOFF);
 				termios.c_cflag |= libc::CRTSCTS;
 			},
@@ -365,9 +365,9 @@ mod termios {
 		if !crtscts && !ixon && !ixoff {
 			Ok(crate::FlowControlNone)
 		} else if crtscts && !ixon && !ixoff {
-			Ok(crate::FlowControlHardware)
+			Ok(crate::FlowControlXonXoff)
 		} else if !crtscts && ixon && ixoff {
-			Ok(crate::FlowControlSoftware)
+			Ok(crate::FlowControlRtsCts)
 		} else {
 			Err(other_error("unknown flow control configuration"))
 		}

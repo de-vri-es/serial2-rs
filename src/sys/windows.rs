@@ -284,7 +284,7 @@ mod dcb {
 				dcb.set_fOutxCtsFlow(0);
 				dcb.set_fOutxDsrFlow(0);
 			},
-			crate::FlowControlSoftware => {
+			crate::FlowControlXonXoff => {
 				dcb.set_fInX(1);
 				dcb.set_fOutX(1);
 				dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
@@ -292,7 +292,7 @@ mod dcb {
 				dcb.set_fOutxCtsFlow(0);
 				dcb.set_fOutxDsrFlow(0);
 			},
-			crate::FlowControlHardware => {
+			crate::FlowControlRtsCts => {
 				dcb.set_fInX(0);
 				dcb.set_fOutX(0);
 				dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
@@ -311,8 +311,8 @@ mod dcb {
 
 		match (in_x, out_x, out_cts, out_dsr, dcb.fDtrControl(), dcb.fRtsControl()) {
 			(false, false, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControlNone),
-			(true, true, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControlSoftware),
-			(false, false, true, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_TOGGLE) => Ok(crate::FlowControlHardware),
+			(true, true, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControlXonXoff),
+			(false, false, true, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_TOGGLE) => Ok(crate::FlowControlRtsCts),
 			_ => Err(other_error("unsupported flow control configuration")),
 		}
 	}

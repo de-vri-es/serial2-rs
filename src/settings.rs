@@ -111,11 +111,15 @@ pub enum FlowControl {
 	/// Do not perform any automatic flow control.
 	FlowControlNone,
 
-	/// Perform software or XON/XOFF flow control.
-	FlowControlSoftware,
+	/// Perform XON/XOFF flow control.
+	///
+	/// This is also sometimes referred to as "software flow control".
+	FlowControlXonXoff,
 
-	/// Perform hardware or RTS/CTS flow control.
-	FlowControlHardware,
+	/// Perform RTS/CTS flow control.
+	///
+	/// This is also sometimes referred to as "hardware flow control".
+	FlowControlRtsCts,
 }
 
 pub use FlowControl::*;
