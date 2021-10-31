@@ -14,143 +14,145 @@ pub struct Settings {
 	pub termios: libc::termios,
 }
 
-pub fn open(path: &OsStr) -> std::io::Result<SerialPort> {
-	let file = std::fs::OpenOptions::new()
-		.read(true)
-		.write(true)
-		.create(false)
-		.open(path)?;
+impl SerialPort {
+	pub fn open(path: &OsStr) -> std::io::Result<Self> {
+		let file = std::fs::OpenOptions::new()
+			.read(true)
+			.write(true)
+			.create(false)
+			.open(path)?;
 
-	Ok(from_file(file))
-}
-
-pub fn from_file(file: std::fs::File) -> SerialPort {
-	SerialPort {
-		file,
-		read_timeout_ms: 100,
-		write_timeout_ms: 100,
+		Ok(Self::from_file(file))
 	}
-}
 
-pub fn get_configuration(inner: &SerialPort) -> std::io::Result<Settings> {
-	unsafe {
-		let mut termios = std::mem::zeroed();
-		check(libc::tcgetattr(inner.file.as_raw_fd(), &mut termios))?;
-		Ok(Settings { termios })
+	pub fn from_file(file: std::fs::File) -> Self {
+		Self {
+			file,
+			read_timeout_ms: 100,
+			write_timeout_ms: 100,
+		}
 	}
-}
 
-pub fn set_configuration(inner: &mut SerialPort, settings: &Settings) -> std::io::Result<()> {
-	unsafe {
-		check(libc::tcsetattr(inner.file.as_raw_fd(), libc::TCSADRAIN, &settings.termios))?;
-		let applied_settings = get_configuration(inner)?;
-		if applied_settings != *settings {
-			Err(other_error("failed to apply some or all settings"))
+	pub fn get_configuration(&self) -> std::io::Result<Settings> {
+		unsafe {
+			let mut termios = std::mem::zeroed();
+			check(libc::tcgetattr(self.file.as_raw_fd(), &mut termios))?;
+			Ok(Settings { termios })
+		}
+	}
+
+	pub fn set_configuration(&mut self, settings: &Settings) -> std::io::Result<()> {
+		unsafe {
+			check(libc::tcsetattr(self.file.as_raw_fd(), libc::TCSADRAIN, &settings.termios))?;
+			let applied_settings = self.get_configuration()?;
+			if applied_settings != *settings {
+				Err(other_error("failed to apply some or all settings"))
+			} else {
+				Ok(())
+			}
+		}
+	}
+
+	pub fn set_read_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
+		use std::convert::TryInto;
+		self.read_timeout_ms = timeout.as_millis().try_into().unwrap_or(u32::MAX);
+		Ok(())
+	}
+
+	pub fn get_read_timeout(&self) -> std::io::Result<Duration> {
+		Ok(Duration::from_millis(self.read_timeout_ms.into()))
+	}
+
+	pub fn set_write_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
+		use std::convert::TryInto;
+		self.write_timeout_ms = timeout.as_millis().try_into().unwrap_or(u32::MAX);
+		Ok(())
+	}
+
+	pub fn get_write_timeout(&self) -> std::io::Result<Duration> {
+		Ok(Duration::from_millis(self.write_timeout_ms.into()))
+	}
+
+	pub fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+		use std::io::Read;
+		if !poll(&mut self.file, libc::POLLIN, self.read_timeout_ms)? {
+			Err(std::io::ErrorKind::TimedOut.into())
 		} else {
+			self.file.read(buf)
+		}
+	}
+
+	pub fn read_vectored(&mut self, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
+		use std::io::Read;
+		if !poll(&mut self.file, libc::POLLIN, self.read_timeout_ms)? {
+			Err(std::io::ErrorKind::TimedOut.into())
+		} else {
+			self.file.read_vectored(buf)
+		}
+	}
+
+	pub fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+		use std::io::Write;
+		if !poll(&mut self.file, libc::POLLOUT, self.read_timeout_ms)? {
+			Err(std::io::ErrorKind::TimedOut.into())
+		} else {
+			self.file.write(buf)
+		}
+	}
+
+	pub fn write_vectored(&mut self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
+		use std::io::Write;
+		if !poll(&mut self.file, libc::POLLOUT, self.read_timeout_ms)? {
+			Err(std::io::ErrorKind::TimedOut.into())
+		} else {
+			self.file.write_vectored(buf)
+		}
+	}
+
+	pub fn flush_output(&self) -> std::io::Result<()> {
+		unsafe {
+			check(libc::tcdrain(self.file.as_raw_fd()))?;
 			Ok(())
 		}
 	}
-}
 
-pub fn set_read_timeout(inner: &mut SerialPort, timeout: Duration) -> std::io::Result<()> {
-	use std::convert::TryInto;
-	inner.read_timeout_ms = timeout.as_millis().try_into().unwrap_or(u32::MAX);
-	Ok(())
-}
-
-pub fn get_read_timeout(inner: &SerialPort) -> std::io::Result<Duration> {
-	Ok(Duration::from_millis(inner.read_timeout_ms.into()))
-}
-
-pub fn set_write_timeout(inner: &mut SerialPort, timeout: Duration) -> std::io::Result<()> {
-	use std::convert::TryInto;
-	inner.write_timeout_ms = timeout.as_millis().try_into().unwrap_or(u32::MAX);
-	Ok(())
-}
-
-pub fn get_write_timeout(inner: &SerialPort) -> std::io::Result<Duration> {
-	Ok(Duration::from_millis(inner.write_timeout_ms.into()))
-}
-
-pub fn read(inner: &mut SerialPort, buf: &mut [u8]) -> std::io::Result<usize> {
-	use std::io::Read;
-	if !poll(&mut inner.file, libc::POLLIN, inner.read_timeout_ms)? {
-		Err(std::io::ErrorKind::TimedOut.into())
-	} else {
-		inner.file.read(buf)
-	}
-}
-
-pub fn read_vectored(inner: &mut SerialPort, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
-	use std::io::Read;
-	if !poll(&mut inner.file, libc::POLLIN, inner.read_timeout_ms)? {
-		Err(std::io::ErrorKind::TimedOut.into())
-	} else {
-		inner.file.read_vectored(buf)
-	}
-}
-
-pub fn write(inner: &mut SerialPort, buf: &[u8]) -> std::io::Result<usize> {
-	use std::io::Write;
-	if !poll(&mut inner.file, libc::POLLOUT, inner.read_timeout_ms)? {
-		Err(std::io::ErrorKind::TimedOut.into())
-	} else {
-		inner.file.write(buf)
-	}
-}
-
-pub fn write_vectored(inner: &mut SerialPort, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
-	use std::io::Write;
-	if !poll(&mut inner.file, libc::POLLOUT, inner.read_timeout_ms)? {
-		Err(std::io::ErrorKind::TimedOut.into())
-	} else {
-		inner.file.write_vectored(buf)
-	}
-}
-
-pub fn flush_output(inner: &SerialPort) -> std::io::Result<()> {
-	unsafe {
-		check(libc::tcdrain(inner.file.as_raw_fd()))?;
-		Ok(())
-	}
-}
-
-pub fn discard_buffers(inner: &mut SerialPort, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
-	unsafe {
-		let mut flags = 0;
-		if discard_input {
-			flags |= libc::TCIFLUSH;
+	pub fn discard_buffers(&mut self, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
+		unsafe {
+			let mut flags = 0;
+			if discard_input {
+				flags |= libc::TCIFLUSH;
+			}
+			if discard_output {
+				flags |= libc::TCOFLUSH;
+			}
+			check(libc::tcflush(self.file.as_raw_fd(), flags))?;
+			Ok(())
 		}
-		if discard_output {
-			flags |= libc::TCOFLUSH;
-		}
-		check(libc::tcflush(inner.file.as_raw_fd(), flags))?;
-		Ok(())
 	}
-}
 
-pub fn set_rts(inner: &mut SerialPort, state: bool) -> std::io::Result<()> {
-	set_pin(&mut inner.file, libc::TIOCM_RTS, state)
-}
+	pub fn set_rts(&mut self, state: bool) -> std::io::Result<()> {
+		set_pin(&mut self.file, libc::TIOCM_RTS, state)
+	}
 
-pub fn read_cts(inner: &mut SerialPort) -> std::io::Result<bool> {
-	read_pin(&mut inner.file, libc::TIOCM_CTS)
-}
+	pub fn read_cts(&mut self) -> std::io::Result<bool> {
+		read_pin(&mut self.file, libc::TIOCM_CTS)
+	}
 
-pub fn set_dtr(inner: &mut SerialPort, state: bool) -> std::io::Result<()> {
-	set_pin(&mut inner.file, libc::TIOCM_DTR, state)
-}
+	pub fn set_dtr(&mut self, state: bool) -> std::io::Result<()> {
+		set_pin(&mut self.file, libc::TIOCM_DTR, state)
+	}
 
-pub fn read_dsr(inner: &mut SerialPort) -> std::io::Result<bool> {
-	read_pin(&mut inner.file, libc::TIOCM_DSR)
-}
+	pub fn read_dsr(&mut self) -> std::io::Result<bool> {
+		read_pin(&mut self.file, libc::TIOCM_DSR)
+	}
 
-pub fn read_ri(inner: &mut SerialPort) -> std::io::Result<bool> {
-	read_pin(&mut inner.file, libc::TIOCM_RI)
-}
+	pub fn read_ri(&mut self) -> std::io::Result<bool> {
+		read_pin(&mut self.file, libc::TIOCM_RI)
+	}
 
-pub fn read_cd(inner: &mut SerialPort) -> std::io::Result<bool> {
-	read_pin(&mut inner.file, libc::TIOCM_CD)
+	pub fn read_cd(&mut self) -> std::io::Result<bool> {
+		read_pin(&mut self.file, libc::TIOCM_CD)
+	}
 }
 
 /// Wait for a file to be readable or writable.

@@ -57,7 +57,7 @@ impl SerialPort {
 	/// Use [`Self::open_unconfigured()`] to open the serial port without explicitly configuring it.
 	pub fn open(name: impl AsRef<OsStr>, settings: impl IntoSerialSettings) -> std::io::Result<Self> {
 		let mut serial_port = Self {
-			inner: sys::open(name.as_ref())?,
+			inner: sys::SerialPort::open(name.as_ref())?,
 		};
 		let mut port_settings = serial_port.get_configuration()?;
 		settings.apply_to(&mut port_settings)?;
@@ -74,13 +74,13 @@ impl SerialPort {
 	/// For consistent cross-platform behaviour, make sure to configure the serial port before using it.
 	/// You can open and configure a serial port in one go with [`Self::open()`].
 	pub fn open_unconfigured(name: impl AsRef<OsStr>) -> std::io::Result<Self> {
-		let inner = sys::open(name.as_ref())?;
+		let inner = sys::SerialPort::open(name.as_ref())?;
 		Ok(Self { inner })
 	}
 
 	/// Configure (or reconfigure) the serial port.
 	pub fn set_configuration(&mut self, settings: &Settings) -> std::io::Result<()> {
-		sys::set_configuration(&mut self.inner, &settings.inner)
+		self.inner.set_configuration(&settings.inner)
 	}
 
 	/// Get the current configuration of the serial port.
@@ -89,7 +89,7 @@ impl SerialPort {
 	/// or if the serial port configuration can't be reported using [`SerialSettings`].
 	pub fn get_configuration(&self) -> std::io::Result<Settings> {
 		Ok(Settings {
-			inner: sys::get_configuration(&self.inner)?,
+			inner: self.inner.get_configuration()?,
 		})
 	}
 
@@ -98,12 +98,12 @@ impl SerialPort {
 	/// The timeout set by this function is an upper bound on individual calls to [`std::io::Read::read()`].
 	/// Other platform specific time-outs may trigger before this timeout does.
 	pub fn set_read_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
-		sys::set_read_timeout(&mut self.inner, timeout)
+		self.inner.set_read_timeout(timeout)
 	}
 
 	/// Get the read timeout of the serial port.
 	pub fn get_read_timeout(&self) -> std::io::Result<Duration> {
-		sys::get_read_timeout(&self.inner)
+		self.inner.get_read_timeout()
 	}
 
 	/// Set the write timeout for the serial port.
@@ -111,12 +111,12 @@ impl SerialPort {
 	/// The timeout set by this function is an upper bound on individual calls to [`std::io::Write::write()`].
 	/// Other platform specific time-outs may trigger before this timeout does.
 	pub fn set_write_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
-		sys::set_write_timeout(&mut self.inner, timeout)
+		self.inner.set_write_timeout(timeout)
 	}
 
 	/// Get the write timeout of the serial port.
 	pub fn get_write_timeout(&self) -> std::io::Result<Duration> {
-		sys::get_write_timeout(&self.inner)
+		self.inner.get_write_timeout()
 	}
 
 	/// Discard the kernel input and output buffers for the serial port.
@@ -125,7 +125,7 @@ impl SerialPort {
 	/// Similarly, data received on the device can be put in a buffer by the OS untill you read it.
 	/// This function clears both buffers: any untransmitted data and received but unread data is discarded by the OS.
 	pub fn discard_buffers(&mut self) -> std::io::Result<()> {
-		sys::discard_buffers(&mut self.inner, true, true)
+		self.inner.discard_buffers(true, true)
 	}
 
 	/// Discard the kernel input buffers for the serial port.
@@ -136,7 +136,7 @@ impl SerialPort {
 	/// This is particularly useful when communicating with a device that only responds to commands that you send to it.
 	/// If you discard the input buffer before sending the command, you discard any noise that may have been received after the last command.
 	pub fn discard_input_buffer(&mut self) -> std::io::Result<()> {
-		sys::discard_buffers(&mut self.inner, true, false)
+		self.inner.discard_buffers(true, false)
 	}
 
 	/// Discard the kernel output buffers for the serial port.
@@ -144,7 +144,7 @@ impl SerialPort {
 	/// When you write to a serial port, the data is generally put in a buffer by the OS to be transmitted by the actual device later.
 	/// This function clears that buffer: any untransmitted data is discarded by the OS.
 	pub fn discard_output_buffer(&mut self) -> std::io::Result<()> {
-		sys::discard_buffers(&mut self.inner, false, true)
+		self.inner.discard_buffers(false, true)
 	}
 
 	/// Set the state of the Ready To Send line.
@@ -153,7 +153,7 @@ impl SerialPort {
 	/// The function may fail with an error or it may silently be ignored.
 	/// It may even succeed and interfere with the flow control.
 	pub fn set_rts(&mut self, state: bool) -> std::io::Result<()> {
-		sys::set_rts(&mut self.inner, state)
+		self.inner.set_rts(state)
 	}
 
 	/// Read the state of the Clear To Send line.
@@ -161,7 +161,7 @@ impl SerialPort {
 	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
 	/// The function may fail with an error, it may return a bogus value, or it may return the actual state of the CTS line.
 	pub fn read_cts(&mut self) -> std::io::Result<bool> {
-		sys::read_cts(&mut self.inner)
+		self.inner.read_cts()
 	}
 
 	/// Set the state of the Data Terminal Ready line.
@@ -169,7 +169,7 @@ impl SerialPort {
 	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
 	/// The function may fail with an error or it may silently be ignored.
 	pub fn set_dtr(&mut self, state: bool) -> std::io::Result<()> {
-		sys::set_dtr(&mut self.inner, state)
+		self.inner.set_dtr(state)
 	}
 
 	/// Read the state of the Data Set Ready line.
@@ -177,14 +177,14 @@ impl SerialPort {
 	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
 	/// The function may fail with an error, it may return a bogus value, or it may return the actual state of the DSR line.
 	pub fn read_dsr(&mut self) -> std::io::Result<bool> {
-		sys::read_dsr(&mut self.inner)
+		self.inner.read_dsr()
 	}
 
 	/// Read the state of the Ring Indicator line.
 	///
 	/// This line is also sometimes also called the RNG or RING line.
 	pub fn read_ri(&mut self) -> std::io::Result<bool> {
-		sys::read_ri(&mut self.inner)
+		self.inner.read_ri()
 	}
 
 	/// Read the state of the Carrier Detect (CD) line.
@@ -192,31 +192,31 @@ impl SerialPort {
 	/// This line is also called the Data Carrier Detect (DCD) line
 	/// or the Receive Line Signal Detect (RLSD) line.
 	pub fn read_cd(&mut self) -> std::io::Result<bool> {
-		sys::read_cd(&mut self.inner)
+		self.inner.read_cd()
 	}
 }
 
 impl std::io::Read for SerialPort {
 	fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-		sys::read(&mut self.inner, buf)
+		self.inner.read(buf)
 	}
 
 	fn read_vectored(&mut self, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
-		sys::read_vectored(&mut self.inner, buf)
+		self.inner.read_vectored(buf)
 	}
 }
 
 impl std::io::Write for SerialPort {
 	fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-		sys::write(&mut self.inner, buf)
+		self.inner.write(buf)
 	}
 
 	fn write_vectored(&mut self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
-		sys::write_vectored(&mut self.inner, buf)
+		self.inner.write_vectored(buf)
 	}
 
 	fn flush(&mut self) -> std::io::Result<()> {
-		sys::flush_output(&self.inner)
+		self.inner.flush_output()
 	}
 }
 
@@ -238,7 +238,7 @@ impl std::os::unix::io::IntoRawFd for SerialPort {
 impl std::os::unix::io::FromRawFd for SerialPort {
 	unsafe fn from_raw_fd(fd: std::os::unix::io::RawFd) -> Self {
 		Self {
-			inner: sys::from_file(File::from_raw_fd(fd)),
+			inner: sys::SerialPort::from_file(File::from_raw_fd(fd)),
 		}
 	}
 }
@@ -261,7 +261,7 @@ impl std::os::windows::io::IntoRawHandle for SerialPort {
 impl std::os::windows::io::FromRawHandle for SerialPort {
 	unsafe fn from_raw_handle(handle: std::os::windows::io::RawHandle) -> Self {
 		Self {
-			inner: sys::from_file(File::from_raw_handle(handle)),
+			inner: sys::SerialPort::from_file(File::from_raw_handle(handle)),
 		}
 	}
 }
