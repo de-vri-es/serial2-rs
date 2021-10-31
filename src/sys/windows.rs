@@ -12,6 +12,11 @@ pub struct SerialPort {
 	pub file: std::fs::File,
 }
 
+#[derive(Clone)]
+pub struct Settings {
+	dcb: winbase::DCB,
+}
+
 pub fn open(name: &OsStr) -> std::io::Result<SerialPort> {
 	// Use the win32 device namespace, otherwise we're limited to COM1-9.
 	// This also works with higher numbers.
@@ -31,36 +36,20 @@ pub fn from_file(file: std::fs::File) -> SerialPort {
 	SerialPort { file }
 }
 
-pub fn configure(inner: &mut SerialPort, settings: &crate::SerialSettings) -> std::io::Result<()> {
+pub fn get_configuration(inner: &SerialPort) -> std::io::Result<Settings> {
 	unsafe {
 		let mut dcb: winbase::DCB = std::mem::zeroed();
-		dcb.DCBlength = std::mem::size_of::<winbase::DCB>() as u32;
 		check_bool(commapi::GetCommState(inner.file.as_raw_handle(), &mut dcb))?;
-
-		dcb.set_fBinary(1);
-		dcb.BaudRate = settings.baud_rate;
-
-		dcb::set_char_size(&mut dcb, settings.char_size);
-		dcb::set_stop_bits(&mut dcb, settings.stop_bits);
-		dcb::set_parity(&mut dcb, settings.parity);
-		dcb::set_flow_control(&mut dcb, settings.flow_control);
-
-		check_bool(commapi::SetCommState(inner.file.as_raw_handle(), &mut dcb))
+		Ok(Settings {
+			dcb,
+		})
 	}
 }
 
-pub fn get_configuration(inner: &SerialPort) -> std::io::Result<crate::SerialSettings> {
+pub fn set_configuration(inner: &mut SerialPort, settings: &Settings) -> std::io::Result<()> {
 	unsafe {
-		let mut dcb: winbase::DCB = std::mem::zeroed();
-		check_bool(commapi::GetCommState(inner.file.as_raw_handle(), &mut dcb))?;
-
-		Ok(crate::SerialSettings {
-			baud_rate: dcb.BaudRate,
-			char_size: dcb::get_char_size(&dcb)?,
-			stop_bits: dcb::get_stop_bits(&dcb)?,
-			parity: dcb::get_parity(&dcb)?,
-			flow_control: dcb::get_flow_control(&dcb)?,
-		})
+		let mut settings = settings.clone();
+		check_bool(commapi::SetCommState(inner.file.as_raw_handle(), &mut settings.dcb))
 	}
 }
 
@@ -210,13 +199,18 @@ where
 	std::io::Error::new(std::io::ErrorKind::Other, msg)
 }
 
-/// Functions to manipulate a DCB structure.
-mod dcb {
-	use super::*;
-	use winbase::DCB;
+impl Settings {
+	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
+		self.dcb.BaudRate = baud_rate;
+		Ok(())
+	}
 
-	pub fn set_char_size(dcb: &mut DCB, char_size: crate::CharSize) {
-		dcb.ByteSize = match char_size {
+	pub fn get_baud_rate(&self) -> std::io::Result<u32> {
+		Ok(self.dcb.BaudRate)
+	}
+
+	pub fn set_char_size(&mut self, char_size: crate::CharSize) {
+		self.dcb.ByteSize = match char_size {
 			crate::CharSize::Bits5 => 5,
 			crate::CharSize::Bits6 => 6,
 			crate::CharSize::Bits7 => 7,
@@ -224,8 +218,8 @@ mod dcb {
 		};
 	}
 
-	pub fn get_char_size(dcb: &DCB) -> std::io::Result<crate::CharSize> {
-		match dcb.ByteSize {
+	pub fn get_char_size(&self) -> std::io::Result<crate::CharSize> {
+		match self.dcb.ByteSize {
 			5 => Ok(crate::CharSize::Bits5),
 			6 => Ok(crate::CharSize::Bits6),
 			7 => Ok(crate::CharSize::Bits7),
@@ -234,41 +228,41 @@ mod dcb {
 		}
 	}
 
-	pub fn set_stop_bits(dcb: &mut DCB, stop_bits: crate::StopBits) {
-		dcb.StopBits = match stop_bits {
+	pub fn set_stop_bits(&mut self, stop_bits: crate::StopBits) {
+		self.dcb.StopBits = match stop_bits {
 			crate::StopBits::One => winbase::ONESTOPBIT,
 			crate::StopBits::Two => winbase::TWOSTOPBITS,
 		};
 	}
 
-	pub fn get_stop_bits(dcb: &DCB) -> std::io::Result<crate::StopBits> {
-		match dcb.StopBits {
+	pub fn get_stop_bits(&self) -> std::io::Result<crate::StopBits> {
+		match self.dcb.StopBits {
 			winbase::ONESTOPBIT => Ok(crate::StopBits::One),
 			winbase::TWOSTOPBITS => Ok(crate::StopBits::Two),
 			_ => Err(other_error("unsupported stop bits")),
 		}
 	}
 
-	pub fn set_parity(dcb: &mut DCB, parity: crate::Parity) {
+	pub fn set_parity(&mut self, parity: crate::Parity) {
 		match parity {
 			crate::Parity::None => {
-				dcb.set_fParity(0);
-				dcb.Parity = winbase::NOPARITY;
+				self.dcb.set_fParity(0);
+				self.dcb.Parity = winbase::NOPARITY;
 			},
 			crate::Parity::Odd => {
-				dcb.set_fParity(1);
-				dcb.Parity = winbase::ODDPARITY;
+				self.dcb.set_fParity(1);
+				self.dcb.Parity = winbase::ODDPARITY;
 			},
 			crate::Parity::Even => {
-				dcb.set_fParity(1);
-				dcb.Parity = winbase::EVENPARITY;
+				self.dcb.set_fParity(1);
+				self.dcb.Parity = winbase::EVENPARITY;
 			},
 		}
 	}
 
-	pub fn get_parity(dcb: &DCB) -> std::io::Result<crate::Parity> {
-		let parity_enabled = dcb.fParity() != 0;
-		match dcb.Parity {
+	pub fn get_parity(&self) -> std::io::Result<crate::Parity> {
+		let parity_enabled = self.dcb.fParity() != 0;
+		match self.dcb.Parity {
 			winbase::NOPARITY => Ok(crate::Parity::None),
 			winbase::ODDPARITY if parity_enabled => Ok(crate::Parity::Odd),
 			winbase::EVENPARITY if parity_enabled => Ok(crate::Parity::Even),
@@ -276,42 +270,42 @@ mod dcb {
 		}
 	}
 
-	pub fn set_flow_control(dcb: &mut DCB, flow_control: crate::FlowControl) {
+	pub fn set_flow_control(&mut self, flow_control: crate::FlowControl) {
 		match flow_control {
 			crate::FlowControl::None => {
-				dcb.set_fInX(0);
-				dcb.set_fOutX(0);
-				dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
-				dcb.set_fRtsControl(winbase::RTS_CONTROL_DISABLE);
-				dcb.set_fOutxCtsFlow(0);
-				dcb.set_fOutxDsrFlow(0);
+				self.dcb.set_fInX(0);
+				self.dcb.set_fOutX(0);
+				self.dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
+				self.dcb.set_fRtsControl(winbase::RTS_CONTROL_DISABLE);
+				self.dcb.set_fOutxCtsFlow(0);
+				self.dcb.set_fOutxDsrFlow(0);
 			},
 			crate::FlowControl::XonXoff => {
-				dcb.set_fInX(1);
-				dcb.set_fOutX(1);
-				dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
-				dcb.set_fRtsControl(winbase::RTS_CONTROL_DISABLE);
-				dcb.set_fOutxCtsFlow(0);
-				dcb.set_fOutxDsrFlow(0);
+				self.dcb.set_fInX(1);
+				self.dcb.set_fOutX(1);
+				self.dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
+				self.dcb.set_fRtsControl(winbase::RTS_CONTROL_DISABLE);
+				self.dcb.set_fOutxCtsFlow(0);
+				self.dcb.set_fOutxDsrFlow(0);
 			},
 			crate::FlowControl::RtsCts => {
-				dcb.set_fInX(0);
-				dcb.set_fOutX(0);
-				dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
-				dcb.set_fRtsControl(winbase::RTS_CONTROL_TOGGLE);
-				dcb.set_fOutxCtsFlow(1);
-				dcb.set_fOutxDsrFlow(0);
+				self.dcb.set_fInX(0);
+				self.dcb.set_fOutX(0);
+				self.dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
+				self.dcb.set_fRtsControl(winbase::RTS_CONTROL_TOGGLE);
+				self.dcb.set_fOutxCtsFlow(1);
+				self.dcb.set_fOutxDsrFlow(0);
 			},
 		}
 	}
 
-	pub fn get_flow_control(dcb: &DCB) -> std::io::Result<crate::FlowControl> {
-		let in_x = dcb.fInX() != 0;
-		let out_x = dcb.fOutX() != 0;
-		let out_cts = dcb.fOutxCtsFlow() != 0;
-		let out_dsr = dcb.fOutxDsrFlow() != 0;
+	pub fn get_flow_control(&self) -> std::io::Result<crate::FlowControl> {
+		let in_x = self.dcb.fInX() != 0;
+		let out_x = self.dcb.fOutX() != 0;
+		let out_cts = self.dcb.fOutxCtsFlow() != 0;
+		let out_dsr = self.dcb.fOutxDsrFlow() != 0;
 
-		match (in_x, out_x, out_cts, out_dsr, dcb.fDtrControl(), dcb.fRtsControl()) {
+		match (in_x, out_x, out_cts, out_dsr, self.dcb.fDtrControl(), self.dcb.fRtsControl()) {
 			(false, false, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControl::None),
 			(true, true, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControl::XonXoff),
 			(false, false, true, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_TOGGLE) => Ok(crate::FlowControl::RtsCts),

@@ -35,6 +35,18 @@ pub struct SerialPort {
 	inner: sys::SerialPort,
 }
 
+/// Trait for objects that can configure a serial port.
+pub trait IntoSerialSettings {
+	/// Apply the settings to a [`Settings`] struct.
+	fn apply_to(&self, settings: &mut Settings) -> std::io::Result<()>;
+}
+
+impl<T: IntoSerialSettings> IntoSerialSettings for &T {
+	fn apply_to(&self, settings: &mut Settings) -> std::io::Result<()> {
+		<T as IntoSerialSettings>::apply_to(*self, settings)
+	}
+}
+
 impl SerialPort {
 	/// Open and configure a serial port by path or name.
 	///
@@ -43,10 +55,14 @@ impl SerialPort {
 	///
 	/// This function also configures the serial port.
 	/// Use [`Self::open_unconfigured()`] to open the serial port without explicitly configuring it.
-	pub fn open(name: impl AsRef<OsStr>, settings: &SerialSettings) -> std::io::Result<Self> {
-		let mut inner = sys::open(name.as_ref())?;
-		sys::configure(&mut inner, settings)?;
-		Ok(Self { inner })
+	pub fn open(name: impl AsRef<OsStr>, settings: impl IntoSerialSettings) -> std::io::Result<Self> {
+		let mut serial_port = Self {
+			inner: sys::open(name.as_ref())?,
+		};
+		let mut port_settings = serial_port.get_configuration()?;
+		settings.apply_to(&mut port_settings)?;
+		serial_port.set_configuration(&port_settings)?;
+		Ok(serial_port)
 	}
 
 	/// Open a serial port by path or name without explicitly configuring it.
@@ -63,16 +79,18 @@ impl SerialPort {
 	}
 
 	/// Configure (or reconfigure) the serial port.
-	pub fn configure(&mut self, settings: &SerialSettings) -> std::io::Result<()> {
-		sys::configure(&mut self.inner, settings)
+	pub fn set_configuration(&mut self, settings: &Settings) -> std::io::Result<()> {
+		sys::set_configuration(&mut self.inner, &settings.inner)
 	}
 
 	/// Get the current configuration of the serial port.
 	///
 	/// This function can fail if the underlying syscall fails,
 	/// or if the serial port configuration can't be reported using [`SerialSettings`].
-	pub fn get_configuration(&self) -> std::io::Result<SerialSettings> {
-		sys::get_configuration(&self.inner)
+	pub fn get_configuration(&self) -> std::io::Result<Settings> {
+		Ok(Settings {
+			inner: sys::get_configuration(&self.inner)?,
+		})
 	}
 
 	/// Set the read timeout for the serial port.

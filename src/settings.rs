@@ -1,58 +1,7 @@
-/// Settings for a serial port.
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct SerialSettings {
-	/// The baud rate.
-	///
-	/// You can use one of the `BAUD_*` constants for portable baud rates.
-	/// Alternatively, you can try to set a custom baud rate.
-	/// It is platform and device dependent if custom baud-rates are supported.
-	pub baud_rate: u32,
-
-	/// The number of data bits per character.
-	pub char_size: CharSize,
-
-	/// The number of stop bits per character.
-	pub stop_bits: StopBits,
-
-	/// The parity check per character.
-	pub parity: Parity,
-
-	/// The type of flow control for the serial port.
-	pub flow_control: FlowControl,
+/// The settings of a serial port.
+pub struct Settings {
+	pub(crate) inner: crate::sys::Settings,
 }
-
-/// A baud rate of 110.
-pub const BAUD_110: u32 = 110;
-
-/// A baud rate of 300.
-pub const BAUD_300: u32 = 300;
-
-/// A baud rate of 600.
-pub const BAUD_600: u32 = 600;
-
-/// A baud rate of 1200.
-pub const BAUD_1200: u32 = 1200;
-
-/// A baud rate of 2400.
-pub const BAUD_2400: u32 = 2400;
-
-/// A baud rate of 4800.
-pub const BAUD_4800: u32 = 4800;
-
-/// A baud rate of 9600.
-pub const BAUD_9600: u32 = 9600;
-
-/// A baud rate of 129200.
-pub const BAUD_19200: u32 = 19200;
-
-/// A baud rate of 38400.
-pub const BAUD_38400: u32 = 38400;
-
-/// A baud rate of 57600.
-pub const BAUD_57600: u32 = 57600;
-
-/// A baud rate of 115200.
-pub const BAUD_115200: u32 = 115200;
 
 /// The number of bits per character for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
@@ -114,4 +63,62 @@ pub enum FlowControl {
 	///
 	/// This is also sometimes referred to as "hardware flow control".
 	RtsCts,
+}
+
+impl Settings {
+	/// Set the baud rate to be configured.
+	///
+	/// This function returns an error if the platform does not support the requested band-width.
+	/// Note that the device itself may also not support the requested baud rate, even if the platform does.
+	/// In that case [`SerialPort::set_configuration`] will return an error.
+	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
+		self.inner.set_baud_rate(baud_rate)
+	}
+
+	/// Get the baud rate from the configuration.
+	pub fn get_baud_rate(&self) -> std::io::Result<u32> {
+		self.inner.get_baud_rate()
+	}
+
+	/// Set the number of bits in a character.
+	pub fn set_char_size(&mut self, char_size: CharSize) {
+		self.inner.set_char_size(char_size)
+	}
+
+	/// Get the number of bits in a character.
+	pub fn get_char_size(&self) -> std::io::Result<CharSize> {
+		self.inner.get_char_size()
+	}
+
+	/// Set the number of stop bits following each character.
+	pub fn set_stop_bits(&mut self, stop_bits: StopBits) {
+		self.inner.set_stop_bits(stop_bits)
+	}
+
+	/// Get the number of stop bits following each character.
+	pub fn get_stop_bits(&self) -> std::io::Result<StopBits> {
+		self.inner.get_stop_bits()
+	}
+
+	/// Set the partity check.
+	pub fn set_parity(&mut self, parity: Parity) {
+		self.inner.set_parity(parity)
+	}
+
+	/// Get the partity check.
+	pub fn get_parity(&self) -> std::io::Result<Parity> {
+		self.inner.get_parity()
+	}
+
+	/// Set the flow control mechanism.
+	///
+	/// See the individual documentation of the [`FlowControl`] variants for more information.
+	pub fn set_flow_control(&mut self, flow_control: FlowControl) {
+		self.inner.set_flow_control(flow_control)
+	}
+
+	/// Get the flow control mechanism
+	pub fn get_flow_control(&self) -> std::io::Result<FlowControl> {
+		self.inner.get_flow_control()
+	}
 }

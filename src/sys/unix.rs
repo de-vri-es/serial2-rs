@@ -10,6 +10,10 @@ pub struct SerialPort {
 	pub write_timeout_ms: u32,
 }
 
+pub struct Settings {
+	pub termios: libc::termios,
+}
+
 pub fn open(path: &OsStr) -> std::io::Result<SerialPort> {
 	let file = std::fs::OpenOptions::new()
 		.read(true)
@@ -28,43 +32,24 @@ pub fn from_file(file: std::fs::File) -> SerialPort {
 	}
 }
 
-pub fn configure(inner: &mut SerialPort, settings: &crate::SerialSettings) -> std::io::Result<()> {
+pub fn get_configuration(inner: &SerialPort) -> std::io::Result<Settings> {
 	unsafe {
-		let mut termios: libc::termios = std::mem::zeroed();
+		let mut termios = std::mem::zeroed();
 		check(libc::tcgetattr(inner.file.as_raw_fd(), &mut termios))?;
-		libc::cfmakeraw(&mut termios);
+		Ok(Settings { termios })
+	}
+}
 
-		termios::set_baud_rate(&mut termios, settings.baud_rate)?;
-		termios::set_char_size(&mut termios, settings.char_size);
-		termios::set_stop_bits(&mut termios, settings.stop_bits);
-		termios::set_parity(&mut termios, settings.parity);
-		termios::set_flow_control(&mut termios, settings.flow_control);
-		check(libc::tcsetattr(inner.file.as_raw_fd(), libc::TCSADRAIN, &termios))?;
-
-		let mut real_termios: libc::termios = std::mem::zeroed();
-		check(libc::tcgetattr(inner.file.as_raw_fd(), &mut real_termios))?;
-		if !termios::is_same(&real_termios, &termios) {
+pub fn set_configuration(inner: &mut SerialPort, settings: &Settings) -> std::io::Result<()> {
+	unsafe {
+		check(libc::tcsetattr(inner.file.as_raw_fd(), libc::TCSADRAIN, &settings.termios))?;
+		let applied_settings = get_configuration(inner)?;
+		if applied_settings != *settings {
 			Err(other_error("failed to apply some or all settings"))
 		} else {
 			Ok(())
 		}
 	}
-}
-
-pub fn get_configuration(inner: &SerialPort) -> std::io::Result<crate::SerialSettings> {
-	let mut termios;
-	unsafe {
-		termios = std::mem::zeroed();
-		check(libc::tcgetattr(inner.file.as_raw_fd(), &mut termios))?;
-	}
-
-	Ok(crate::SerialSettings {
-		baud_rate: termios::get_baud_rate(&termios)?,
-		char_size: termios::get_char_size(&termios)?,
-		stop_bits: termios::get_stop_bits(&termios),
-		parity: termios::get_parity(&termios),
-		flow_control: termios::get_flow_control(&termios)?,
-	})
 }
 
 pub fn set_read_timeout(inner: &mut SerialPort, timeout: Duration) -> std::io::Result<()> {
@@ -217,22 +202,8 @@ where
 	std::io::Error::new(std::io::ErrorKind::Other, msg)
 }
 
-/// Functions to manipulate a termios structure.
-mod termios {
-	use super::{check, other_error};
-
-	pub fn is_same(a: &libc::termios, b: &libc::termios) -> bool {
-		unsafe {
-			a.c_cflag == b.c_cflag
-				&& a.c_iflag == b.c_iflag
-				&& a.c_oflag == b.c_oflag
-				&& a.c_lflag == b.c_lflag
-				&& libc::cfgetispeed(a) == libc::cfgetispeed(b)
-				&& libc::cfgetospeed(a) == libc::cfgetospeed(b)
-		}
-	}
-
-	pub fn set_baud_rate(termios: &mut libc::termios, baud_rate: u32) -> std::io::Result<()> {
+impl Settings {
+	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
 		let speed = match baud_rate {
 			50 => libc::B50,
 			75 => libc::B75,
@@ -255,14 +226,14 @@ mod termios {
 			_ => return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "unsupported baud rate")),
 		};
 		unsafe {
-			check(libc::cfsetospeed(termios, speed))?;
-			check(libc::cfsetispeed(termios, speed))?;
+			check(libc::cfsetospeed(&mut self.termios, speed))?;
+			check(libc::cfsetispeed(&mut self.termios, speed))?;
 		}
 		Ok(())
 	}
 
-	pub fn get_baud_rate(termios: &libc::termios) -> std::io::Result<u32> {
-		let speed = unsafe { libc::cfgetospeed(termios) };
+	pub fn get_baud_rate(&self) -> std::io::Result<u32> {
+		let speed = unsafe { libc::cfgetospeed(&self.termios) };
 		let speed = match speed {
 			libc::B50 => 50,
 			libc::B75 => 75,
@@ -287,18 +258,18 @@ mod termios {
 		Ok(speed)
 	}
 
-	pub fn set_char_size(termios: &mut libc::termios, char_size: crate::CharSize) {
+	pub fn set_char_size(&mut self, char_size: crate::CharSize) {
 		let bits = match char_size {
 			crate::CharSize::Bits5 => libc::CS5,
 			crate::CharSize::Bits6 => libc::CS6,
 			crate::CharSize::Bits7 => libc::CS7,
 			crate::CharSize::Bits8 => libc::CS8,
 		};
-		termios.c_cflag = (termios.c_cflag & !libc::CSIZE) | bits;
+		self.termios.c_cflag = (self.termios.c_cflag & !libc::CSIZE) | bits;
 	}
 
-	pub fn get_char_size(termios: &libc::termios) -> std::io::Result<crate::CharSize> {
-		let bits = termios.c_cflag & libc::CSIZE;
+	pub fn get_char_size(&self) -> std::io::Result<crate::CharSize> {
+		let bits = self.termios.c_cflag & libc::CSIZE;
 		match bits {
 			libc::CS5 => Ok(crate::CharSize::Bits5),
 			libc::CS6 => Ok(crate::CharSize::Bits6),
@@ -308,60 +279,60 @@ mod termios {
 		}
 	}
 
-	pub fn set_stop_bits(termios: &mut libc::termios, stop_bits: crate::StopBits) {
+	pub fn set_stop_bits(&mut self, stop_bits: crate::StopBits) {
 		match stop_bits {
-			crate::StopBits::One => termios.c_cflag &= !libc::CSTOPB,
-			crate::StopBits::Two => termios.c_cflag |= libc::CSTOPB,
+			crate::StopBits::One => self.termios.c_cflag &= !libc::CSTOPB,
+			crate::StopBits::Two => self.termios.c_cflag |= libc::CSTOPB,
 		};
 	}
 
-	pub fn get_stop_bits(termios: &libc::termios) -> crate::StopBits {
-		if termios.c_cflag & libc::CSTOPB == 0 {
-			crate::StopBits::One
+	pub fn get_stop_bits(&self) -> std::io::Result<crate::StopBits> {
+		if self.termios.c_cflag & libc::CSTOPB == 0 {
+			Ok(crate::StopBits::One)
 		} else {
-			crate::StopBits::Two
+			Ok(crate::StopBits::Two)
 		}
 	}
 
-	pub fn set_parity(termios: &mut libc::termios, parity: crate::Parity) {
+	pub fn set_parity(&mut self, parity: crate::Parity) {
 		match parity {
-			crate::Parity::None => termios.c_cflag = termios.c_cflag & !libc::PARODD & !libc::PARENB,
-			crate::Parity::Even => termios.c_cflag = termios.c_cflag & !libc::PARODD | libc::PARENB,
-			crate::Parity::Odd => termios.c_cflag = termios.c_cflag | libc::PARODD | libc::PARENB,
+			crate::Parity::None => self.termios.c_cflag = self.termios.c_cflag & !libc::PARODD & !libc::PARENB,
+			crate::Parity::Even => self.termios.c_cflag = self.termios.c_cflag & !libc::PARODD | libc::PARENB,
+			crate::Parity::Odd => self.termios.c_cflag = self.termios.c_cflag | libc::PARODD | libc::PARENB,
 		};
 	}
 
-	pub fn get_parity(termios: &libc::termios) -> crate::Parity {
-		if termios.c_cflag & libc::PARENB == 0 {
-			crate::Parity::None
-		} else if termios.c_cflag & libc::PARODD == 0 {
-			crate::Parity::Odd
+	pub fn get_parity(&self) -> std::io::Result<crate::Parity> {
+		if self.termios.c_cflag & libc::PARENB == 0 {
+			Ok(crate::Parity::None)
+		} else if self.termios.c_cflag & libc::PARODD == 0 {
+			Ok(crate::Parity::Odd)
 		} else {
-			crate::Parity::Even
+			Ok(crate::Parity::Even)
 		}
 	}
 
-	pub fn set_flow_control(termios: &mut libc::termios, flow_control: crate::FlowControl) {
+	pub fn set_flow_control(&mut self, flow_control: crate::FlowControl) {
 		match flow_control {
 			crate::FlowControl::None => {
-				termios.c_iflag &= !(libc::IXON | libc::IXOFF);
-				termios.c_cflag &= !libc::CRTSCTS;
+				self.termios.c_iflag &= !(libc::IXON | libc::IXOFF);
+				self.termios.c_cflag &= !libc::CRTSCTS;
 			},
 			crate::FlowControl::XonXoff => {
-				termios.c_iflag |= libc::IXON | libc::IXOFF;
-				termios.c_cflag &= !libc::CRTSCTS;
+				self.termios.c_iflag |= libc::IXON | libc::IXOFF;
+				self.termios.c_cflag &= !libc::CRTSCTS;
 			},
 			crate::FlowControl::RtsCts => {
-				termios.c_iflag &= !(libc::IXON | libc::IXOFF);
-				termios.c_cflag |= libc::CRTSCTS;
+				self.termios.c_iflag &= !(libc::IXON | libc::IXOFF);
+				self.termios.c_cflag |= libc::CRTSCTS;
 			},
 		};
 	}
 
-	pub fn get_flow_control(termios: &libc::termios) -> std::io::Result<crate::FlowControl> {
-		let ixon = termios.c_iflag & libc::IXON != 0;
-		let ixoff = termios.c_iflag & libc::IXOFF != 0;
-		let crtscts = termios.c_cflag & libc::CRTSCTS != 0;
+	pub fn get_flow_control(&self) -> std::io::Result<crate::FlowControl> {
+		let ixon = self.termios.c_iflag & libc::IXON != 0;
+		let ixoff = self.termios.c_iflag & libc::IXOFF != 0;
+		let crtscts = self.termios.c_cflag & libc::CRTSCTS != 0;
 
 		if !crtscts && !ixon && !ixoff {
 			Ok(crate::FlowControl::None)
@@ -372,5 +343,19 @@ mod termios {
 		} else {
 			Err(other_error("unknown flow control configuration"))
 		}
+	}
+}
+
+impl PartialEq for Settings {
+	fn eq(&self, other: &Self) -> bool {
+		let a = &self.termios;
+		let b = &other.termios;
+		a.c_cflag == b.c_cflag
+			&& a.c_iflag == b.c_iflag
+			&& a.c_oflag == b.c_oflag
+			&& a.c_lflag == b.c_lflag
+			&& a.c_line == b.c_line
+			&& a.c_ispeed == b.c_ispeed
+			&& a.c_ospeed == b.c_ospeed
 	}
 }
