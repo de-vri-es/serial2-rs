@@ -32,7 +32,7 @@ pub use settings::*;
 
 /// A serial port.
 pub struct SerialPort {
-	inner: sys::Inner,
+	inner: sys::SerialPort,
 }
 
 impl SerialPort {

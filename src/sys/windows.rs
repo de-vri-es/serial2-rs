@@ -8,11 +8,11 @@ use winapi::um::commapi;
 use winapi::um::winbase;
 use winapi::shared::minwindef::BOOL;
 
-pub struct Inner {
+pub struct SerialPort {
 	pub file: std::fs::File,
 }
 
-pub fn open(name: &OsStr) -> std::io::Result<Inner> {
+pub fn open(name: &OsStr) -> std::io::Result<SerialPort> {
 	// Use the win32 device namespace, otherwise we're limited to COM1-9.
 	// This also works with higher numbers.
 	// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#win32-device-namespaces
@@ -27,11 +27,11 @@ pub fn open(name: &OsStr) -> std::io::Result<Inner> {
 	Ok(from_file(file))
 }
 
-pub fn from_file(file: std::fs::File) -> Inner {
-	Inner { file }
+pub fn from_file(file: std::fs::File) -> SerialPort {
+	SerialPort { file }
 }
 
-pub fn configure(inner: &mut Inner, settings: &crate::SerialSettings) -> std::io::Result<()> {
+pub fn configure(inner: &mut SerialPort, settings: &crate::SerialSettings) -> std::io::Result<()> {
 	unsafe {
 		let mut dcb: winbase::DCB = std::mem::zeroed();
 		dcb.DCBlength = std::mem::size_of::<winbase::DCB>() as u32;
@@ -49,7 +49,7 @@ pub fn configure(inner: &mut Inner, settings: &crate::SerialSettings) -> std::io
 	}
 }
 
-pub fn get_configuration(inner: &Inner) -> std::io::Result<crate::SerialSettings> {
+pub fn get_configuration(inner: &SerialPort) -> std::io::Result<crate::SerialSettings> {
 	unsafe {
 		let mut dcb: winbase::DCB = std::mem::zeroed();
 		check_bool(commapi::GetCommState(inner.file.as_raw_handle(), &mut dcb))?;
@@ -64,7 +64,7 @@ pub fn get_configuration(inner: &Inner) -> std::io::Result<crate::SerialSettings
 	}
 }
 
-pub fn set_read_timeout(inner: &mut Inner, timeout: Duration) -> std::io::Result<()> {
+pub fn set_read_timeout(inner: &mut SerialPort, timeout: Duration) -> std::io::Result<()> {
 	use std::convert::TryInto;
 	unsafe {
 		let mut timeouts = std::mem::zeroed();
@@ -76,7 +76,7 @@ pub fn set_read_timeout(inner: &mut Inner, timeout: Duration) -> std::io::Result
 	}
 }
 
-pub fn get_read_timeout(inner: &Inner) -> std::io::Result<Duration> {
+pub fn get_read_timeout(inner: &SerialPort) -> std::io::Result<Duration> {
 	unsafe {
 		let mut timeouts = std::mem::zeroed();
 		check_bool(commapi::GetCommTimeouts(inner.file.as_raw_handle(), &mut timeouts))?;
@@ -84,7 +84,7 @@ pub fn get_read_timeout(inner: &Inner) -> std::io::Result<Duration> {
 	}
 }
 
-pub fn set_write_timeout(inner: &mut Inner, timeout: Duration) -> std::io::Result<()> {
+pub fn set_write_timeout(inner: &mut SerialPort, timeout: Duration) -> std::io::Result<()> {
 	use std::convert::TryInto;
 	unsafe {
 		let mut timeouts = std::mem::zeroed();
@@ -95,7 +95,7 @@ pub fn set_write_timeout(inner: &mut Inner, timeout: Duration) -> std::io::Resul
 	}
 }
 
-pub fn get_write_timeout(inner: &Inner) -> std::io::Result<Duration> {
+pub fn get_write_timeout(inner: &SerialPort) -> std::io::Result<Duration> {
 	unsafe {
 		let mut timeouts = std::mem::zeroed();
 		check_bool(commapi::GetCommTimeouts(inner.file.as_raw_handle(), &mut timeouts))?;
@@ -103,34 +103,34 @@ pub fn get_write_timeout(inner: &Inner) -> std::io::Result<Duration> {
 	}
 }
 
-pub fn read(inner: &mut Inner, buf: &mut [u8]) -> std::io::Result<usize> {
+pub fn read(inner: &mut SerialPort, buf: &mut [u8]) -> std::io::Result<usize> {
 	use std::io::Read;
 	inner.file.read(buf)
 }
 
-pub fn read_vectored(inner: &mut Inner, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
+pub fn read_vectored(inner: &mut SerialPort, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
 	// TODO: Use read timeout
 	use std::io::Read;
 	inner.file.read_vectored(buf)
 }
 
-pub fn write(inner: &mut Inner, buf: &[u8]) -> std::io::Result<usize> {
+pub fn write(inner: &mut SerialPort, buf: &[u8]) -> std::io::Result<usize> {
 	use std::io::Write;
 	inner.file.write(buf)
 }
 
-pub fn write_vectored(inner: &mut Inner, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
+pub fn write_vectored(inner: &mut SerialPort, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
 	use std::io::Write;
 	inner.file.write_vectored(buf)
 }
 
-pub fn flush_output(inner: &Inner) -> std::io::Result<()> {
+pub fn flush_output(inner: &SerialPort) -> std::io::Result<()> {
 	unsafe {
 		check_bool(winapi::um::fileapi::FlushFileBuffers(inner.file.as_raw_handle()))
 	}
 }
 
-pub fn discard_buffers(inner: &mut Inner, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
+pub fn discard_buffers(inner: &mut SerialPort, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
 	unsafe {
 		let mut flags = 0;
 		if discard_input {
@@ -144,7 +144,7 @@ pub fn discard_buffers(inner: &mut Inner, discard_input: bool, discard_output: b
 }
 
 
-pub fn set_rts(inner: &mut Inner, state: bool) -> std::io::Result<()> {
+pub fn set_rts(inner: &mut SerialPort, state: bool) -> std::io::Result<()> {
 	if state {
 		escape_comm_function(&mut inner.file, winbase::SETRTS)
 	} else {
@@ -152,11 +152,11 @@ pub fn set_rts(inner: &mut Inner, state: bool) -> std::io::Result<()> {
 	}
 }
 
-pub fn read_cts(inner: &mut Inner) -> std::io::Result<bool> {
+pub fn read_cts(inner: &mut SerialPort) -> std::io::Result<bool> {
 	read_pin(&mut inner.file, winbase::MS_CTS_ON)
 }
 
-pub fn set_dtr(inner: &mut Inner, state: bool) -> std::io::Result<()> {
+pub fn set_dtr(inner: &mut SerialPort, state: bool) -> std::io::Result<()> {
 	if state {
 		escape_comm_function(&mut inner.file, winbase::SETDTR)
 	} else {
@@ -164,15 +164,15 @@ pub fn set_dtr(inner: &mut Inner, state: bool) -> std::io::Result<()> {
 	}
 }
 
-pub fn read_dsr(inner: &mut Inner) -> std::io::Result<bool> {
+pub fn read_dsr(inner: &mut SerialPort) -> std::io::Result<bool> {
 	read_pin(&mut inner.file, winbase::MS_DSR_ON)
 }
 
-pub fn read_ri(inner: &mut Inner) -> std::io::Result<bool> {
+pub fn read_ri(inner: &mut SerialPort) -> std::io::Result<bool> {
 	read_pin(&mut inner.file, winbase::MS_RING_ON)
 }
 
-pub fn read_cd(inner: &mut Inner) -> std::io::Result<bool> {
+pub fn read_cd(inner: &mut SerialPort) -> std::io::Result<bool> {
 	// RLSD or Receive Line Signal Detect is the same as Carrier Detect.
 	//
 	// I think.
