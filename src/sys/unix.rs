@@ -10,6 +10,7 @@ pub struct SerialPort {
 	pub write_timeout_ms: u32,
 }
 
+#[derive(Clone)]
 pub struct Settings {
 	pub termios: libc::termios,
 }

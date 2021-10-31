@@ -1,4 +1,5 @@
 /// The settings of a serial port.
+#[derive(Clone)]
 pub struct Settings {
 	pub(crate) inner: crate::sys::Settings,
 }
