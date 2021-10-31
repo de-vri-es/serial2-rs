@@ -35,6 +35,8 @@ pub fn configure(inner: &mut Inner, settings: &crate::SerialSettings) -> std::io
 	unsafe {
 		let mut dcb: winbase::DCB = std::mem::zeroed();
 		dcb.DCBlength = std::mem::size_of::<winbase::DCB>() as u32;
+		check_bool(commapi::GetCommState(inner.file.as_raw_handle(), &mut dcb))?;
+
 		dcb.set_fBinary(1);
 		dcb.BaudRate = settings.baud_rate;
 

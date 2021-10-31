@@ -31,6 +31,7 @@ pub fn from_file(file: std::fs::File) -> Inner {
 pub fn configure(inner: &mut Inner, settings: &crate::SerialSettings) -> std::io::Result<()> {
 	unsafe {
 		let mut termios: libc::termios = std::mem::zeroed();
+		check(libc::tcgetattr(inner.file.as_raw_fd(), &mut termios))?;
 		libc::cfmakeraw(&mut termios);
 
 		termios::set_baud_rate(&mut termios, settings.baud_rate)?;
