@@ -4,6 +4,29 @@ pub struct Settings {
 	pub(crate) inner: crate::sys::Settings,
 }
 
+/// Common baud rates used by many applications and devices.
+///
+/// Note that all platforms support custom baud rates, so you are not limited to these values.
+/// It is also not guaranteed that all platforms or all devices support these speeds.
+///
+/// They can be useful to populate a user interface with some common options though.
+pub const COMMON_BAUD_RATES: &[u32] = &[
+	4800,
+	9600,
+	19200,
+	38400,
+	57600,
+	115200,
+	230400,
+	460800,
+	500000,
+	576000,
+	921600,
+	1000000,
+	1500000,
+	2000000,
+];
+
 /// The number of bits per character for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum CharSize {

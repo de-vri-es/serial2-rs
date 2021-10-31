@@ -31,6 +31,7 @@ pub use serial_port::SerialPort;
 mod settings;
 pub use settings::{
 	Settings,
+	COMMON_BAUD_RATES,
 	CharSize,
 	StopBits,
 	Parity,
