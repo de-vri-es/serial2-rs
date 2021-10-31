@@ -70,56 +70,48 @@ pub enum CharSize {
 	Bits8,
 }
 
-pub use CharSize::*;
-
 /// The number of stop bits per character for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum StopBits {
 	/// One stop bit.
-	Stop1,
+	One,
 
 	/// Two stop bit.
-	Stop2,
+	Two,
 }
-
-pub use StopBits::*;
 
 /// The type of parity check for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Parity {
 	/// Do not add a parity bit and do not check for parity.
-	ParityNone,
+	None,
 
 	/// Add a bit to ensure odd parity of all characters send over the serial port.
 	///
 	/// Received characters are also expected to have a parity bit and odd parity.
 	/// What happens with received characters that have invalid parity is platform and device specific.
-	ParityOdd,
+	Odd,
 
 	/// Add a bit to ensure even parity of all characters send over the serial port.
 	///
 	/// Received characters are also expected to have a parity bit and even parity.
 	/// What happens with received characters that have invalid parity is platform and device specific.
-	ParityEven,
+	Even,
 }
-
-pub use Parity::*;
 
 /// The type of flow control for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum FlowControl {
 	/// Do not perform any automatic flow control.
-	FlowControlNone,
+	None,
 
 	/// Perform XON/XOFF flow control.
 	///
 	/// This is also sometimes referred to as "software flow control".
-	FlowControlXonXoff,
+	XonXoff,
 
 	/// Perform RTS/CTS flow control.
 	///
 	/// This is also sometimes referred to as "hardware flow control".
-	FlowControlRtsCts,
+	RtsCts,
 }
-
-pub use FlowControl::*;

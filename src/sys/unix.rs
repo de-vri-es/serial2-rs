@@ -289,10 +289,10 @@ mod termios {
 
 	pub fn set_char_size(termios: &mut libc::termios, char_size: crate::CharSize) {
 		let bits = match char_size {
-			crate::Bits5 => libc::CS5,
-			crate::Bits6 => libc::CS6,
-			crate::Bits7 => libc::CS7,
-			crate::Bits8 => libc::CS8,
+			crate::CharSize::Bits5 => libc::CS5,
+			crate::CharSize::Bits6 => libc::CS6,
+			crate::CharSize::Bits7 => libc::CS7,
+			crate::CharSize::Bits8 => libc::CS8,
 		};
 		termios.c_cflag = (termios.c_cflag & !libc::CSIZE) | bits;
 	}
@@ -300,58 +300,58 @@ mod termios {
 	pub fn get_char_size(termios: &libc::termios) -> std::io::Result<crate::CharSize> {
 		let bits = termios.c_cflag & libc::CSIZE;
 		match bits {
-			libc::CS5 => Ok(crate::Bits5),
-			libc::CS6 => Ok(crate::Bits6),
-			libc::CS7 => Ok(crate::Bits7),
-			libc::CS8 => Ok(crate::Bits8),
+			libc::CS5 => Ok(crate::CharSize::Bits5),
+			libc::CS6 => Ok(crate::CharSize::Bits6),
+			libc::CS7 => Ok(crate::CharSize::Bits7),
+			libc::CS8 => Ok(crate::CharSize::Bits8),
 			_ => Err(other_error("unrecognized char size")),
 		}
 	}
 
 	pub fn set_stop_bits(termios: &mut libc::termios, stop_bits: crate::StopBits) {
 		match stop_bits {
-			crate::Stop1 => termios.c_cflag &= !libc::CSTOPB,
-			crate::Stop2 => termios.c_cflag |= libc::CSTOPB,
+			crate::StopBits::One => termios.c_cflag &= !libc::CSTOPB,
+			crate::StopBits::Two => termios.c_cflag |= libc::CSTOPB,
 		};
 	}
 
 	pub fn get_stop_bits(termios: &libc::termios) -> crate::StopBits {
 		if termios.c_cflag & libc::CSTOPB == 0 {
-			crate::Stop1
+			crate::StopBits::One
 		} else {
-			crate::Stop2
+			crate::StopBits::Two
 		}
 	}
 
 	pub fn set_parity(termios: &mut libc::termios, parity: crate::Parity) {
 		match parity {
-			crate::ParityNone => termios.c_cflag = termios.c_cflag & !libc::PARODD & !libc::PARENB,
-			crate::ParityEven => termios.c_cflag = termios.c_cflag & !libc::PARODD | libc::PARENB,
-			crate::ParityOdd => termios.c_cflag = termios.c_cflag | libc::PARODD | libc::PARENB,
+			crate::Parity::None => termios.c_cflag = termios.c_cflag & !libc::PARODD & !libc::PARENB,
+			crate::Parity::Even => termios.c_cflag = termios.c_cflag & !libc::PARODD | libc::PARENB,
+			crate::Parity::Odd => termios.c_cflag = termios.c_cflag | libc::PARODD | libc::PARENB,
 		};
 	}
 
 	pub fn get_parity(termios: &libc::termios) -> crate::Parity {
 		if termios.c_cflag & libc::PARENB == 0 {
-			crate::ParityNone
+			crate::Parity::None
 		} else if termios.c_cflag & libc::PARODD == 0 {
-			crate::ParityOdd
+			crate::Parity::Odd
 		} else {
-			crate::ParityEven
+			crate::Parity::Even
 		}
 	}
 
 	pub fn set_flow_control(termios: &mut libc::termios, flow_control: crate::FlowControl) {
 		match flow_control {
-			crate::FlowControlNone => {
+			crate::FlowControl::None => {
 				termios.c_iflag &= !(libc::IXON | libc::IXOFF);
 				termios.c_cflag &= !libc::CRTSCTS;
 			},
-			crate::FlowControlXonXoff => {
+			crate::FlowControl::XonXoff => {
 				termios.c_iflag |= libc::IXON | libc::IXOFF;
 				termios.c_cflag &= !libc::CRTSCTS;
 			},
-			crate::FlowControlRtsCts => {
+			crate::FlowControl::RtsCts => {
 				termios.c_iflag &= !(libc::IXON | libc::IXOFF);
 				termios.c_cflag |= libc::CRTSCTS;
 			},
@@ -364,11 +364,11 @@ mod termios {
 		let crtscts = termios.c_cflag & libc::CRTSCTS != 0;
 
 		if !crtscts && !ixon && !ixoff {
-			Ok(crate::FlowControlNone)
+			Ok(crate::FlowControl::None)
 		} else if crtscts && !ixon && !ixoff {
-			Ok(crate::FlowControlXonXoff)
+			Ok(crate::FlowControl::XonXoff)
 		} else if !crtscts && ixon && ixoff {
-			Ok(crate::FlowControlRtsCts)
+			Ok(crate::FlowControl::RtsCts)
 		} else {
 			Err(other_error("unknown flow control configuration"))
 		}

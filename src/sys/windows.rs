@@ -217,49 +217,49 @@ mod dcb {
 
 	pub fn set_char_size(dcb: &mut DCB, char_size: crate::CharSize) {
 		dcb.ByteSize = match char_size {
-			crate::Bits5 => 5,
-			crate::Bits6 => 6,
-			crate::Bits7 => 7,
-			crate::Bits8 => 8,
+			crate::CharSize::Bits5 => 5,
+			crate::CharSize::Bits6 => 6,
+			crate::CharSize::Bits7 => 7,
+			crate::CharSize::Bits8 => 8,
 		};
 	}
 
 	pub fn get_char_size(dcb: &DCB) -> std::io::Result<crate::CharSize> {
 		match dcb.ByteSize {
-			5 => Ok(crate::Bits5),
-			6 => Ok(crate::Bits6),
-			7 => Ok(crate::Bits7),
-			8 => Ok(crate::Bits8),
+			5 => Ok(crate::CharSize::Bits5),
+			6 => Ok(crate::CharSize::Bits6),
+			7 => Ok(crate::CharSize::Bits7),
+			8 => Ok(crate::CharSize::Bits8),
 			_ => Err(other_error("unsupported char size")),
 		}
 	}
 
 	pub fn set_stop_bits(dcb: &mut DCB, stop_bits: crate::StopBits) {
 		dcb.StopBits = match stop_bits {
-			crate::Stop1 => winbase::ONESTOPBIT,
-			crate::Stop2 => winbase::TWOSTOPBITS,
+			crate::StopBits::One => winbase::ONESTOPBIT,
+			crate::StopBits::Two => winbase::TWOSTOPBITS,
 		};
 	}
 
 	pub fn get_stop_bits(dcb: &DCB) -> std::io::Result<crate::StopBits> {
 		match dcb.StopBits {
-			winbase::ONESTOPBIT => Ok(crate::Stop1),
-			winbase::TWOSTOPBITS => Ok(crate::Stop2),
+			winbase::ONESTOPBIT => Ok(crate::StopBits::One),
+			winbase::TWOSTOPBITS => Ok(crate::StopBits::Two),
 			_ => Err(other_error("unsupported stop bits")),
 		}
 	}
 
 	pub fn set_parity(dcb: &mut DCB, parity: crate::Parity) {
 		match parity {
-			crate::ParityNone => {
+			crate::Parity::None => {
 				dcb.set_fParity(0);
 				dcb.Parity = winbase::NOPARITY;
 			},
-			crate::ParityOdd => {
+			crate::Parity::Odd => {
 				dcb.set_fParity(1);
 				dcb.Parity = winbase::ODDPARITY;
 			},
-			crate::ParityEven => {
+			crate::Parity::Even => {
 				dcb.set_fParity(1);
 				dcb.Parity = winbase::EVENPARITY;
 			},
@@ -269,16 +269,16 @@ mod dcb {
 	pub fn get_parity(dcb: &DCB) -> std::io::Result<crate::Parity> {
 		let parity_enabled = dcb.fParity() != 0;
 		match dcb.Parity {
-			winbase::NOPARITY => Ok(crate::ParityNone),
-			winbase::ODDPARITY if parity_enabled => Ok(crate::ParityOdd),
-			winbase::EVENPARITY if parity_enabled => Ok(crate::ParityEven),
+			winbase::NOPARITY => Ok(crate::Parity::None),
+			winbase::ODDPARITY if parity_enabled => Ok(crate::Parity::Odd),
+			winbase::EVENPARITY if parity_enabled => Ok(crate::Parity::Even),
 			_ => Err(other_error("unsupported parity configuration")),
 		}
 	}
 
 	pub fn set_flow_control(dcb: &mut DCB, flow_control: crate::FlowControl) {
 		match flow_control {
-			crate::FlowControlNone => {
+			crate::FlowControl::None => {
 				dcb.set_fInX(0);
 				dcb.set_fOutX(0);
 				dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
@@ -286,7 +286,7 @@ mod dcb {
 				dcb.set_fOutxCtsFlow(0);
 				dcb.set_fOutxDsrFlow(0);
 			},
-			crate::FlowControlXonXoff => {
+			crate::FlowControl::XonXoff => {
 				dcb.set_fInX(1);
 				dcb.set_fOutX(1);
 				dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
@@ -294,7 +294,7 @@ mod dcb {
 				dcb.set_fOutxCtsFlow(0);
 				dcb.set_fOutxDsrFlow(0);
 			},
-			crate::FlowControlRtsCts => {
+			crate::FlowControl::RtsCts => {
 				dcb.set_fInX(0);
 				dcb.set_fOutX(0);
 				dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
@@ -312,9 +312,9 @@ mod dcb {
 		let out_dsr = dcb.fOutxDsrFlow() != 0;
 
 		match (in_x, out_x, out_cts, out_dsr, dcb.fDtrControl(), dcb.fRtsControl()) {
-			(false, false, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControlNone),
-			(true, true, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControlXonXoff),
-			(false, false, true, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_TOGGLE) => Ok(crate::FlowControlRtsCts),
+			(false, false, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControl::None),
+			(true, true, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControl::XonXoff),
+			(false, false, true, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_TOGGLE) => Ok(crate::FlowControl::RtsCts),
 			_ => Err(other_error("unsupported flow control configuration")),
 		}
 	}
