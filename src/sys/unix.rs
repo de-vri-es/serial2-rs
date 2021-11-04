@@ -12,6 +12,10 @@ pub struct SerialPort {
 
 #[derive(Clone)]
 pub struct Settings {
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub termios: libc::termios2,
+
+	#[cfg(not(any(target_os = "android", target_os = "linux")))]
 	pub termios: libc::termios,
 }
 
@@ -35,6 +39,14 @@ impl SerialPort {
 	}
 
 	pub fn get_configuration(&self) -> std::io::Result<Settings> {
+		#[cfg(any(target_os = "android", target_os = "linux"))]
+		unsafe {
+			let mut termios = std::mem::zeroed();
+			check(libc::ioctl(self.file.as_raw_fd(), libc::TCGETS2, &mut termios as *mut _))?;
+			Ok(Settings { termios })
+		}
+
+		#[cfg(not(any(target_os = "android", target_os = "linux")))]
 		unsafe {
 			let mut termios = std::mem::zeroed();
 			check(libc::tcgetattr(self.file.as_raw_fd(), &mut termios))?;
@@ -43,14 +55,21 @@ impl SerialPort {
 	}
 
 	pub fn set_configuration(&mut self, settings: &Settings) -> std::io::Result<()> {
+		#[cfg(any(target_os = "android", target_os = "linux"))]
+		unsafe {
+			check(libc::ioctl(self.file.as_raw_fd(), libc::TCSETSW2, &settings.termios as *const _))?;
+		}
+
+		#[cfg(not(any(target_os = "android", target_os = "linux")))]
 		unsafe {
 			check(libc::tcsetattr(self.file.as_raw_fd(), libc::TCSADRAIN, &settings.termios))?;
-			let applied_settings = self.get_configuration()?;
-			if applied_settings != *settings {
-				Err(other_error("failed to apply some or all settings"))
-			} else {
-				Ok(())
-			}
+		}
+
+		let applied_settings = self.get_configuration()?;
+		if applied_settings != *settings {
+			Err(other_error("failed to apply some or all settings"))
+		} else {
+			Ok(())
 		}
 	}
 
@@ -207,58 +226,119 @@ where
 
 impl Settings {
 	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
-		let speed = match baud_rate {
-			50 => libc::B50,
-			75 => libc::B75,
-			110 => libc::B110,
-			134 => libc::B134,
-			150 => libc::B150,
-			200 => libc::B200,
-			300 => libc::B300,
-			600 => libc::B600,
-			1200 => libc::B1200,
-			1800 => libc::B1800,
-			2400 => libc::B2400,
-			4800 => libc::B4800,
-			9600 => libc::B9600,
-			19200 => libc::B19200,
-			38400 => libc::B38400,
-			57600 => libc::B57600,
-			115200 => libc::B115200,
-			230400 => libc::B230400,
-			_ => return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "unsupported baud rate")),
-		};
+		#[cfg(any(
+			target_os = "freebsd",
+			target_os = "macos",
+			target_os = "netbsd",
+			target_os = "openbsd",
+		))]
 		unsafe {
 			check(libc::cfsetospeed(&mut self.termios, speed))?;
 			check(libc::cfsetispeed(&mut self.termios, speed))?;
+			Ok(())
 		}
-		Ok(())
+
+		#[cfg(any(
+			target_os = "android",
+			target_os = "linux",
+		))]
+		{
+			// Always use `BOTHER` because we can't be bothered to use cfsetospeed/cfsetispeed for standard values.
+			self.termios.c_cflag |= libc::BOTHER;
+			self.termios.c_ospeed = baud_rate;
+			self.termios.c_ispeed = baud_rate;
+			Ok(())
+		}
+
+		#[cfg(not(any(
+			target_os = "android",
+			target_os = "freebsd",
+			target_os = "linux",
+			target_os = "netbsd",
+			target_os = "openbsd",
+			target_os = "macos",
+		)))]
+		unsafe {
+			let speed = match baud_rate {
+				// POSIX 2017.1: https://pubs.opengroup.org/onlinepubs/9699919799
+				50 => libc::B50,
+				75 => libc::B75,
+				110 => libc::B110,
+				134 => libc::B134,
+				150 => libc::B150,
+				200 => libc::B200,
+				300 => libc::B300,
+				600 => libc::B600,
+				1200 => libc::B1200,
+				1800 => libc::B1800,
+				2400 => libc::B2400,
+				4800 => libc::B4800,
+				9600 => libc::B9600,
+				19200 => libc::B19200,
+				38400 => libc::B38400,
+				// Not POSIX anymore, but we realllly want these.
+				// Please file an issue if these don't exist for your platform.
+				57600 => libc::B57600,
+				115200 => libc::B115200,
+				230400 => libc::B230400,
+				_ => return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "unsupported baud rate")),
+			};
+			check(libc::cfsetospeed(&mut self.termios, speed))?;
+			check(libc::cfsetispeed(&mut self.termios, speed))?;
+			Ok(())
+		}
 	}
 
 	pub fn get_baud_rate(&self) -> std::io::Result<u32> {
-		let speed = unsafe { libc::cfgetospeed(&self.termios) };
-		let speed = match speed {
-			libc::B50 => 50,
-			libc::B75 => 75,
-			libc::B110 => 110,
-			libc::B134 => 134,
-			libc::B150 => 150,
-			libc::B200 => 200,
-			libc::B300 => 300,
-			libc::B600 => 600,
-			libc::B1200 => 1200,
-			libc::B1800 => 1800,
-			libc::B2400 => 2400,
-			libc::B4800 => 4800,
-			libc::B9600 => 9600,
-			libc::B19200 => 19200,
-			libc::B38400 => 38400,
-			libc::B57600 => 57600,
-			libc::B115200 => 115200,
-			libc::B230400 => 230400,
-			_ => return Err(other_error("unrecognized baud rate")),
-		};
-		Ok(speed)
+		#[cfg(any(
+			target_os = "freebsd",
+			target_os = "macos",
+			target_os = "netbsd",
+			target_os = "openbsd",
+		))]
+		unsafe {
+			return Ok(libc::cfgetospeed(&self.termios));
+		}
+
+		#[cfg(any(
+			target_os = "android",
+			target_os = "linux",
+		))]
+		if self.termios.c_cflag & libc::BOTHER != 0 {
+			return Ok(self.termios.c_ospeed);
+		}
+
+		#[cfg(not(any(
+			target_os = "freebsd",
+			target_os = "macos",
+			target_os = "netbsd",
+			target_os = "openbsd",
+		)))]
+		unsafe {
+			let speed = libc::cfgetospeed(&self.termios as *const _ as *const _ );
+			let speed = match speed {
+				libc::B50 => 50,
+				libc::B75 => 75,
+				libc::B110 => 110,
+				libc::B134 => 134,
+				libc::B150 => 150,
+				libc::B200 => 200,
+				libc::B300 => 300,
+				libc::B600 => 600,
+				libc::B1200 => 1200,
+				libc::B1800 => 1800,
+				libc::B2400 => 2400,
+				libc::B4800 => 4800,
+				libc::B9600 => 9600,
+				libc::B19200 => 19200,
+				libc::B38400 => 38400,
+				libc::B57600 => 57600,
+				libc::B115200 => 115200,
+				libc::B230400 => 230400,
+				_ => return Err(other_error("unrecognized baud rate")),
+			};
+			Ok(speed)
+		}
 	}
 
 	pub fn set_char_size(&mut self, char_size: crate::CharSize) {
@@ -353,12 +433,19 @@ impl PartialEq for Settings {
 	fn eq(&self, other: &Self) -> bool {
 		let a = &self.termios;
 		let b = &other.termios;
-		a.c_cflag == b.c_cflag
-			&& a.c_iflag == b.c_iflag
-			&& a.c_oflag == b.c_oflag
-			&& a.c_lflag == b.c_lflag
-			&& a.c_line == b.c_line
-			&& a.c_ispeed == b.c_ispeed
-			&& a.c_ospeed == b.c_ospeed
+		let same = true;
+		let same = same && a.c_cflag == b.c_cflag;
+		let same = same && a.c_iflag == b.c_iflag;
+		let same = same && a.c_oflag == b.c_oflag;
+		let same = same && a.c_lflag == b.c_lflag;
+		let same = same && a.c_line == b.c_line;
+
+		#[cfg(any(target_os = "android", target_os = "linux"))]
+		{
+			let same = same && a.c_ispeed == b.c_ispeed;
+			let same = same && a.c_ospeed == b.c_ospeed;
+		}
+
+		same
 	}
 }
