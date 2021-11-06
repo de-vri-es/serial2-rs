@@ -200,7 +200,7 @@ fn set_pin(file: &mut std::fs::File, pin: c_int, state: bool) -> std::io::Result
 fn read_pin(file: &mut std::fs::File, pin: c_int) -> std::io::Result<bool> {
 	unsafe {
 		let mut bits: c_int = 0;
-		check(libc::ioctl(file.as_raw_fd(), libc::TIOCMGET, &mut bits))?;
+		check(libc::ioctl(file.as_raw_fd(), libc::TIOCMGET as _, &mut bits))?;
 		Ok(bits & pin != 0)
 	}
 }
@@ -231,8 +231,8 @@ impl Settings {
 			target_os = "openbsd",
 		))]
 		unsafe {
-			check(libc::cfsetospeed(&mut self.termios, speed))?;
-			check(libc::cfsetispeed(&mut self.termios, speed))?;
+			check(libc::cfsetospeed(&mut self.termios, baud_rate as _))?;
+			check(libc::cfsetispeed(&mut self.termios, baud_rate as _))?;
 			Ok(())
 		}
 
@@ -295,7 +295,7 @@ impl Settings {
 			target_os = "openbsd",
 		))]
 		unsafe {
-			return Ok(libc::cfgetospeed(&self.termios));
+			return Ok(libc::cfgetospeed(&self.termios).try_into().unwrap());
 		}
 
 		#[cfg(any(
@@ -436,10 +436,11 @@ impl PartialEq for Settings {
 		let same = same && a.c_iflag == b.c_iflag;
 		let same = same && a.c_oflag == b.c_oflag;
 		let same = same && a.c_lflag == b.c_lflag;
-		let same = same && a.c_line == b.c_line;
+		let same = same && a.c_cc == b.c_cc;
 
 		#[cfg(any(target_os = "android", target_os = "linux"))]
 		{
+			let same = same && a.c_line == b.c_line;
 			let same = same && a.c_ispeed == b.c_ispeed;
 			let same = same && a.c_ospeed == b.c_ospeed;
 		}
