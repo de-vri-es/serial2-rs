@@ -74,7 +74,6 @@ impl SerialPort {
 	}
 
 	pub fn set_read_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
-		use std::convert::TryInto;
 		self.read_timeout_ms = timeout.as_millis().try_into().unwrap_or(u32::MAX);
 		Ok(())
 	}
@@ -84,7 +83,6 @@ impl SerialPort {
 	}
 
 	pub fn set_write_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
-		use std::convert::TryInto;
 		self.write_timeout_ms = timeout.as_millis().try_into().unwrap_or(u32::MAX);
 		Ok(())
 	}

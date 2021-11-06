@@ -55,7 +55,6 @@ impl SerialPort {
 	}
 
 	pub fn set_read_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
-		use std::convert::TryInto;
 		unsafe {
 			let mut timeouts = std::mem::zeroed();
 			check_bool(commapi::GetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))?;
@@ -75,7 +74,6 @@ impl SerialPort {
 	}
 
 	pub fn set_write_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
-		use std::convert::TryInto;
 		unsafe {
 			let mut timeouts = std::mem::zeroed();
 			check_bool(commapi::GetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))?;
