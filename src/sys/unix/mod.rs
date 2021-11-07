@@ -279,32 +279,11 @@ impl Settings {
 				Ok(())
 			} else {
 				unsafe {
-					let speed = match baud_rate {
-						// POSIX 2017.1: https://pubs.opengroup.org/onlinepubs/9699919799
-						50 => libc::B50,
-						75 => libc::B75,
-						110 => libc::B110,
-						134 => libc::B134,
-						150 => libc::B150,
-						200 => libc::B200,
-						300 => libc::B300,
-						600 => libc::B600,
-						1200 => libc::B1200,
-						1800 => libc::B1800,
-						2400 => libc::B2400,
-						4800 => libc::B4800,
-						9600 => libc::B9600,
-						19200 => libc::B19200,
-						38400 => libc::B38400,
-						// Not POSIX anymore, but we realllly want these.
-						// Please file an issue if these don't exist for your platform.
-						57600 => libc::B57600,
-						115200 => libc::B115200,
-						230400 => libc::B230400,
-						_ => return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "unsupported baud rate")),
-					};
-					check(libc::cfsetospeed(&mut self.termios, speed))?;
-					check(libc::cfsetispeed(&mut self.termios, speed))?;
+					let &(constant, _) = fills::BAUD_RATES.iter()
+						.find(|&&(_, bits_per_second)| bits_per_second == baud_rate)
+						.ok_or_else(|| std::io::Error::new(std::io::ErrorKind::InvalidInput, "unsupported baud rate"))?;
+					check(libc::cfsetospeed(&mut self.termios, constant))?;
+					check(libc::cfsetispeed(&mut self.termios, constant))?;
 					Ok(())
 				}
 			}
@@ -335,29 +314,11 @@ impl Settings {
 				}
 
 				unsafe {
-					let speed = libc::cfgetospeed(&self.termios as *const _ as *const _ );
-					let speed = match speed {
-						libc::B50 => 50,
-						libc::B75 => 75,
-						libc::B110 => 110,
-						libc::B134 => 134,
-						libc::B150 => 150,
-						libc::B200 => 200,
-						libc::B300 => 300,
-						libc::B600 => 600,
-						libc::B1200 => 1200,
-						libc::B1800 => 1800,
-						libc::B2400 => 2400,
-						libc::B4800 => 4800,
-						libc::B9600 => 9600,
-						libc::B19200 => 19200,
-						libc::B38400 => 38400,
-						libc::B57600 => 57600,
-						libc::B115200 => 115200,
-						libc::B230400 => 230400,
-						_ => return Err(other_error("unrecognized baud rate")),
-					};
-					Ok(speed)
+					let termios_speed = libc::cfgetospeed(&self.termios as *const _ as *const _ );
+					let &(_, bits_per_second) = fills::BAUD_RATES.iter()
+						.find(|&&(constant, _)| constant == termios_speed)
+						.ok_or_else(|| other_error("unrecognized baud rate"))?;
+					Ok(bits_per_second)
 				}
 			}
 		}
