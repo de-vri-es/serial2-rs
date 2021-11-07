@@ -1,20 +1,25 @@
-//! Serial ports for Rust.
+//! Serial communication for Rust.
 //!
 //! The `serial2` crate provides a cross-platform way to use serial ports.
-//! The API is heavily inspired by the `serial` crate, which now seems to be unmaintained.
-//! This crate adds some missing functionality and has a simplified interface compared to it's predecessor.
+//! The API is inspired by the `serial` and `serialport` crates, and in some cases even borrows implementation details.
 //!
-//! You can open a serial port and configure it in one go with [`SerialPort::open()`].
-//! The returned [`SerialPort`] object implements the standard [`std::io::Read`] and [`std::io::Write`] traits.
+//! This crate adds some missing functionality compared to the `serial` crate, and aims to have a simpler API than other alternatives.
+//! This mostly means that there is a single [`SerialPort`] type rather than a trait and platform specific implementations.
+//! Platform specific functionality is simply implemented on the same type, and removed on incompatible platforms with `#[cfg(...)]` attributes.
 //!
-//! You can also clear the OS buffer for received but not-yet read data,
-//! and the OS buffer for written but not-yet transmitted data.
-//! This is done with one of the [`SerialPort::discard_input_buffer()`], [`SerialPort::discard_output_buffer()`] or [`SerialPort::discard_buffers()`] functions.
+//! You can open and configure a serial port in one go with [`SerialPort::open()`].
+//! The returned [`SerialPort`] object implements the standard [`std::io::Read`] and [`std::io::Write`] traits,
+//! as well as some serial port specific functions.
 //!
-//! You can set read/write timeouts using [`SerialPort::set_read_timeout`] and [`SerialPort::set_write_timeout`].
+//! It is also possible to clear the OS buffers for the serial port.
+//! The kernel input buffer contains data that has been received by the kernel, but has not yet been returned by a `read()` call.
+//! The kernel output buffer contains data that has been passed to the kernel with a `write()` call, but has not yet been transmitted by the hardware.
+//! You can clear these buffers with one of the [`SerialPort::discard_input_buffer()`], [`SerialPort::discard_output_buffer()`] or [`SerialPort::discard_buffers()`] functions.
+//!
+//! The crate also supports read/write timeouts, which can be set using [`SerialPort::set_read_timeout`] and [`SerialPort::set_write_timeout`].
 //! The exact timeout behaviour is platform specific, so be sure to read the documentation for more details.
 //!
-//! You can also control or read some individual signal lines using
+//! Finally, the library allows you to control or read the state of some individual signal lines using
 //! [`SerialPort::set_rts()`], [`SerialPort::read_cts()`], [`SerialPort::set_dtr()`], [`SerialPort::read_dsr()`],
 //! [`SerialPort::read_ri()`] and [`SerialPort::read_cd()`].
 
