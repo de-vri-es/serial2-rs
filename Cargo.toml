@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [target.'cfg(unix)'.dependencies]
-libc = "0.2.97"
+libc = "0.2.107"
 cfg-if = "1.0.0"
 
 [target.'cfg(windows)'.dependencies]

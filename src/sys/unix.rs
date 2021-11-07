@@ -11,8 +11,7 @@ pub struct SerialPort {
 	pub write_timeout_ms: u32,
 }
 
-#[cfg(any(target_os = "android", target_os = "linux"))]
-mod linux;
+mod consts;
 
 cfg_if! {
 	if #[cfg(all(
@@ -22,21 +21,21 @@ cfg_if! {
 	{
 		#[derive(Clone)]
 		pub struct Settings {
-			pub termios: linux::termios2,
+			pub termios: libc::termios2,
 		}
 
 		impl Settings {
 			fn get_from_file(file: &std::fs::File) -> std::io::Result<Self> {
 				unsafe {
 					let mut termios = std::mem::zeroed();
-					check(libc::ioctl(file.as_raw_fd(), linux::TCGETS2 as _, &mut termios as *mut _))?;
+					check(libc::ioctl(file.as_raw_fd(), libc::TCGETS2 as _, &mut termios as *mut _))?;
 					Ok(Settings { termios })
 				}
 			}
 
 			fn set_on_file(&self, file: &mut std::fs::File) -> std::io::Result<()> {
 				unsafe {
-					check(libc::ioctl(file.as_raw_fd(), linux::TCSETSW2 as _, &self.termios as *const _))?;
+					check(libc::ioctl(file.as_raw_fd(), libc::TCSETSW2 as _, &self.termios as *const _))?;
 					Ok(())
 				}
 			}
@@ -175,27 +174,27 @@ impl SerialPort {
 	}
 
 	pub fn set_rts(&mut self, state: bool) -> std::io::Result<()> {
-		set_pin(&mut self.file, libc::TIOCM_RTS, state)
+		set_pin(&mut self.file, consts::TIOCM_RTS, state)
 	}
 
 	pub fn read_cts(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, libc::TIOCM_CTS)
+		read_pin(&mut self.file, consts::TIOCM_CTS)
 	}
 
 	pub fn set_dtr(&mut self, state: bool) -> std::io::Result<()> {
-		set_pin(&mut self.file, libc::TIOCM_DTR, state)
+		set_pin(&mut self.file, consts::TIOCM_DTR, state)
 	}
 
 	pub fn read_dsr(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, libc::TIOCM_DSR)
+		read_pin(&mut self.file, consts::TIOCM_DSR)
 	}
 
 	pub fn read_ri(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, libc::TIOCM_RI)
+		read_pin(&mut self.file, consts::TIOCM_RI)
 	}
 
 	pub fn read_cd(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, libc::TIOCM_CD)
+		read_pin(&mut self.file, consts::TIOCM_CD)
 	}
 }
 
@@ -215,9 +214,9 @@ fn poll(file: &mut std::fs::File, events: std::os::raw::c_short, timeout_ms: u32
 fn set_pin(file: &mut std::fs::File, pin: c_int, state: bool) -> std::io::Result<()> {
 	unsafe {
 		if state {
-			check(libc::ioctl(file.as_raw_fd(), libc::TIOCMBIS, &pin))?;
+			check(libc::ioctl(file.as_raw_fd(), consts::TIOCMBIS as _, &pin))?;
 		} else {
-			check(libc::ioctl(file.as_raw_fd(), libc::TIOCMBIC, &pin))?;
+			check(libc::ioctl(file.as_raw_fd(), consts::TIOCMBIC as _, &pin))?;
 		}
 		Ok(())
 	}
@@ -226,7 +225,7 @@ fn set_pin(file: &mut std::fs::File, pin: c_int, state: bool) -> std::io::Result
 fn read_pin(file: &mut std::fs::File, pin: c_int) -> std::io::Result<bool> {
 	unsafe {
 		let mut bits: c_int = 0;
-		check(libc::ioctl(file.as_raw_fd(), libc::TIOCMGET as _, &mut bits))?;
+		check(libc::ioctl(file.as_raw_fd(), consts::TIOCMGET as _, &mut bits))?;
 		Ok(bits & pin != 0)
 	}
 }
@@ -268,7 +267,7 @@ impl Settings {
 			))]
 			{
 				// Always use `BOTHER` because we can't be bothered to use cfsetospeed/cfsetispeed for standard values.
-				self.termios.c_cflag |= linux::BOTHER;
+				self.termios.c_cflag |= consts::BOTHER;
 				self.termios.c_ospeed = baud_rate;
 				self.termios.c_ispeed = baud_rate;
 				Ok(())
@@ -323,7 +322,7 @@ impl Settings {
 					any(target_os = "android", target_os = "linux"),
 					not(any(target_arch = "powerpc", target_arch = "powerpc64"))
 				))]
-				if self.termios.c_cflag & linux::BOTHER != 0 {
+				if self.termios.c_cflag & consts::BOTHER != 0 {
 					return Ok(self.termios.c_ospeed);
 				}
 
