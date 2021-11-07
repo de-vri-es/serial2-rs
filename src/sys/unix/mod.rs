@@ -28,14 +28,14 @@ cfg_if! {
 			fn get_from_file(file: &std::fs::File) -> std::io::Result<Self> {
 				unsafe {
 					let mut termios = std::mem::zeroed();
-					check(libc::ioctl(file.as_raw_fd(), libc::TCGETS2 as _, &mut termios as *mut _))?;
+					check(libc::ioctl(file.as_raw_fd(), libc::TCGETS2 as _, &mut termios))?;
 					Ok(Settings { termios })
 				}
 			}
 
 			fn set_on_file(&self, file: &mut std::fs::File) -> std::io::Result<()> {
 				unsafe {
-					check(libc::ioctl(file.as_raw_fd(), libc::TCSETSW2 as _, &self.termios as *const _))?;
+					check(libc::ioctl(file.as_raw_fd(), libc::TCSETSW2 as _, &self.termios))?;
 					Ok(())
 				}
 			}
@@ -267,7 +267,11 @@ impl Settings {
 			))]
 			{
 				// Always use `BOTHER` because we can't be bothered to use cfsetospeed/cfsetispeed for standard values.
+				//
+				// Also, we don't actually have a termios struct to pass to cfsetospeed or cfsetispeed.
+				self.termios.c_cflag &= !(libc::CBAUD | libc::CIBAUD);
 				self.termios.c_cflag |= fills::BOTHER;
+				self.termios.c_cflag |= fills::BOTHER << fills::IBSHIFT;
 				self.termios.c_ospeed = baud_rate;
 				self.termios.c_ispeed = baud_rate;
 				Ok(())
@@ -322,7 +326,7 @@ impl Settings {
 					any(target_os = "android", target_os = "linux"),
 					not(any(target_arch = "powerpc", target_arch = "powerpc64"))
 				))]
-				if self.termios.c_cflag & fills::BOTHER != 0 {
+				if self.termios.c_cflag & libc::CBAUD == fills::BOTHER {
 					return Ok(self.termios.c_ospeed);
 				}
 

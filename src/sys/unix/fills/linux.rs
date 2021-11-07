@@ -1,5 +1,17 @@
 use cfg_if::cfg_if;
 
+// IBSHIFT is 16 on all architectures.
+//
+// But we don't use it on the PowerPC architecture.
+#[cfg(not(any(
+	target_arch = "powerpc",
+	target_arch = "powerpc64",
+)))]
+pub const IBSHIFT: libc::tcflag_t = 16;
+
+// BOTHER is missing for musl/uclibc targets
+//
+// It's easier to just define it for all architectures though, also for GNU targets.
 cfg_if! {
 	// Generic
 	if #[cfg(any(
@@ -29,6 +41,14 @@ cfg_if! {
 	))]
 	{
 		pub const BOTHER: libc::speed_t = 0x1000;
+
+	// PowerPC
+	} else if #[cfg(any(
+		target_arch = "powerpc",
+		target_arch = "powerpc64",
+	))]
+	{
+		// pub const BOTHER: libc::speed_t = 0o0037;
 	}
 }
 
