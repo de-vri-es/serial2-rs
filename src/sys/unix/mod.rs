@@ -251,7 +251,9 @@ impl Settings {
 	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
 		cfg_if! {
 			if #[cfg(any(
+				target_os = "dragonfly",
 				target_os = "freebsd",
+				target_os = "ios",
 				target_os = "macos",
 				target_os = "netbsd",
 				target_os = "openbsd",
@@ -312,7 +314,9 @@ impl Settings {
 	pub fn get_baud_rate(&self) -> std::io::Result<u32> {
 		cfg_if! {
 			if #[cfg(any(
+				target_os = "dragonfly",
 				target_os = "freebsd",
+				target_os = "ios",
 				target_os = "macos",
 				target_os = "netbsd",
 				target_os = "openbsd",
