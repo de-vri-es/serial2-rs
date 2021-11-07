@@ -4,9 +4,9 @@ use std::os::windows::io::AsRawHandle;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use winapi::um::commapi;
-use winapi::um::winbase;
-use winapi::shared::minwindef::BOOL;
+use winapi::um::{commapi, winbase,winnt, winreg};
+use winapi::shared::minwindef::{BOOL, HKEY};
+use winapi::shared::winerror;
 
 pub struct SerialPort {
 	pub file: std::fs::File,
@@ -314,6 +314,112 @@ impl Settings {
 	}
 }
 
+#[derive(Debug)]
+struct RegKey {
+	key: HKEY,
+}
+
+impl RegKey {
+	fn open(parent: HKEY, subpath: &[u8], rights: winreg::REGSAM) -> std::io::Result<Self> {
+		unsafe {
+			let mut key: HKEY = std::ptr::null_mut();
+			let status = winreg::RegOpenKeyExA(
+				parent,
+				subpath.as_ptr().cast(),
+				0,
+				rights,
+				&mut key,
+			);
+			if status != 0 {
+				Err(std::io::Error::from_raw_os_error(status))
+			} else {
+				Ok(Self { key })
+			}
+		}
+	}
+
+	fn get_value_info(&self) -> std::io::Result<(u32, u32, u32)> {
+		unsafe {
+			let mut value_count: u32 = 0;
+			let mut max_value_name_len: u32 = 0;
+			let mut max_value_data_len: u32 = 0;
+			let status = winreg::RegQueryInfoKeyA(
+				self.key,
+				std::ptr::null_mut(),
+				std::ptr::null_mut(),
+				std::ptr::null_mut(),
+				std::ptr::null_mut(),
+				std::ptr::null_mut(),
+				std::ptr::null_mut(),
+				&mut value_count,
+				&mut max_value_name_len,
+				&mut max_value_data_len,
+				std::ptr::null_mut(),
+				std::ptr::null_mut(),
+			);
+			if status != 0 {
+				Err(std::io::Error::from_raw_os_error(status))
+			} else {
+				Ok((value_count, max_value_name_len, max_value_data_len))
+			}
+		}
+	}
+
+	fn get_string_value(&self, index: u32, max_name_len: u32, max_data_len: u32) -> std::io::Result<Option<(Vec<u8>, Vec<u8>)>> {
+		unsafe {
+			let mut name = vec![0u8; max_name_len as usize + 1];
+			let mut data = vec![0u8; max_data_len as usize];
+			let mut name_len = name.len() as u32;
+			let mut data_len = data.len() as u32;
+			let mut kind = 0;
+			let status = winreg::RegEnumValueA(
+				self.key,
+				index,
+				name.as_mut_ptr().cast(),
+				&mut name_len,
+				std::ptr::null_mut(),
+				&mut kind,
+				data.as_mut_ptr().cast(),
+				&mut data_len,
+			);
+			if status == winerror::ERROR_NO_MORE_ITEMS as i32 {
+				Ok(None)
+			} else if status != 0 {
+				Err(std::io::Error::from_raw_os_error(status))
+			} else if kind != winnt::REG_SZ {
+				Ok(None)
+			} else {
+				name.shrink_to(name_len as usize + 1);
+				data.shrink_to(data_len as usize);
+				Ok(Some((name, data)))
+			}
+		}
+	}
+}
+
+impl Drop for RegKey {
+	fn drop(&mut self) {
+		unsafe {
+			winreg::RegCloseKey(self.key);
+		}
+	}
+}
+
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
-	Err(std::io::Error::new(std::io::ErrorKind::Other, "port enumeration is not implemented for this platform"))
+	let device_map = RegKey::open(winreg::HKEY_LOCAL_MACHINE, b"Hardware\\DEVICEMAP\\SERIALCOMM", winnt::KEY_READ)?;
+	let (value_count, max_value_name_len, max_value_data_len) = device_map.get_value_info()?;
+
+	let mut entries = Vec::with_capacity(16);
+	for i in 0.. value_count {
+		let name = match device_map.get_string_value(i, max_value_name_len, max_value_data_len) {
+			Ok(Some((_name, data))) => data,
+			Ok(None) => continue,
+			Err(_) => continue,
+		};
+		if let Ok(name) = String::from_utf8(name) {
+			entries.push(name.into());
+		}
+	}
+
+	Ok(entries)
 }
