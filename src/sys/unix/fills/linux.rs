@@ -14,16 +14,6 @@ cfg_if! {
 	{
 		pub const BOTHER: libc::speed_t = 0o010000;
 
-		pub use libc::TIOCMBIS;
-		pub use libc::TIOCMBIC;
-		pub use libc::TIOCMGET;
-		pub use libc::TIOCM_RTS;
-		pub use libc::TIOCM_CTS;
-		pub use libc::TIOCM_DTR;
-		pub use libc::TIOCM_DSR;
-		pub use libc::TIOCM_RI;
-		pub use libc::TIOCM_CD;
-
 	// MIPS
 	} else if #[cfg(any(
 		target_arch = "mips",
@@ -32,6 +22,26 @@ cfg_if! {
 	{
 		pub const BOTHER: libc::speed_t = 0o010000;
 
+	// SPARC
+	} else if #[cfg(any(
+		target_arch = "sparc",
+		target_arch = "sparc64",
+	))]
+	{
+		pub const BOTHER: libc::speed_t = 0x1000;
+	}
+}
+
+// MIPS+musl/uclibc is missing TIOCM constants.
+cfg_if! {
+	if #[cfg(all(
+		any(
+			target_arch = "mips",
+			target_arch = "mips64",
+		),
+		not(target_env = "gnu"),
+	))]
+	{
 		pub const TIOCMBIS: u64 = 0x741B;
 		pub const TIOCMBIC: u64 = 0x741C;
 		pub const TIOCMGET: u64 = 0x741D;
@@ -41,32 +51,7 @@ cfg_if! {
 		pub const TIOCM_DSR: libc::c_int = 0x400;
 		pub const TIOCM_RI: libc::c_int = 0x200;
 		pub const TIOCM_CD: libc::c_int = 0x100;
-
-
-	// SPARC
-	} else if #[cfg(any(
-		target_arch = "sparc",
-		target_arch = "sparc64",
-	))]
-	{
-		pub const BOTHER: libc::speed_t = 0x1000;
-
-		pub use libc::TIOCMBIS;
-		pub use libc::TIOCMBIC;
-		pub use libc::TIOCMGET;
-		pub use libc::TIOCM_RTS;
-		pub use libc::TIOCM_CTS;
-		pub use libc::TIOCM_DTR;
-		pub use libc::TIOCM_DSR;
-		pub use libc::TIOCM_RI;
-		pub use libc::TIOCM_CD;
-
-	// PowerPC
-	} else if #[cfg(any(
-		target_arch = "powerpc",
-		target_arch = "powerpc64",
-	))]
-	{
+	} else {
 		pub use libc::TIOCMBIS;
 		pub use libc::TIOCMBIC;
 		pub use libc::TIOCMGET;
