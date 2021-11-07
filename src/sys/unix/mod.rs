@@ -461,11 +461,8 @@ impl PartialEq for Settings {
 		#[cfg(any(target_os = "android", target_os = "linux"))]
 		{
 			same = same && a.c_line == b.c_line;
-			#[cfg(not(any(target_arch = "powerpc", target_arch = "powerpc64")))]
-			{
-				same = same && a.c_ispeed == b.c_ispeed;
-				same = same && a.c_ospeed == b.c_ospeed;
-			}
+			same = same && a.c_ispeed == b.c_ispeed;
+			same = same && a.c_ospeed == b.c_ospeed;
 		}
 
 		same
