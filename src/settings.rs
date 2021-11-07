@@ -6,10 +6,10 @@ pub struct Settings {
 
 /// Common baud rates used by many applications and devices.
 ///
-/// Note that all platforms support custom baud rates, so you are not limited to these values.
-/// It is also not guaranteed that all platforms or all devices support these speeds.
+/// Note that Linux, *BSD, Windows and Apple platforms all support custom baud rates, so you are not limited to these values.
+/// It is also not guaranteed that all devices support these speeds.
 ///
-/// They can be useful to populate a user interface with some common options though.
+/// These speeds can be useful to populate a user interface with some common options though.
 pub const COMMON_BAUD_RATES: &[u32] = &[
 	4800,
 	9600,
