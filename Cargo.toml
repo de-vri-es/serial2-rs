@@ -1,6 +1,13 @@
 [package]
 name = "serial2"
 version = "0.1.0"
+description = "Cross platform serial ports"
+license = "BSD-2-Clause"
+repository = "https://github.com/de-vri-es/serial2-rs"
+documentation = "https://crates.io/serial2"
+keywords = ["serial", "serial-port", "RS232", "tty"]
+categories = ["hardware-support", "network-programming", "os", "science::robotics"]
+
 edition = "2021"
 
 [target.'cfg(unix)'.dependencies]
