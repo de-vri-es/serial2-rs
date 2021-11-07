@@ -1,13 +1,9 @@
 // All values taken from:
 // https://github.com/illumos/illumos-gate/blob/252adeb303174e992b64771bf9639e63a4d55418/usr/src/uts/common/sys/termios.h
 
-#[allow(non_upper_case_globals)]
-const tIOC: u32 = 0x7400; // 't' << 8;
-
-//pub const TIOCMSET: u32 = tIOC | 26;
-pub const TIOCMBIS: u32 = tIOC | 27;
-pub const TIOCMBIC: u32 = tIOC | 28;
-pub const TIOCMGET: u32 = tIOC | 29;
+pub use libc::TIOCMBIS;
+pub use libc::TIOCMBIC;
+pub use libc::TIOCMGET;
 //pub const TIOCM_LE: i32 = 0001;
 pub const TIOCM_DTR: i32 = 0002;
 pub const TIOCM_RTS: i32 = 0004;
