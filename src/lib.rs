@@ -10,6 +10,7 @@
 //! You can open and configure a serial port in one go with [`SerialPort::open()`].
 //! The returned [`SerialPort`] object implements the standard [`std::io::Read`] and [`std::io::Write`] traits,
 //! as well as some serial port specific functions.
+//! The [`SerialPort::available_ports()`] function can be used to get a list of available serial ports on supported platforms.
 //!
 //! It is also possible to clear the OS buffers for the serial port.
 //! The kernel input buffer contains data that has been received by the kernel, but has not yet been returned by a `read()` call.

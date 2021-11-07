@@ -1,7 +1,7 @@
-use std::ffi::OsStr;
 use std::ffi::OsString;
 use std::io::{IoSlice, IoSliceMut};
 use std::os::windows::io::AsRawHandle;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use winapi::um::commapi;
@@ -18,12 +18,12 @@ pub struct Settings {
 }
 
 impl SerialPort {
-	pub fn open(name: &OsStr) -> std::io::Result<Self> {
+	pub fn open(name: &Path) -> std::io::Result<Self> {
 		// Use the win32 device namespace, otherwise we're limited to COM1-9.
 		// This also works with higher numbers.
 		// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#win32-device-namespaces
 		let mut path = OsString::from("\\\\.\\");
-		path.push(name);
+		path.push(name.as_os_str());
 
 		let file = std::fs::OpenOptions::new()
 			.read(true)
@@ -312,4 +312,8 @@ impl Settings {
 			_ => Err(other_error("unsupported flow control configuration")),
 		}
 	}
+}
+
+pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
+	Err(std::io::Error::new(std::io::ErrorKind::Other, "port enumeration is not implemented for this platform"))
 }

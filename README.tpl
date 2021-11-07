@@ -6,6 +6,7 @@
 [`SerialPort::open()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.open
 [`std::io::Read`]: https://doc.rust-lang.org/stable/std/io/trait.Read.html
 [`std::io::Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html
+[`SerialPort::available_ports()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.available_ports
 [`SerialPort::discard_input_buffer()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.discard_input_buffer
 [`SerialPort::discard_output_buffer()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.discard_output_buffer
 [`SerialPort::discard_buffers()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.discard_buffers

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 // All values taken from:
 // https://github.com/illumos/illumos-gate/blob/252adeb303174e992b64771bf9639e63a4d55418/usr/src/uts/common/sys/termios.h
 
@@ -41,3 +43,7 @@ pub const BAUD_RATES: [(u32, u32); 23] = [
 	(libc::B460800, 460800),
 	(libc::B921600, 921600),
 ];
+
+pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
+	Err(std::io::Error::new(std::io::ErrorKind::Other, "port enumeration is not implemented for this platform"))
+}

@@ -12,6 +12,7 @@ Platform specific functionality is simply implemented on the same type, and remo
 You can open and configure a serial port in one go with [`SerialPort::open()`].
 The returned [`SerialPort`] object implements the standard [`std::io::Read`] and [`std::io::Write`] traits,
 as well as some serial port specific functions.
+The [`SerialPort::available_ports()`] function can be used to get a list of available serial ports on supported platforms.
 
 It is also possible to clear the OS buffers for the serial port.
 The kernel input buffer contains data that has been received by the kernel, but has not yet been returned by a `read()` call.
@@ -29,6 +30,7 @@ Finally, the library allows you to control or read the state of some individual 
 [`SerialPort::open()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.open
 [`std::io::Read`]: https://doc.rust-lang.org/stable/std/io/trait.Read.html
 [`std::io::Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html
+[`SerialPort::available_ports()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.available_ports
 [`SerialPort::discard_input_buffer()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.discard_input_buffer
 [`SerialPort::discard_output_buffer()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.discard_output_buffer
 [`SerialPort::discard_buffers()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.discard_buffers

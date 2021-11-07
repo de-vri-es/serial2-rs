@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 pub use libc::TIOCMBIS;
 pub use libc::TIOCMBIC;
 pub use libc::TIOCMGET;
@@ -31,3 +33,7 @@ pub const BAUD_RATES: [(u32, u32); 18] = [
 	(libc::B115200, 115200),
 	(libc::B230400, 230400),
 ];
+
+pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
+	Err(std::io::Error::new(std::io::ErrorKind::Other, "port enumeration is not implemented for this platform"))
+}

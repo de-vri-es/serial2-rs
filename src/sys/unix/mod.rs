@@ -1,8 +1,8 @@
 use cfg_if::cfg_if;
-use std::ffi::OsStr;
 use std::io::{IoSlice, IoSliceMut};
 use std::os::raw::c_int;
 use std::os::unix::io::AsRawFd;
+use std::path::Path;
 use std::time::Duration;
 
 pub struct SerialPort {
@@ -96,7 +96,7 @@ cfg_if! {
 }
 
 impl SerialPort {
-	pub fn open(path: &OsStr) -> std::io::Result<Self> {
+	pub fn open(path: &Path) -> std::io::Result<Self> {
 		let file = std::fs::OpenOptions::new()
 			.read(true)
 			.write(true)

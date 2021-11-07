@@ -1,5 +1,5 @@
-use std::ffi::OsStr;
 use std::io::{IoSlice, IoSliceMut};
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use crate::{sys, IntoSettings, Settings};
@@ -27,7 +27,7 @@ impl SerialPort {
 	/// #   Ok(())
 	/// # }
 	/// ```
-	pub fn open(name: impl AsRef<OsStr>, settings: impl IntoSettings) -> std::io::Result<Self> {
+	pub fn open(name: impl AsRef<Path>, settings: impl IntoSettings) -> std::io::Result<Self> {
 		let mut serial_port = Self {
 			inner: sys::SerialPort::open(name.as_ref())?,
 		};
@@ -35,6 +35,14 @@ impl SerialPort {
 		settings.apply_to_settings(&mut port_settings)?;
 		serial_port.set_configuration(&port_settings)?;
 		Ok(serial_port)
+	}
+
+	/// Get a list of available serial ports.
+	///
+	/// Not currently supported on all platforms.
+	/// On unsupported platforms, this function always returns an error.
+	pub fn available_ports() -> std::io::Result<Vec<PathBuf>> {
+		sys::enumerate()
 	}
 
 	/// Configure (or reconfigure) the serial port.
