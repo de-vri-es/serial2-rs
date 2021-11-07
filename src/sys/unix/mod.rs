@@ -11,7 +11,7 @@ pub struct SerialPort {
 	pub write_timeout_ms: u32,
 }
 
-mod consts;
+mod fills;
 
 cfg_if! {
 	if #[cfg(all(
@@ -174,27 +174,27 @@ impl SerialPort {
 	}
 
 	pub fn set_rts(&mut self, state: bool) -> std::io::Result<()> {
-		set_pin(&mut self.file, consts::TIOCM_RTS, state)
+		set_pin(&mut self.file, fills::TIOCM_RTS, state)
 	}
 
 	pub fn read_cts(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, consts::TIOCM_CTS)
+		read_pin(&mut self.file, fills::TIOCM_CTS)
 	}
 
 	pub fn set_dtr(&mut self, state: bool) -> std::io::Result<()> {
-		set_pin(&mut self.file, consts::TIOCM_DTR, state)
+		set_pin(&mut self.file, fills::TIOCM_DTR, state)
 	}
 
 	pub fn read_dsr(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, consts::TIOCM_DSR)
+		read_pin(&mut self.file, fills::TIOCM_DSR)
 	}
 
 	pub fn read_ri(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, consts::TIOCM_RI)
+		read_pin(&mut self.file, fills::TIOCM_RI)
 	}
 
 	pub fn read_cd(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, consts::TIOCM_CD)
+		read_pin(&mut self.file, fills::TIOCM_CD)
 	}
 }
 
@@ -214,9 +214,9 @@ fn poll(file: &mut std::fs::File, events: std::os::raw::c_short, timeout_ms: u32
 fn set_pin(file: &mut std::fs::File, pin: c_int, state: bool) -> std::io::Result<()> {
 	unsafe {
 		if state {
-			check(libc::ioctl(file.as_raw_fd(), consts::TIOCMBIS as _, &pin))?;
+			check(libc::ioctl(file.as_raw_fd(), fills::TIOCMBIS as _, &pin))?;
 		} else {
-			check(libc::ioctl(file.as_raw_fd(), consts::TIOCMBIC as _, &pin))?;
+			check(libc::ioctl(file.as_raw_fd(), fills::TIOCMBIC as _, &pin))?;
 		}
 		Ok(())
 	}
@@ -225,7 +225,7 @@ fn set_pin(file: &mut std::fs::File, pin: c_int, state: bool) -> std::io::Result
 fn read_pin(file: &mut std::fs::File, pin: c_int) -> std::io::Result<bool> {
 	unsafe {
 		let mut bits: c_int = 0;
-		check(libc::ioctl(file.as_raw_fd(), consts::TIOCMGET as _, &mut bits))?;
+		check(libc::ioctl(file.as_raw_fd(), fills::TIOCMGET as _, &mut bits))?;
 		Ok(bits & pin != 0)
 	}
 }
@@ -267,7 +267,7 @@ impl Settings {
 			))]
 			{
 				// Always use `BOTHER` because we can't be bothered to use cfsetospeed/cfsetispeed for standard values.
-				self.termios.c_cflag |= consts::BOTHER;
+				self.termios.c_cflag |= fills::BOTHER;
 				self.termios.c_ospeed = baud_rate;
 				self.termios.c_ispeed = baud_rate;
 				Ok(())
@@ -322,7 +322,7 @@ impl Settings {
 					any(target_os = "android", target_os = "linux"),
 					not(any(target_arch = "powerpc", target_arch = "powerpc64"))
 				))]
-				if self.termios.c_cflag & consts::BOTHER != 0 {
+				if self.termios.c_cflag & fills::BOTHER != 0 {
 					return Ok(self.termios.c_ospeed);
 				}
 
