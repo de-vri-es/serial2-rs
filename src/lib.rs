@@ -29,7 +29,10 @@
 mod sys;
 
 mod into_settings;
-pub use into_settings::IntoSettings;
+pub use into_settings::{
+	IntoSettings,
+	KeepSettings,
+};
 
 mod serial_port;
 pub use serial_port::SerialPort;
