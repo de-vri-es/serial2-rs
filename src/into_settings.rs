@@ -37,7 +37,7 @@ impl IntoSettings for u32 {
 
 /// A serial port "configuration" that simply keeps all existing settings.
 ///
-/// You can pass this to [`SerialPort::open()`] to prevent it from changing any port settings.
+/// You can pass this to [`SerialPort::open()`][crate::SerialPort::open()] to prevent it from changing any port settings.
 ///
 /// Note: many platforms reset the configuration of a serial port when it is no longer in use.
 /// You should normally explicitly configure the settings that you care about.

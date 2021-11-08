@@ -94,7 +94,7 @@ impl Settings {
 	///
 	/// This function returns an error if the platform does not support the requested band-width.
 	/// Note that the device itself may also not support the requested baud rate, even if the platform does.
-	/// In that case [`SerialPort::set_configuration`] will return an error.
+	/// In that case [`SerialPort::set_configuration()`][crate::SerialPort::set_configuration] will return an error.
 	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
 		self.inner.set_baud_rate(baud_rate)
 	}

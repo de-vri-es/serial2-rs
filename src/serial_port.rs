@@ -53,7 +53,7 @@ impl SerialPort {
 	/// Get the current configuration of the serial port.
 	///
 	/// This function can fail if the underlying syscall fails,
-	/// or if the serial port configuration can't be reported using [`SerialSettings`].
+	/// or if the serial port configuration can't be reported using [`Settings`].
 	pub fn get_configuration(&self) -> std::io::Result<Settings> {
 		Ok(Settings {
 			inner: self.inner.get_configuration()?,
