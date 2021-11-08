@@ -119,9 +119,13 @@ impl SerialPort {
 	}
 
 	pub fn set_configuration(&mut self, settings: &Settings) -> std::io::Result<()> {
+		let mut settings = settings.clone();
+		unsafe {
+			libc::cfmakeraw(&mut settings.termios as *mut _ as *mut libc::termios);
+		}
 		settings.set_on_file(&mut self.file)?;
 		let applied_settings = self.get_configuration()?;
-		if applied_settings != *settings {
+		if applied_settings != settings {
 			Err(other_error("failed to apply some or all settings"))
 		} else {
 			Ok(())
