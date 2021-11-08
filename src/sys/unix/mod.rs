@@ -446,20 +446,38 @@ impl PartialEq for Settings {
 	fn eq(&self, other: &Self) -> bool {
 		let a = &self.termios;
 		let b = &other.termios;
-		let mut same = true;
-		same = same && a.c_cflag == b.c_cflag;
-		same = same && a.c_iflag == b.c_iflag;
-		same = same && a.c_oflag == b.c_oflag;
-		same = same && a.c_lflag == b.c_lflag;
-		same = same && a.c_cc == b.c_cc;
 
-		#[cfg(any(target_os = "android", target_os = "linux"))]
-		{
-			same = same && a.c_line == b.c_line;
-			same = same && a.c_ispeed == b.c_ispeed;
-			same = same && a.c_ospeed == b.c_ospeed;
+		cfg_if::cfg_if! {
+			if #[cfg(any(target_os = "android", target_os = "linux"))] {
+				use libc::{CBAUD, CBAUDEX};
+				let no_baud = !(CBAUD | CBAUDEX | (CBAUD | CBAUDEX) << IBSHIFT);
+				let same = true;
+				let same = same && a.c_cflag & no_baud == b.c_cflag & no_baud;
+				let same = same && a.c_iflag == b.c_iflag;
+				let same = same && a.c_oflag == b.c_oflag;
+				let same = same && a.c_lflag == b.c_lflag;
+				let same = same && a.c_cc == b.c_cc;
+				let same = same && a.c_line == b.c_line;
+				if !same {
+					return false;
+				}
+
+				// TODO: Deal with input speed != output speed
+				if let (Ok(speed_a), Ok(speed_b)) = (self.get_baud_rate(), other.get_baud_rate()) {
+					speed_a == speed_b
+				} else {
+					false
+				}
+			} else {
+				let same = true;
+				let same = same && a.c_cflag == b.c_cflag;
+				let same = same && a.c_iflag == b.c_iflag;
+				let same = same && a.c_oflag == b.c_oflag;
+				let same = same && a.c_lflag == b.c_lflag;
+				let same = same && a.c_cc == b.c_cc;
+				same
+			}
 		}
 
-		same
 	}
 }
