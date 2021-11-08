@@ -349,12 +349,12 @@ struct RegKey {
 }
 
 impl RegKey {
-	fn open(parent: HKEY, subpath: &[u8], rights: winreg::REGSAM) -> std::io::Result<Self> {
+	fn open(parent: HKEY, subpath: &std::ffi::CStr, rights: winreg::REGSAM) -> std::io::Result<Self> {
 		unsafe {
 			let mut key: HKEY = std::ptr::null_mut();
 			let status = winreg::RegOpenKeyExA(
 				parent,
-				subpath.as_ptr().cast(),
+				subpath.as_ptr(),
 				0,
 				rights,
 				&mut key,
@@ -435,7 +435,8 @@ impl Drop for RegKey {
 }
 
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
-	let device_map = RegKey::open(winreg::HKEY_LOCAL_MACHINE, b"Hardware\\DEVICEMAP\\SERIALCOMM", winnt::KEY_READ)?;
+	let subkey = unsafe { std::ffi::CStr::from_bytes_with_nul_unchecked(b"Hardware\\DEVICEMAP\\SERIALCOMM\x00") };
+	let device_map = RegKey::open(winreg::HKEY_LOCAL_MACHINE, subkey, winnt::KEY_READ)?;
 	let (value_count, max_value_name_len, max_value_data_len) = device_map.get_value_info()?;
 
 	let mut entries = Vec::with_capacity(16);
