@@ -150,39 +150,59 @@ impl SerialPort {
 		Ok(Duration::from_millis(self.write_timeout_ms.into()))
 	}
 
-	pub fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-		use std::io::Read;
-		if !poll(&mut self.file, libc::POLLIN, self.read_timeout_ms)? {
-			Err(std::io::ErrorKind::TimedOut.into())
-		} else {
-			self.file.read(buf)
+	pub fn read(&self, buf: &mut [u8]) -> std::io::Result<usize> {
+		if !poll(&self.file, libc::POLLIN, self.read_timeout_ms)? {
+			return Err(std::io::ErrorKind::TimedOut.into());
+		}
+		unsafe {
+			loop {
+				match check_isize(libc::read(self.file.as_raw_fd(), buf.as_mut_ptr().cast(), buf.len() as _)) {
+					Err(ref e) if e.raw_os_error() == Some(libc::EINTR) => continue,
+					x => return x,
+				}
+			}
 		}
 	}
 
-	pub fn read_vectored(&mut self, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
-		use std::io::Read;
-		if !poll(&mut self.file, libc::POLLIN, self.read_timeout_ms)? {
-			Err(std::io::ErrorKind::TimedOut.into())
-		} else {
-			self.file.read_vectored(buf)
+	pub fn read_vectored(&self, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
+		if !poll(&self.file, libc::POLLIN, self.read_timeout_ms)? {
+			return Err(std::io::ErrorKind::TimedOut.into());
+		}
+		unsafe {
+			loop {
+				match check_isize(libc::readv(self.file.as_raw_fd(), buf.as_mut_ptr().cast(), buf.len() as _)) {
+					Err(ref e) if e.raw_os_error() == Some(libc::EINTR) => continue,
+					x => return x,
+				}
+			}
 		}
 	}
 
-	pub fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-		use std::io::Write;
-		if !poll(&mut self.file, libc::POLLOUT, self.read_timeout_ms)? {
-			Err(std::io::ErrorKind::TimedOut.into())
-		} else {
-			self.file.write(buf)
+	pub fn write(&self, buf: &[u8]) -> std::io::Result<usize> {
+		if !poll(&self.file, libc::POLLOUT, self.read_timeout_ms)? {
+			return Err(std::io::ErrorKind::TimedOut.into())
+		}
+		unsafe {
+			loop {
+				match check_isize(libc::write(self.file.as_raw_fd(), buf.as_ptr().cast(), buf.len() as _)) {
+					Err(ref e) if e.raw_os_error() == Some(libc::EINTR) => continue,
+					x => return x,
+				}
+			}
 		}
 	}
 
-	pub fn write_vectored(&mut self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
-		use std::io::Write;
-		if !poll(&mut self.file, libc::POLLOUT, self.read_timeout_ms)? {
-			Err(std::io::ErrorKind::TimedOut.into())
-		} else {
-			self.file.write_vectored(buf)
+	pub fn write_vectored(&self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
+		if !poll(&self.file, libc::POLLOUT, self.read_timeout_ms)? {
+			return Err(std::io::ErrorKind::TimedOut.into());
+		}
+		unsafe {
+			loop {
+				match check_isize(libc::writev(self.file.as_raw_fd(), buf.as_ptr().cast(), buf.len() as _)) {
+					Err(ref e) if e.raw_os_error() == Some(libc::EINTR) => continue,
+					x => return x,
+				}
+			}
 		}
 	}
 
@@ -233,7 +253,7 @@ impl SerialPort {
 }
 
 /// Wait for a file to be readable or writable.
-fn poll(file: &mut std::fs::File, events: std::os::raw::c_short, timeout_ms: u32) -> std::io::Result<bool> {
+fn poll(file: &std::fs::File, events: std::os::raw::c_short, timeout_ms: u32) -> std::io::Result<bool> {
 	unsafe {
 		let mut poll_fd = libc::pollfd {
 			fd: file.as_raw_fd(),
@@ -270,6 +290,15 @@ fn check(ret: i32) -> std::io::Result<i32> {
 		Err(std::io::Error::last_os_error())
 	} else {
 		Ok(ret)
+	}
+}
+
+/// Check the return value of a syscall for errors.
+fn check_isize(ret: isize) -> std::io::Result<usize> {
+	if ret == -1 {
+		Err(std::io::Error::last_os_error())
+	} else {
+		Ok(ret as usize)
 	}
 }
 

@@ -60,6 +60,59 @@ impl SerialPort {
 		})
 	}
 
+	/// Read bytes from the serial port.
+	///
+	/// This is identical to [`std::io::Read::read()`], except that this function takes a const reference `&self`.
+	/// This allows you to use the serial port concurrently from multiple threads.
+	///
+	/// Note that there are no guarantees on which thread receives what data when multiple threads are reading from the serial port.
+	/// You should normally limit yourself to a single reading thread and a single writing thread.
+	pub fn read(&self, buf: &mut [u8]) -> std::io::Result<usize> {
+		self.inner.read(buf)
+	}
+
+	/// Read bytes from the serial port into a slice of buffers.
+	///
+	/// This is identical to [`std::io::Read::read_vectored()`], except that this function takes a const reference `&self`.
+	/// This allows you to use the serial port concurrently from multiple threads.
+	///
+	/// Note that there are no guarantees on which thread receives what data when multiple threads are reading from the serial port.
+	/// You should normally limit yourself to a single reading thread and a single writing thread.
+	pub fn read_vectored(&self, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
+		self.inner.read_vectored(buf)
+	}
+
+	/// Write bytes to the serial port.
+	///
+	/// This is identical to [`std::io::Write::write()`], except that this function takes a const reference `&self`.
+	/// This allows you to use the serial port concurrently from multiple threads.
+	///
+	/// Note that data written to the same serial port from multiple threads may end up interleaved at the receiving side.
+	/// You should normally limit yourself to a single reading thread and a single writing thread.
+	pub fn write(&self, buf: &[u8]) -> std::io::Result<usize> {
+		self.inner.write(buf)
+	}
+
+	/// Write bytes to the serial port from a slice of buffers.
+	///
+	/// This is identical to [`std::io::Write::write_vectored()`], except that this function takes a const reference `&self`.
+	/// This allows you to use the serial port concurrently from multiple threads.
+	///
+	/// Note that data written to the same serial port from multiple threads may end up interleaved at the receiving side.
+	/// You should normally limit yourself to a single reading thread and a single writing thread.
+	pub fn write_vectored(&self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
+		self.inner.write_vectored(buf)
+	}
+
+	/// Flush all data queued to be written.
+	///
+	/// This will block until the OS buffer has been fully transmitted.
+	///
+	/// This is identical to [`std::io::Write::flush()`], except that this function takes a const reference `&self`.
+	pub fn flush(&self) -> std::io::Result<()> {
+		self.inner.flush_output()
+	}
+
 	/// Set the read timeout for the serial port.
 	///
 	/// The timeout set by this function is an upper bound on individual calls to [`std::io::Read::read()`].

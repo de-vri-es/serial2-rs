@@ -4,7 +4,7 @@ use std::os::windows::io::AsRawHandle;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use winapi::um::{commapi, winbase,winnt, winreg};
+use winapi::um::{commapi, fileapi, winbase, winnt, winreg};
 use winapi::shared::minwindef::{BOOL, HKEY};
 use winapi::shared::winerror;
 
@@ -91,25 +91,54 @@ impl SerialPort {
 		}
 	}
 
-	pub fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-		use std::io::Read;
-		self.file.read(buf)
+	pub fn read(&self, buf: &mut [u8]) -> std::io::Result<usize> {
+		unsafe {
+			let mut read = 0;
+			let len = buf.len().try_into().unwrap_or(u32::MAX);
+			let ret = fileapi::ReadFile(
+				self.file.as_raw_handle(),
+				buf.as_mut_ptr().cast(),
+				len,
+				&mut read, std::ptr::null_mut(),
+			);
+			match check_bool(ret) {
+				Ok(_) => Ok(read as usize),
+				// BrokenPipe means EOF on Windows
+				Err(ref e) if e.kind() == std::io::ErrorKind::BrokenPipe => Ok(0),
+				Err(e) => Err(e),
+			}
+		}
 	}
 
-	pub fn read_vectored(&mut self, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
-		// TODO: Use read timeout
-		use std::io::Read;
-		self.file.read_vectored(buf)
+	pub fn read_vectored(&self, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
+		if buf.is_empty() {
+			self.read(&mut [])
+		} else {
+			self.read(&mut buf[0])
+		}
 	}
 
-	pub fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-		use std::io::Write;
-		self.file.write(buf)
+	pub fn write(&self, buf: &[u8]) -> std::io::Result<usize> {
+		unsafe {
+			let mut written = 0;
+			let len = buf.len().try_into().unwrap_or(u32::MAX);
+			check_bool(fileapi::WriteFile(
+				self.file.as_raw_handle(),
+				buf.as_ptr().cast(),
+				len,
+				&mut written,
+				std::ptr::null_mut(),
+			))?;
+			Ok(written as usize)
+		}
 	}
 
-	pub fn write_vectored(&mut self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
-		use std::io::Write;
-		self.file.write_vectored(buf)
+	pub fn write_vectored(&self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
+		if buf.is_empty() {
+			self.write(&[])
+		} else {
+			self.write(&buf[0])
+		}
 	}
 
 	pub fn flush_output(&self) -> std::io::Result<()> {
