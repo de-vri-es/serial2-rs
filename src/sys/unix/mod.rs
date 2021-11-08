@@ -213,7 +213,7 @@ impl SerialPort {
 		}
 	}
 
-	pub fn discard_buffers(&mut self, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
+	pub fn discard_buffers(&self, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
 		unsafe {
 			let mut flags = 0;
 			if discard_input {
@@ -227,28 +227,28 @@ impl SerialPort {
 		}
 	}
 
-	pub fn set_rts(&mut self, state: bool) -> std::io::Result<()> {
-		set_pin(&mut self.file, TIOCM_RTS, state)
+	pub fn set_rts(&self, state: bool) -> std::io::Result<()> {
+		set_pin(&self.file, TIOCM_RTS, state)
 	}
 
-	pub fn read_cts(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, TIOCM_CTS)
+	pub fn read_cts(&self) -> std::io::Result<bool> {
+		read_pin(&self.file, TIOCM_CTS)
 	}
 
-	pub fn set_dtr(&mut self, state: bool) -> std::io::Result<()> {
-		set_pin(&mut self.file, TIOCM_DTR, state)
+	pub fn set_dtr(&self, state: bool) -> std::io::Result<()> {
+		set_pin(&self.file, TIOCM_DTR, state)
 	}
 
-	pub fn read_dsr(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, TIOCM_DSR)
+	pub fn read_dsr(&self) -> std::io::Result<bool> {
+		read_pin(&self.file, TIOCM_DSR)
 	}
 
-	pub fn read_ri(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, TIOCM_RI)
+	pub fn read_ri(&self) -> std::io::Result<bool> {
+		read_pin(&self.file, TIOCM_RI)
 	}
 
-	pub fn read_cd(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, TIOCM_CD)
+	pub fn read_cd(&self) -> std::io::Result<bool> {
+		read_pin(&self.file, TIOCM_CD)
 	}
 }
 
@@ -265,7 +265,7 @@ fn poll(file: &std::fs::File, events: std::os::raw::c_short, timeout_ms: u32) ->
 	}
 }
 
-fn set_pin(file: &mut std::fs::File, pin: c_int, state: bool) -> std::io::Result<()> {
+fn set_pin(file: &std::fs::File, pin: c_int, state: bool) -> std::io::Result<()> {
 	unsafe {
 		if state {
 			check(libc::ioctl(file.as_raw_fd(), TIOCMBIS as _, &pin))?;
@@ -276,7 +276,7 @@ fn set_pin(file: &mut std::fs::File, pin: c_int, state: bool) -> std::io::Result
 	}
 }
 
-fn read_pin(file: &mut std::fs::File, pin: c_int) -> std::io::Result<bool> {
+fn read_pin(file: &std::fs::File, pin: c_int) -> std::io::Result<bool> {
 	unsafe {
 		let mut bits: c_int = 0;
 		check(libc::ioctl(file.as_raw_fd(), TIOCMGET as _, &mut bits))?;

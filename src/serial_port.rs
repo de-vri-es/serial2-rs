@@ -144,7 +144,7 @@ impl SerialPort {
 	/// When you write to a serial port, the data may be put in a buffer by the OS to be transmitted by the actual device later.
 	/// Similarly, data received on the device can be put in a buffer by the OS untill you read it.
 	/// This function clears both buffers: any untransmitted data and received but unread data is discarded by the OS.
-	pub fn discard_buffers(&mut self) -> std::io::Result<()> {
+	pub fn discard_buffers(&self) -> std::io::Result<()> {
 		self.inner.discard_buffers(true, true)
 	}
 
@@ -155,7 +155,7 @@ impl SerialPort {
 	///
 	/// This is particularly useful when communicating with a device that only responds to commands that you send to it.
 	/// If you discard the input buffer before sending the command, you discard any noise that may have been received after the last command.
-	pub fn discard_input_buffer(&mut self) -> std::io::Result<()> {
+	pub fn discard_input_buffer(&self) -> std::io::Result<()> {
 		self.inner.discard_buffers(true, false)
 	}
 
@@ -163,7 +163,7 @@ impl SerialPort {
 	///
 	/// When you write to a serial port, the data is generally put in a buffer by the OS to be transmitted by the actual device later.
 	/// This function clears that buffer: any untransmitted data is discarded by the OS.
-	pub fn discard_output_buffer(&mut self) -> std::io::Result<()> {
+	pub fn discard_output_buffer(&self) -> std::io::Result<()> {
 		self.inner.discard_buffers(false, true)
 	}
 
@@ -172,7 +172,7 @@ impl SerialPort {
 	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
 	/// The function may fail with an error or it may silently be ignored.
 	/// It may even succeed and interfere with the flow control.
-	pub fn set_rts(&mut self, state: bool) -> std::io::Result<()> {
+	pub fn set_rts(&self, state: bool) -> std::io::Result<()> {
 		self.inner.set_rts(state)
 	}
 
@@ -180,7 +180,7 @@ impl SerialPort {
 	///
 	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
 	/// The function may fail with an error, it may return a bogus value, or it may return the actual state of the CTS line.
-	pub fn read_cts(&mut self) -> std::io::Result<bool> {
+	pub fn read_cts(&self) -> std::io::Result<bool> {
 		self.inner.read_cts()
 	}
 
@@ -188,7 +188,7 @@ impl SerialPort {
 	///
 	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
 	/// The function may fail with an error or it may silently be ignored.
-	pub fn set_dtr(&mut self, state: bool) -> std::io::Result<()> {
+	pub fn set_dtr(&self, state: bool) -> std::io::Result<()> {
 		self.inner.set_dtr(state)
 	}
 
@@ -196,14 +196,14 @@ impl SerialPort {
 	///
 	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
 	/// The function may fail with an error, it may return a bogus value, or it may return the actual state of the DSR line.
-	pub fn read_dsr(&mut self) -> std::io::Result<bool> {
+	pub fn read_dsr(&self) -> std::io::Result<bool> {
 		self.inner.read_dsr()
 	}
 
 	/// Read the state of the Ring Indicator line.
 	///
 	/// This line is also sometimes also called the RNG or RING line.
-	pub fn read_ri(&mut self) -> std::io::Result<bool> {
+	pub fn read_ri(&self) -> std::io::Result<bool> {
 		self.inner.read_ri()
 	}
 
@@ -211,7 +211,7 @@ impl SerialPort {
 	///
 	/// This line is also called the Data Carrier Detect (DCD) line
 	/// or the Receive Line Signal Detect (RLSD) line.
-	pub fn read_cd(&mut self) -> std::io::Result<bool> {
+	pub fn read_cd(&self) -> std::io::Result<bool> {
 		self.inner.read_cd()
 	}
 }

@@ -4,6 +4,7 @@
 - Always set the TTY to raw mode on Unix.
 - Add versions of `read()`, `write()` and friends that take a const `&self`.
 - Make `KeepSettings` public as intended.
+- Make more functions take `&self` instead of `&mut self`.
 
 # Version 0.1.0-alpha2 - 2021-11-07
 - Add `SerialPort::available_ports()`, which for now only works on Linux.

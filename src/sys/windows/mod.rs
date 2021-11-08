@@ -147,7 +147,7 @@ impl SerialPort {
 		}
 	}
 
-	pub fn discard_buffers(&mut self, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
+	pub fn discard_buffers(&self, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
 		unsafe {
 			let mut flags = 0;
 			if discard_input {
@@ -161,49 +161,49 @@ impl SerialPort {
 	}
 
 
-	pub fn set_rts(&mut self, state: bool) -> std::io::Result<()> {
+	pub fn set_rts(&self, state: bool) -> std::io::Result<()> {
 		if state {
-			escape_comm_function(&mut self.file, winbase::SETRTS)
+			escape_comm_function(&self.file, winbase::SETRTS)
 		} else {
-			escape_comm_function(&mut self.file, winbase::CLRRTS)
+			escape_comm_function(&self.file, winbase::CLRRTS)
 		}
 	}
 
-	pub fn read_cts(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, winbase::MS_CTS_ON)
+	pub fn read_cts(&self) -> std::io::Result<bool> {
+		read_pin(&self.file, winbase::MS_CTS_ON)
 	}
 
-	pub fn set_dtr(&mut self, state: bool) -> std::io::Result<()> {
+	pub fn set_dtr(&self, state: bool) -> std::io::Result<()> {
 		if state {
-			escape_comm_function(&mut self.file, winbase::SETDTR)
+			escape_comm_function(&self.file, winbase::SETDTR)
 		} else {
-			escape_comm_function(&mut self.file, winbase::CLRDTR)
+			escape_comm_function(&self.file, winbase::CLRDTR)
 		}
 	}
 
-	pub fn read_dsr(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, winbase::MS_DSR_ON)
+	pub fn read_dsr(&self) -> std::io::Result<bool> {
+		read_pin(&self.file, winbase::MS_DSR_ON)
 	}
 
-	pub fn read_ri(&mut self) -> std::io::Result<bool> {
-		read_pin(&mut self.file, winbase::MS_RING_ON)
+	pub fn read_ri(&self) -> std::io::Result<bool> {
+		read_pin(&self.file, winbase::MS_RING_ON)
 	}
 
-	pub fn read_cd(&mut self) -> std::io::Result<bool> {
+	pub fn read_cd(&self) -> std::io::Result<bool> {
 		// RLSD or Receive Line Signal Detect is the same as Carrier Detect.
 		//
 		// I think.
-		read_pin(&mut self.file, winbase::MS_RLSD_ON)
+		read_pin(&self.file, winbase::MS_RLSD_ON)
 	}
 }
 
-fn escape_comm_function(file: &mut std::fs::File, function: u32) -> std::io::Result<()> {
+fn escape_comm_function(file: &std::fs::File, function: u32) -> std::io::Result<()> {
 	unsafe {
 		check_bool(commapi::EscapeCommFunction(file.as_raw_handle(), function))
 	}
 }
 
-fn read_pin(file: &mut std::fs::File, pin: u32) -> std::io::Result<bool> {
+fn read_pin(file: &std::fs::File, pin: u32) -> std::io::Result<bool> {
 	unsafe {
 		let mut bits: u32 = 0;
 		check_bool(commapi::GetCommModemStatus(file.as_raw_handle(), &mut bits))?;
