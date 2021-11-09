@@ -1,4 +1,5 @@
 # main
+- Fix buffer truncation when enumerating ports on Windows.
 - Switch to overlapped IO on windows to allow concurrent reads and writes.
 
 # Version 0.1.0-alpha3 - 2021-11-08

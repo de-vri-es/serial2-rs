@@ -1,4 +1,4 @@
-use std::ffi::OsString;
+use std::ffi::{CStr, OsString};
 use std::io::{IoSlice, IoSliceMut};
 use std::os::windows::io::AsRawHandle;
 use std::path::{Path, PathBuf};
@@ -434,7 +434,7 @@ struct RegKey {
 }
 
 impl RegKey {
-	fn open(parent: HKEY, subpath: &std::ffi::CStr, rights: winreg::REGSAM) -> std::io::Result<Self> {
+	fn open(parent: HKEY, subpath: &CStr, rights: winreg::REGSAM) -> std::io::Result<Self> {
 		unsafe {
 			let mut key: HKEY = std::ptr::null_mut();
 			let status = winreg::RegOpenKeyExA(
@@ -503,8 +503,8 @@ impl RegKey {
 			} else if kind != winnt::REG_SZ {
 				Ok(None)
 			} else {
-				name.shrink_to(name_len as usize + 1);
-				data.shrink_to(data_len as usize);
+				name.truncate(name_len as usize + 1);
+				data.truncate(data_len as usize);
 				Ok(Some((name, data)))
 			}
 		}
@@ -520,20 +520,23 @@ impl Drop for RegKey {
 }
 
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
-	let subkey = unsafe { std::ffi::CStr::from_bytes_with_nul_unchecked(b"Hardware\\DEVICEMAP\\SERIALCOMM\x00") };
+	let subkey = unsafe { CStr::from_bytes_with_nul_unchecked(b"Hardware\\DEVICEMAP\\SERIALCOMM\x00") };
 	let device_map = RegKey::open(winreg::HKEY_LOCAL_MACHINE, subkey, winnt::KEY_READ)?;
 	let (value_count, max_value_name_len, max_value_data_len) = device_map.get_value_info()?;
 
 	let mut entries = Vec::with_capacity(16);
 	for i in 0.. value_count {
-		let name = match device_map.get_string_value(i, max_value_name_len, max_value_data_len) {
+		let mut name = match device_map.get_string_value(i, max_value_name_len, max_value_data_len) {
 			Ok(Some((_name, data))) => data,
 			Ok(None) => continue,
 			Err(_) => continue,
 		};
-		if let Ok(name) = String::from_utf8(name) {
-			entries.push(name.into());
-		}
+        if let Some(i) = name.iter().rposition(|&b| b != 0) {
+            name.truncate(i + 1);
+            if let Ok(name) = String::from_utf8(name) {
+                entries.push(name.into());
+            }
+        }
 	}
 
 	Ok(entries)
