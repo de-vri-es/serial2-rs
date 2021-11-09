@@ -42,6 +42,13 @@ impl SerialPort {
 			.create(false)
 			.custom_flags(winbase::FILE_FLAG_OVERLAPPED)
 			.open(path)?;
+
+		unsafe {
+			let mut timeouts: winbase::COMMTIMEOUTS = std::mem::zeroed();
+			check_bool(commapi::GetCommTimeouts(file.as_raw_handle(), &mut timeouts))?;
+			timeouts.ReadIntervalTimeout = 10;
+			check_bool(commapi::SetCommTimeouts(file.as_raw_handle(), &mut timeouts))?;
+		}
 		Ok(Self::from_file(file))
 	}
 
