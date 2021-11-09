@@ -1,3 +1,6 @@
+# main
+- Switch to overlapped IO on windows to allow concurrent reads and writes.
+
 # Version 0.1.0-alpha3 - 2021-11-08
 - Implement port enumeration for Windows.
 - Fix comparing `termios` struct on Linux, when using `BOTHER` with a standard baud rate.

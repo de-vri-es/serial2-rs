@@ -4,7 +4,16 @@ use std::os::windows::io::AsRawHandle;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use winapi::um::{commapi, fileapi, winbase, winnt, winreg};
+use winapi::um::{
+	commapi,
+	fileapi,
+	ioapiset,
+	minwinbase,
+	synchapi,
+	winbase,
+	winnt,
+	winreg,
+};
 use winapi::shared::minwindef::{BOOL, HKEY};
 use winapi::shared::winerror;
 
@@ -19,6 +28,8 @@ pub struct Settings {
 
 impl SerialPort {
 	pub fn open(name: &Path) -> std::io::Result<Self> {
+		use std::os::windows::fs::OpenOptionsExt;
+
 		// Use the win32 device namespace, otherwise we're limited to COM1-9.
 		// This also works with higher numbers.
 		// https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#win32-device-namespaces
@@ -29,6 +40,7 @@ impl SerialPort {
 			.read(true)
 			.write(true)
 			.create(false)
+			.custom_flags(winbase::FILE_FLAG_OVERLAPPED)
 			.open(path)?;
 		Ok(Self::from_file(file))
 	}
@@ -93,20 +105,35 @@ impl SerialPort {
 
 	pub fn read(&self, buf: &mut [u8]) -> std::io::Result<usize> {
 		unsafe {
-			let mut read = 0;
 			let len = buf.len().try_into().unwrap_or(u32::MAX);
-			let ret = fileapi::ReadFile(
+			let mut read = 0;
+			let mut overlapped: minwinbase::OVERLAPPED = std::mem::zeroed();
+			overlapped.hEvent = check_handle(synchapi::CreateEventA(
+				std::ptr::null_mut(), // security attributes
+				0, // manual reset
+				0, // initial state
+				std::ptr::null(), // name
+			))?;
+
+			let ret = check_bool(fileapi::ReadFile(
 				self.file.as_raw_handle(),
 				buf.as_mut_ptr().cast(),
 				len,
-				&mut read, std::ptr::null_mut(),
-			);
-			match check_bool(ret) {
-				Ok(_) => Ok(read as usize),
-				// BrokenPipe means EOF on Windows
-				Err(ref e) if e.kind() == std::io::ErrorKind::BrokenPipe => Ok(0),
-				Err(e) => Err(e),
+				&mut read,
+				&mut overlapped,
+			));
+			match ret {
+				// Windows reports timeouts as a succesfull transfer of 0 bytes.
+				Ok(_) if read == 0 => return Err(std::io::ErrorKind::TimedOut.into()),
+				Ok(_) => return Ok(read as usize),
+				// BrokenPipe with reads means EOF on Windows.
+				Err(ref e) if e.kind() == std::io::ErrorKind::BrokenPipe => return Ok(0),
+				Err(ref e) if e.raw_os_error() == Some(winerror::ERROR_IO_PENDING as i32) => (),
+				Err(e) => return Err(e),
 			}
+
+			wait_async_transfer(&self.file, &mut overlapped)
+				.or_else(map_broken_pipe)
 		}
 	}
 
@@ -120,16 +147,32 @@ impl SerialPort {
 
 	pub fn write(&self, buf: &[u8]) -> std::io::Result<usize> {
 		unsafe {
-			let mut written = 0;
 			let len = buf.len().try_into().unwrap_or(u32::MAX);
-			check_bool(fileapi::WriteFile(
+			let mut written = 0;
+			let mut overlapped: minwinbase::OVERLAPPED = std::mem::zeroed();
+			overlapped.hEvent = check_handle(synchapi::CreateEventA(
+				std::ptr::null_mut(), // security attributes
+				0, // manual reset
+				0, // initial state
+				std::ptr::null(), // name
+			))?;
+
+			let ret = check_bool(fileapi::WriteFile(
 				self.file.as_raw_handle(),
 				buf.as_ptr().cast(),
 				len,
 				&mut written,
-				std::ptr::null_mut(),
-			))?;
-			Ok(written as usize)
+				&mut overlapped,
+			));
+			match ret {
+				// Windows reports timeouts as a succesfull transfer of 0 bytes.
+				Ok(_) if written == 0 => return Err(std::io::ErrorKind::TimedOut.into()),
+				Ok(_) => return Ok(written as usize),
+				Err(ref e) if e.raw_os_error() == Some(winerror::ERROR_IO_PENDING as i32) => (),
+				Err(e) => return Err(e),
+			}
+
+			wait_async_transfer(&self.file, &mut overlapped)
 		}
 	}
 
@@ -197,6 +240,32 @@ impl SerialPort {
 	}
 }
 
+fn map_broken_pipe(error: std::io::Error) -> std::io::Result<usize> {
+	if error.kind() == std::io::ErrorKind::BrokenPipe {
+		Ok(0)
+	} else {
+		Err(error)
+	}
+}
+
+fn wait_async_transfer(file: &std::fs::File, overlapped: &mut minwinbase::OVERLAPPED) -> std::io::Result<usize> {
+	unsafe {
+		let mut transferred = 0;
+		let ret = check_bool(ioapiset::GetOverlappedResult(
+			file.as_raw_handle(),
+			overlapped,
+			&mut transferred,
+			1,
+		));
+		match ret {
+			// Windows reports timeouts as a succesfull transfer of 0 bytes.
+			Ok(_) if transferred == 0 => Err(std::io::ErrorKind::TimedOut.into()),
+			Ok(_) => Ok(transferred as usize),
+			Err(e) => Err(e),
+		}
+	}
+}
+
 fn escape_comm_function(file: &std::fs::File, function: u32) -> std::io::Result<()> {
 	unsafe {
 		check_bool(commapi::EscapeCommFunction(file.as_raw_handle(), function))
@@ -217,6 +286,15 @@ fn check_bool(ret: BOOL) -> std::io::Result<()> {
 		Err(std::io::Error::last_os_error())
 	} else {
 		Ok(())
+	}
+}
+
+/// Check the return value of a syscall for errors.
+fn check_handle(ret: std::os::windows::io::RawHandle) -> std::io::Result<std::os::windows::io::RawHandle> {
+	if ret.is_null() {
+		Err(std::io::Error::last_os_error())
+	} else {
+		Ok(ret)
 	}
 }
 
