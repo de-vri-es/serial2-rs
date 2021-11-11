@@ -45,5 +45,25 @@ pub const BAUD_RATES: [(u32, u32); 23] = [
 ];
 
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
-	Err(std::io::Error::new(std::io::ErrorKind::Other, "port enumeration is not implemented for this platform"))
+	use std::os::unix::fs::FileTypeExt;
+
+	// https://illumos.org/man/1M/ports
+	// Let's hope Solaris is doing the same.
+	// If only Oracle actually had navigatable documentation.
+	let cua = std::fs::read_dir("/dev/cua")?.into_iter();
+	let term = std::fs::read_dir("/dev/cua")?.into_iter();
+
+	let serial_ports = cua
+		.chain(term)
+		.filter_map(|entry| {
+			let entry = entry.ok()?;
+			let kind = entry.metadata().ok()?.file_type();
+			if kind.is_char_device() {
+				Some(entry.path())
+			} else {
+				None
+			}
+		})
+		.collect();
+	Ok(serial_ports)
 }
