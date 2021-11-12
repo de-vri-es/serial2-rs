@@ -1,4 +1,4 @@
-# main
+# Version 0.1.0
 - Add non-trait `is_read_vectored()` and `is_write_vectored()` functions.
 - Improve documentation.
 
