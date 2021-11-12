@@ -152,6 +152,10 @@ impl SerialPort {
 		}
 	}
 
+	pub fn is_read_vectored(&self) -> bool {
+		false
+	}
+
 	pub fn write(&self, buf: &[u8]) -> std::io::Result<usize> {
 		unsafe {
 			let len = buf.len().try_into().unwrap_or(u32::MAX);
@@ -189,6 +193,10 @@ impl SerialPort {
 		} else {
 			self.write(&buf[0])
 		}
+	}
+
+	pub fn is_write_vectored(&self) -> bool {
+		false
 	}
 
 	pub fn flush_output(&self) -> std::io::Result<()> {

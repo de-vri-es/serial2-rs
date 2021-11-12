@@ -178,6 +178,10 @@ impl SerialPort {
 		}
 	}
 
+	pub fn is_read_vectored(&self) -> bool {
+		true
+	}
+
 	pub fn write(&self, buf: &[u8]) -> std::io::Result<usize> {
 		if !poll(&self.file, libc::POLLOUT, self.read_timeout_ms)? {
 			return Err(std::io::ErrorKind::TimedOut.into())
@@ -204,6 +208,10 @@ impl SerialPort {
 				}
 			}
 		}
+	}
+
+	pub fn is_write_vectored(&self) -> bool {
+		true
 	}
 
 	pub fn flush_output(&self) -> std::io::Result<()> {

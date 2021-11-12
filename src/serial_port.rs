@@ -82,6 +82,14 @@ impl SerialPort {
 		self.inner.read_vectored(buf)
 	}
 
+	/// Check if the implementation supports vectored reads.
+	///
+	/// If this returns false, then [`Self::read_vectored()`] will only use the first buffer of the given slice.
+	/// All platforms except for Windows support vectored reads.
+	pub fn is_read_vectored(&self) -> bool {
+		self.inner.is_read_vectored()
+	}
+
 	/// Write bytes to the serial port.
 	///
 	/// This is identical to [`std::io::Write::write()`], except that this function takes a const reference `&self`.
@@ -102,6 +110,14 @@ impl SerialPort {
 	/// You should normally limit yourself to a single reading thread and a single writing thread.
 	pub fn write_vectored(&self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
 		self.inner.write_vectored(buf)
+	}
+
+	/// Check if the implementation supports vectored writes.
+	///
+	/// If this returns false, then [`Self::write_vectored()`] will only use the first buffer of the given slice.
+	/// All platforms except for Windows support vectored writes.
+	pub fn is_write_vectored(&self) -> bool {
+		self.inner.is_write_vectored()
 	}
 
 	/// Flush all data queued to be written.

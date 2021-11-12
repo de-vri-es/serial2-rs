@@ -1,3 +1,6 @@
+# main
+- Add non-trait `is_read_vectored()` and `is_write_vectored()` functions.
+
 # Version 0.1.0-alpha5 - 2021-11-11
 - Implement port enumeration for BSD and Apple platforms.
 - Implement port enumeration for Illumos and Solaris.
