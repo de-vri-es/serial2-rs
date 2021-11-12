@@ -1,44 +1,58 @@
 # serial2
 
-Serial communication for Rust.
+Serial port communication for Rust.
 
-The `serial2` crate provides a cross-platform way to use serial ports.
-The API is inspired by the `serial` and `serialport` crates, and in some cases even borrows implementation details.
+The `serial2` crate provides a cross-platform interface to serial ports.
+It aims to provide a simpler interface than other alternatives.
 
-This crate adds some missing functionality compared to the `serial` crate, and aims to have a simpler API than other alternatives.
-This mostly means that there is a single [`SerialPort`] type rather than a trait and platform specific implementations.
-Platform specific functionality is simply implemented on the same type, and removed on incompatible platforms with `#[cfg(...)]` attributes.
+Features:
+* Simple interface: one [`SerialPort`] struct for all supported platforms.
+* List available ports.
+* Custom baud rates on all supported platforms except Solaris and Illumos.
+* Concurrent reads and writes from multiple threads, even on Windows.
+* Purge the OS buffers (useful to discard read noise when the line should have been silent, for example).
+* Read and control individual modem status lines to use them as general purpose I/O.
+* Cross platform configuration of serial port settings:
+  * Baud rate
+  * Character size
+  * Stop bits
+  * Parity checks
+  * Flow control
+  * Read/write timeouts
 
 You can open and configure a serial port in one go with [`SerialPort::open()`].
-The returned [`SerialPort`] object implements the standard [`std::io::Read`] and [`std::io::Write`] traits,
-as well as some serial port specific functions.
+The second argument to `open()` must be a type that implements [`IntoSettings`].
+In the simplest case, it is enough to pass a `u32` for the baud rate.
+Doing that will also configure a character size of 8 bits with 1 stop bit and disables parity checks and flow control.
+For full control over the applied settings, pass a closure that receives the the current [`Settings`] and return the desired settings.
+
+The [`SerialPort`] struct implements the standard [`std::io::Read`] and [`std::io::Write`] traits,
+as well as [`read()`][SerialPort::read()] and [`write()`][SerialPort::write()] functions that take `&self` instead of `&mut self`.
+This allows you to use the serial port concurrently from multiple threads.
+
 The [`SerialPort::available_ports()`] function can be used to get a list of available serial ports on supported platforms.
 
-It is also possible to clear the OS buffers for the serial port.
-The kernel input buffer contains data that has been received by the kernel, but has not yet been returned by a `read()` call.
-The kernel output buffer contains data that has been passed to the kernel with a `write()` call, but has not yet been transmitted by the hardware.
-You can clear these buffers with one of the [`SerialPort::discard_input_buffer()`], [`SerialPort::discard_output_buffer()`] or [`SerialPort::discard_buffers()`] functions.
+## Example
+This example opens a serial port and echoes back everything that is read.
 
-The crate also supports read/write timeouts, which can be set using [`SerialPort::set_read_timeout`] and [`SerialPort::set_write_timeout`].
-The exact timeout behaviour is platform specific, so be sure to read the documentation for more details.
+```rust
+use serial2::SerialPort;
 
-Finally, the library allows you to control or read the state of some individual signal lines using
-[`SerialPort::set_rts()`], [`SerialPort::read_cts()`], [`SerialPort::set_dtr()`], [`SerialPort::read_dsr()`],
-[`SerialPort::read_ri()`] and [`SerialPort::read_cd()`].
+// On Windows, use something like "COM1".
+let port = SerialPort::open("/dev/ttyUSB0", 115200)?;
+let mut buffer = [0; 256];
+loop {
+    let read = port.read(&mut buffer)?;
+    port.write(&buffer[..read])?;
+}
+```
 
 [`SerialPort`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html
 [`SerialPort::open()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.open
+[`IntoSettings`]: https://docs.rs/serial2/latest/serial2/trait.IntoSettings.html
+[`SerialSettings`]: https://docs.rs/serial2/latest/serial2/struct.SerialSettings.html
 [`std::io::Read`]: https://doc.rust-lang.org/stable/std/io/trait.Read.html
 [`std::io::Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html
+[SerialPort::read()]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.read
+[SerialPort::write()]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.write
 [`SerialPort::available_ports()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.available_ports
-[`SerialPort::discard_input_buffer()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.discard_input_buffer
-[`SerialPort::discard_output_buffer()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.discard_output_buffer
-[`SerialPort::discard_buffers()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.discard_buffers
-[`SerialPort::set_read_timeout`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.set_read_timeout
-[`SerialPort::set_write_timeout`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.set_write_timeout
-[`SerialPort::set_rts()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.set_rts
-[`SerialPort::read_cts()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.read_cts
-[`SerialPort::set_dtr()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.set_dtr
-[`SerialPort::read_dsr()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.read_dsr
-[`SerialPort::read_ri()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.read_ci
-[`SerialPort::read_cd()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.read_cd

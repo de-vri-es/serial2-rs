@@ -2,13 +2,13 @@ use crate::Settings;
 
 /// Trait for objects that can configure a serial port.
 ///
-/// Usually, you can simply pass a `u32` when an implementor of this trait is required.
-/// That uses the `u32` to configure the baud rate,
-/// sets the char size to 8 bits, sets one stop bit, disables parity checks and flow control.
+/// The simplest option is to pass a `u32`, which is used to set the baud rate of the port.
+/// That will also configure a character size of 8 bits with 1 stop bit,
+/// and it disables paritity checks and flow control.
 ///
-/// If you need more control, you can use a `Fn(Settings) -> std::io::Result<Settings>`.
+/// For more control, it is possible to pass a `Fn(Settings) -> std::io::Result<Settings>`.
 ///
-/// If you want to open the serial port without modifying any settings, you can use [`KeepSettings`].
+/// To open a serial port without modifying any settings, pass [`KeepSettings`].
 pub trait IntoSettings {
 	/// Apply the configuration to an existing [`Settings`] struct.
 	fn apply_to_settings(self, settings: &mut Settings) -> std::io::Result<()>;
