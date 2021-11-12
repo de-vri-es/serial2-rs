@@ -539,12 +539,12 @@ pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 			Ok(None) => continue,
 			Err(_) => continue,
 		};
-        if let Some(i) = name.iter().rposition(|&b| b != 0) {
-            name.truncate(i + 1);
-            if let Ok(name) = String::from_utf8(name) {
-                entries.push(name.into());
-            }
-        }
+		if let Some(i) = name.iter().rposition(|&b| b != 0) {
+			name.truncate(i + 1);
+			if let Ok(name) = String::from_utf8(name) {
+				entries.push(name.into());
+			}
+		}
 	}
 
 	Ok(entries)
