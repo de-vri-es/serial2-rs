@@ -3,7 +3,7 @@
 //! The `serial2` crate provides a cross-platform interface to serial ports.
 //! It aims to provide a simpler interface than other alternatives.
 //!
-//! Features:
+//! Currently supported features:
 //! * Simple interface: one [`SerialPort`] struct for all supported platforms.
 //! * List available ports.
 //! * Custom baud rates on all supported platforms except Solaris and Illumos.

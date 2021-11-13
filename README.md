@@ -5,7 +5,7 @@ Serial port communication for Rust.
 The `serial2` crate provides a cross-platform interface to serial ports.
 It aims to provide a simpler interface than other alternatives.
 
-Features:
+Currently supported features:
 * Simple interface: one [`SerialPort`] struct for all supported platforms.
 * List available ports.
 * Custom baud rates on all supported platforms except Solaris and Illumos.
@@ -50,7 +50,7 @@ loop {
 [`SerialPort`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html
 [`SerialPort::open()`]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.open
 [`IntoSettings`]: https://docs.rs/serial2/latest/serial2/trait.IntoSettings.html
-[`SerialSettings`]: https://docs.rs/serial2/latest/serial2/struct.SerialSettings.html
+[`Settings`]: https://docs.rs/serial2/latest/serial2/struct.Settings.html
 [`std::io::Read`]: https://doc.rust-lang.org/stable/std/io/trait.Read.html
 [`std::io::Write`]: https://doc.rust-lang.org/stable/std/io/trait.Write.html
 [SerialPort::read()]: https://docs.rs/serial2/latest/serial2/struct.SerialPort.html#method.read
