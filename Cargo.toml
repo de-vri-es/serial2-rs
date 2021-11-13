@@ -1,6 +1,6 @@
 [package]
 name = "serial2"
-version = "0.1.0"
+version = "0.1.1"
 description = "Cross platform serial ports"
 license = "BSD-2-Clause"
 repository = "https://github.com/de-vri-es/serial2-rs"

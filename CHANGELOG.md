@@ -1,4 +1,4 @@
-# main
+# Version 0.1.1
 - Fix leaking event objects on Windows.
 
 # Version 0.1.0
