@@ -1,3 +1,6 @@
+# main
+- Handle non-existing `HKLM\Hardware\DEVICEMAP\SERIAL` registry key for port enumeration on Windows.
+
 # Version 0.1.2 - 2021-11-13
 - Fix link to documentation in `Cargo.toml`.
 
