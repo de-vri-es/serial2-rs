@@ -1,3 +1,6 @@
+# main
+- Fix link to documentation in `Cargo.toml`.
+
 # Version 0.1.1
 - Fix leaking event objects on Windows.
 
