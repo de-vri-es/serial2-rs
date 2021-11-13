@@ -1,10 +1,10 @@
 # main
 - Fix link to documentation in `Cargo.toml`.
 
-# Version 0.1.1
+# Version 0.1.1 - 2021-11-13
 - Fix leaking event objects on Windows.
 
-# Version 0.1.0
+# Version 0.1.0 - 2021-11-12
 - Add non-trait `is_read_vectored()` and `is_write_vectored()` functions.
 - Improve documentation.
 
