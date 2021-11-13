@@ -1,12 +1,13 @@
 use std::ffi::{CStr, OsString};
 use std::io::{IoSlice, IoSliceMut};
-use std::os::windows::io::AsRawHandle;
+use std::os::windows::io::{AsRawHandle, RawHandle};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use winapi::um::{
 	commapi,
 	fileapi,
+	handleapi,
 	ioapiset,
 	minwinbase,
 	synchapi,
@@ -113,15 +114,10 @@ impl SerialPort {
 	pub fn read(&self, buf: &mut [u8]) -> std::io::Result<usize> {
 		unsafe {
 			let len = buf.len().try_into().unwrap_or(u32::MAX);
+			let event = Event::create(false, false)?;
 			let mut read = 0;
 			let mut overlapped: minwinbase::OVERLAPPED = std::mem::zeroed();
-			overlapped.hEvent = check_handle(synchapi::CreateEventA(
-				std::ptr::null_mut(), // security attributes
-				0, // manual reset
-				0, // initial state
-				std::ptr::null(), // name
-			))?;
-
+			overlapped.hEvent = event.handle;
 			let ret = check_bool(fileapi::ReadFile(
 				self.file.as_raw_handle(),
 				buf.as_mut_ptr().cast(),
@@ -159,15 +155,10 @@ impl SerialPort {
 	pub fn write(&self, buf: &[u8]) -> std::io::Result<usize> {
 		unsafe {
 			let len = buf.len().try_into().unwrap_or(u32::MAX);
+			let event = Event::create(false, false)?;
 			let mut written = 0;
 			let mut overlapped: minwinbase::OVERLAPPED = std::mem::zeroed();
-			overlapped.hEvent = check_handle(synchapi::CreateEventA(
-				std::ptr::null_mut(), // security attributes
-				0, // manual reset
-				0, // initial state
-				std::ptr::null(), // name
-			))?;
-
+			overlapped.hEvent = event.handle;
 			let ret = check_bool(fileapi::WriteFile(
 				self.file.as_raw_handle(),
 				buf.as_ptr().cast(),
@@ -255,6 +246,34 @@ impl SerialPort {
 	}
 }
 
+struct Event {
+	handle: RawHandle,
+}
+
+impl Event {
+	fn create(manual_reset: bool, initially_signalled: bool) -> std::io::Result<Self> {
+		unsafe {
+			let manual_reset = if manual_reset { 1 } else { 0 };
+			let initially_signalled = if initially_signalled { 1 } else { 0 };
+			let handle = check_handle(synchapi::CreateEventA(
+				std::ptr::null_mut(), // security attributes
+				manual_reset,
+				initially_signalled,
+				std::ptr::null(), // name
+			))?;
+			Ok(Self { handle })
+		}
+	}
+}
+
+impl Drop for Event {
+	fn drop(&mut self) {
+		unsafe {
+			handleapi::CloseHandle(self.handle);
+		}
+	}
+}
+
 fn map_broken_pipe(error: std::io::Error) -> std::io::Result<usize> {
 	if error.kind() == std::io::ErrorKind::BrokenPipe {
 		Ok(0)
@@ -305,7 +324,7 @@ fn check_bool(ret: BOOL) -> std::io::Result<()> {
 }
 
 /// Check the return value of a syscall for errors.
-fn check_handle(ret: std::os::windows::io::RawHandle) -> std::io::Result<std::os::windows::io::RawHandle> {
+fn check_handle(ret: RawHandle) -> std::io::Result<RawHandle> {
 	if ret.is_null() {
 		Err(std::io::Error::last_os_error())
 	} else {
