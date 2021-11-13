@@ -1,4 +1,4 @@
-# main
+# Version 0.1.2 - 2021-11-13
 - Fix link to documentation in `Cargo.toml`.
 
 # Version 0.1.1 - 2021-11-13
