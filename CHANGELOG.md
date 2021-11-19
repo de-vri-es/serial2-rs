@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.1.4 - 2021-11-19
 - Detect `/dev/ttyU*` and `/dev/cuaU*` devices when listing serial ports on FreeBSD and DragonFlyBSD.
 
 # Version 0.1.3 - 2021-11-13
