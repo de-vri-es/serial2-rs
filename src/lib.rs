@@ -52,20 +52,10 @@
 mod sys;
 
 mod into_settings;
-pub use into_settings::{
-	IntoSettings,
-	KeepSettings,
-};
+pub use into_settings::{IntoSettings, KeepSettings};
 
 mod serial_port;
 pub use serial_port::SerialPort;
 
 mod settings;
-pub use settings::{
-	Settings,
-	COMMON_BAUD_RATES,
-	CharSize,
-	StopBits,
-	Parity,
-	FlowControl,
-};
+pub use settings::{CharSize, FlowControl, Parity, Settings, StopBits, COMMON_BAUD_RATES};

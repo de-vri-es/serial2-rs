@@ -1,14 +1,14 @@
 use std::path::PathBuf;
 
-pub use libc::TIOCMBIS;
 pub use libc::TIOCMBIC;
+pub use libc::TIOCMBIS;
 pub use libc::TIOCMGET;
-pub use libc::TIOCM_RTS;
-pub use libc::TIOCM_CTS;
-pub use libc::TIOCM_DTR;
-pub use libc::TIOCM_DSR;
-pub use libc::TIOCM_RI;
 pub use libc::TIOCM_CD;
+pub use libc::TIOCM_CTS;
+pub use libc::TIOCM_DSR;
+pub use libc::TIOCM_DTR;
+pub use libc::TIOCM_RI;
+pub use libc::TIOCM_RTS;
 
 pub const BAUD_RATES: [(u32, u32); 18] = [
 	// POSIX 2017.1: https://pubs.opengroup.org/onlinepubs/9699919799
@@ -35,5 +35,8 @@ pub const BAUD_RATES: [(u32, u32); 18] = [
 ];
 
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
-	Err(std::io::Error::new(std::io::ErrorKind::Other, "port enumeration is not implemented for this platform"))
+	Err(std::io::Error::new(
+		std::io::ErrorKind::Other,
+		"port enumeration is not implemented for this platform",
+	))
 }

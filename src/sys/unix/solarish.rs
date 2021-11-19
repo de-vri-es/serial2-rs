@@ -3,8 +3,8 @@ use std::path::PathBuf;
 // All values taken from:
 // https://github.com/illumos/illumos-gate/blob/252adeb303174e992b64771bf9639e63a4d55418/usr/src/uts/common/sys/termios.h
 
-pub use libc::TIOCMBIS;
 pub use libc::TIOCMBIC;
+pub use libc::TIOCMBIS;
 pub use libc::TIOCMGET;
 //pub const TIOCM_LE: i32 = 0o0001;
 pub const TIOCM_DTR: i32 = 0o0002;

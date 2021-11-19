@@ -4,19 +4,9 @@ use std::os::windows::io::{AsRawHandle, RawHandle};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use winapi::um::{
-	commapi,
-	fileapi,
-	handleapi,
-	ioapiset,
-	minwinbase,
-	synchapi,
-	winbase,
-	winnt,
-	winreg,
-};
 use winapi::shared::minwindef::{BOOL, HKEY};
 use winapi::shared::winerror;
+use winapi::um::{commapi, fileapi, handleapi, ioapiset, minwinbase, synchapi, winbase, winnt, winreg};
 
 pub struct SerialPort {
 	pub file: std::fs::File,
@@ -61,9 +51,7 @@ impl SerialPort {
 		unsafe {
 			let mut dcb: winbase::DCB = std::mem::zeroed();
 			check_bool(commapi::GetCommState(self.file.as_raw_handle(), &mut dcb))?;
-			Ok(Settings {
-				dcb,
-			})
+			Ok(Settings { dcb })
 		}
 	}
 
@@ -135,8 +123,7 @@ impl SerialPort {
 				Err(e) => return Err(e),
 			}
 
-			wait_async_transfer(&self.file, &mut overlapped)
-				.or_else(map_broken_pipe)
+			wait_async_transfer(&self.file, &mut overlapped).or_else(map_broken_pipe)
 		}
 	}
 
@@ -191,9 +178,7 @@ impl SerialPort {
 	}
 
 	pub fn flush_output(&self) -> std::io::Result<()> {
-		unsafe {
-			check_bool(winapi::um::fileapi::FlushFileBuffers(self.file.as_raw_handle()))
-		}
+		unsafe { check_bool(winapi::um::fileapi::FlushFileBuffers(self.file.as_raw_handle())) }
 	}
 
 	pub fn discard_buffers(&self, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
@@ -208,7 +193,6 @@ impl SerialPort {
 			check_bool(commapi::PurgeComm(self.file.as_raw_handle(), flags))
 		}
 	}
-
 
 	pub fn set_rts(&self, state: bool) -> std::io::Result<()> {
 		if state {
@@ -301,9 +285,7 @@ fn wait_async_transfer(file: &std::fs::File, overlapped: &mut minwinbase::OVERLA
 }
 
 fn escape_comm_function(file: &std::fs::File, function: u32) -> std::io::Result<()> {
-	unsafe {
-		check_bool(commapi::EscapeCommFunction(file.as_raw_handle(), function))
-	}
+	unsafe { check_bool(commapi::EscapeCommFunction(file.as_raw_handle(), function)) }
 }
 
 fn read_pin(file: &std::fs::File, pin: u32) -> std::io::Result<bool> {
@@ -440,6 +422,7 @@ impl Settings {
 		}
 	}
 
+	#[rustfmt::skip]
 	pub fn get_flow_control(&self) -> std::io::Result<crate::FlowControl> {
 		let in_x = self.dcb.fInX() != 0;
 		let out_x = self.dcb.fOutX() != 0;
@@ -447,9 +430,15 @@ impl Settings {
 		let out_dsr = self.dcb.fOutxDsrFlow() != 0;
 
 		match (in_x, out_x, out_cts, out_dsr, self.dcb.fDtrControl(), self.dcb.fRtsControl()) {
-			(false, false, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControl::None),
-			(true, true, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => Ok(crate::FlowControl::XonXoff),
-			(false, false, true, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_TOGGLE) => Ok(crate::FlowControl::RtsCts),
+			(false, false, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => {
+				Ok(crate::FlowControl::None)
+			},
+			(true, true, false, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_DISABLE) => {
+				Ok(crate::FlowControl::XonXoff)
+			},
+			(false, false, true, false, winbase::DTR_CONTROL_DISABLE, winbase::RTS_CONTROL_TOGGLE) => {
+				Ok(crate::FlowControl::RtsCts)
+			},
 			_ => Err(other_error("unsupported flow control configuration")),
 		}
 	}
@@ -464,13 +453,7 @@ impl RegKey {
 	fn open(parent: HKEY, subpath: &CStr, rights: winreg::REGSAM) -> std::io::Result<Self> {
 		unsafe {
 			let mut key: HKEY = std::ptr::null_mut();
-			let status = winreg::RegOpenKeyExA(
-				parent,
-				subpath.as_ptr(),
-				0,
-				rights,
-				&mut key,
-			);
+			let status = winreg::RegOpenKeyExA(parent, subpath.as_ptr(), 0, rights, &mut key);
 			if status != 0 {
 				Err(std::io::Error::from_raw_os_error(status))
 			} else {
@@ -506,7 +489,12 @@ impl RegKey {
 		}
 	}
 
-	fn get_string_value(&self, index: u32, max_name_len: u32, max_data_len: u32) -> std::io::Result<Option<(Vec<u8>, Vec<u8>)>> {
+	fn get_string_value(
+		&self,
+		index: u32,
+		max_name_len: u32,
+		max_data_len: u32,
+	) -> std::io::Result<Option<(Vec<u8>, Vec<u8>)>> {
 		unsafe {
 			let mut name = vec![0u8; max_name_len as usize + 1];
 			let mut data = vec![0u8; max_data_len as usize];
@@ -560,7 +548,7 @@ pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 	let (value_count, max_value_name_len, max_value_data_len) = device_map.get_value_info()?;
 
 	let mut entries = Vec::with_capacity(16);
-	for i in 0.. value_count {
+	for i in 0..value_count {
 		let mut name = match device_map.get_string_value(i, max_value_name_len, max_value_data_len) {
 			Ok(Some((_name, data))) => data,
 			Ok(None) => continue,

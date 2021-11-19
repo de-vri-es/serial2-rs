@@ -172,9 +172,9 @@ pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 			Err(_) => continue,
 			Ok(metadata) => {
 				if !metadata.file_type().is_char_device() {
-					continue
+					continue;
 				}
-			}
+			},
 		}
 
 		match name.as_bytes().strip_prefix(b"tty") {

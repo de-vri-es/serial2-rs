@@ -156,7 +156,12 @@ impl SerialPort {
 		}
 		unsafe {
 			loop {
-				match check_isize(libc::read(self.file.as_raw_fd(), buf.as_mut_ptr().cast(), buf.len() as _)) {
+				let result = check_isize(libc::read(
+					self.file.as_raw_fd(),
+					buf.as_mut_ptr().cast(),
+					buf.len() as _,
+				));
+				match result {
 					Err(ref e) if e.raw_os_error() == Some(libc::EINTR) => continue,
 					x => return x,
 				}
@@ -170,7 +175,12 @@ impl SerialPort {
 		}
 		unsafe {
 			loop {
-				match check_isize(libc::readv(self.file.as_raw_fd(), buf.as_mut_ptr().cast(), buf.len() as _)) {
+				let result = check_isize(libc::readv(
+					self.file.as_raw_fd(),
+					buf.as_mut_ptr().cast(),
+					buf.len() as _,
+				));
+				match result {
 					Err(ref e) if e.raw_os_error() == Some(libc::EINTR) => continue,
 					x => return x,
 				}
@@ -184,11 +194,12 @@ impl SerialPort {
 
 	pub fn write(&self, buf: &[u8]) -> std::io::Result<usize> {
 		if !poll(&self.file, libc::POLLOUT, self.read_timeout_ms)? {
-			return Err(std::io::ErrorKind::TimedOut.into())
+			return Err(std::io::ErrorKind::TimedOut.into());
 		}
 		unsafe {
 			loop {
-				match check_isize(libc::write(self.file.as_raw_fd(), buf.as_ptr().cast(), buf.len() as _)) {
+				let result = check_isize(libc::write(self.file.as_raw_fd(), buf.as_ptr().cast(), buf.len() as _));
+				match result {
 					Err(ref e) if e.raw_os_error() == Some(libc::EINTR) => continue,
 					x => return x,
 				}
@@ -202,7 +213,8 @@ impl SerialPort {
 		}
 		unsafe {
 			loop {
-				match check_isize(libc::writev(self.file.as_raw_fd(), buf.as_ptr().cast(), buf.len() as _)) {
+				let result = check_isize(libc::writev(self.file.as_raw_fd(), buf.as_ptr().cast(), buf.len() as _));
+				match result {
 					Err(ref e) if e.raw_os_error() == Some(libc::EINTR) => continue,
 					x => return x,
 				}
@@ -519,6 +531,5 @@ impl PartialEq for Settings {
 				same
 			}
 		}
-
 	}
 }

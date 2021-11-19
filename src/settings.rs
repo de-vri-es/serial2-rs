@@ -11,20 +11,7 @@ pub struct Settings {
 ///
 /// These speeds can be useful to populate a user interface with some common options though.
 pub const COMMON_BAUD_RATES: &[u32] = &[
-	4800,
-	9600,
-	19200,
-	38400,
-	57600,
-	115200,
-	230400,
-	460800,
-	500000,
-	576000,
-	921600,
-	1000000,
-	1500000,
-	2000000,
+	4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 500000, 576000, 921600, 1000000, 1500000, 2000000,
 ];
 
 /// The number of bits per character for a serial port.
