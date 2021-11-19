@@ -51,7 +51,7 @@ fn is_tty_name(name: &[u8]) -> bool {
 			// https://www.freebsd.org/cgi/man.cgi?query=uart&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
 			// https://www.freebsd.org/cgi/man.cgi?query=ucom&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
 			#[cfg(target_os = "freebsd")]
-			const PREFIXES: [&[u8]; 5] = [b"ttyu", b"ttyU", b"cuau", b"cuaU", b"cuad"];
+			const PREFIXES: [&[u8]; 5] = [b"ttyu", b"cuau", b"cuad", b"ttyU", b"cuaU"];
 
 			// https://man.netbsd.org/com.4
 			// https://man.netbsd.org/ucom.4
