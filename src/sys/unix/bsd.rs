@@ -49,8 +49,9 @@ fn is_tty_name(name: &[u8]) -> bool {
 			const PREFIXES: [&[u8]; 2] = [b"ttyd", b"cuaa"];
 
 			// https://docs.freebsd.org/en/books/handbook/serialcomms/
+			// https://github.com/de-vri-es/serial2-rs/issues/1
 			#[cfg(target_os = "freebsd")]
-			const PREFIXES: [&[u8]; 3] = [b"ttyu", b"cuau", b"cuad"];
+			const PREFIXES: [&[u8]; 5] = [b"ttyu", b"ttyU", b"cuau", b"cuaU", b"cuad"];
 
 			// https://man.netbsd.org/com.4
 			// https://man.netbsd.org/ucom.4

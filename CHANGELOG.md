@@ -1,3 +1,6 @@
+# Unreleased
+- Add `/dev/ttyU*` and `/dev/cuaU*` to the list of expected port names for FreeBSD.
+
 # Version 0.1.3 - 2021-11-13
 - Handle non-existing `HKLM\Hardware\DEVICEMAP\SERIAL` registry key for port enumeration on Windows.
 
