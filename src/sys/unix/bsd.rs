@@ -44,9 +44,10 @@ fn is_tty_name(name: &[u8]) -> bool {
 			// This may contain a lot of false positives for pseudo-terminals or other fake terminals.
 			// If anyone can improve this for a specific BSD they love, by all means send a PR.
 
-			// https://www.dragonflybsd.org/docs/docs/newhandbook/serial_communications/
+			// https://man.dragonflybsd.org/?command=sio&section=4
+			// https://leaf.dragonflybsd.org/cgi/web-man?command=ucom&section=ANY
 			#[cfg(target_os = "dragonfly")]
-			const PREFIXES: [&[u8]; 2] = [b"ttyd", b"cuaa"];
+			const PREFIXES: [&[u8]; 4] = [b"ttyd", b"cuaa", b"ttyU", b"cuaU"];
 
 			// https://www.freebsd.org/cgi/man.cgi?query=uart&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
 			// https://www.freebsd.org/cgi/man.cgi?query=ucom&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
