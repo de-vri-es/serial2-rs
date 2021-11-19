@@ -48,8 +48,8 @@ fn is_tty_name(name: &[u8]) -> bool {
 			#[cfg(target_os = "dragonfly")]
 			const PREFIXES: [&[u8]; 2] = [b"ttyd", b"cuaa"];
 
-			// https://docs.freebsd.org/en/books/handbook/serialcomms/
-			// https://github.com/de-vri-es/serial2-rs/issues/1
+			// https://www.freebsd.org/cgi/man.cgi?query=uart&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
+			// https://www.freebsd.org/cgi/man.cgi?query=ucom&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
 			#[cfg(target_os = "freebsd")]
 			const PREFIXES: [&[u8]; 5] = [b"ttyu", b"ttyU", b"cuau", b"cuaU", b"cuad"];
 
