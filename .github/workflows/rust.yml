@@ -1,15 +1,23 @@
 name: tests
 on:
-  push: { branches: ["master", "main"] }
-  pull_request: { branches: "*" }
+  push: { branches: ["main"] }
+  pull_request: { branches: ["*"] }
 
 jobs:
   build_and_test:
     name: Build and test
-    runs-on: fizyr
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@master
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -25,8 +33,3 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --workspace --all-targets --all-features
-      - name: Cleanup
-        uses: actions-rs/cargo@v1
-        with:
-          command: sweep
-          args: --maxsize 5120 -r
