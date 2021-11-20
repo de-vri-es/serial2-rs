@@ -1,4 +1,4 @@
-# main
+# Version 0.1.5 - 2021-11-20
 - Dual-license under BSD-2-Clause and Apache-2.0.
 
 # Version 0.1.4 - 2021-11-19
