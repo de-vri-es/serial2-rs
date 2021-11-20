@@ -1,3 +1,6 @@
+# main
+- Dual-license under BSD-2-Clause and Apache-2.0.
+
 # Version 0.1.4 - 2021-11-19
 - Detect `/dev/ttyU*` and `/dev/cuaU*` devices when listing serial ports on FreeBSD and DragonFlyBSD.
 

@@ -2,7 +2,7 @@
 name = "serial2"
 version = "0.1.4"
 description = "Cross platform serial ports"
-license = "BSD-2-Clause"
+license = "BSD-2-Clause OR Apache-2.0"
 repository = "https://github.com/de-vri-es/serial2-rs"
 documentation = "https://docs.rs/serial2"
 keywords = ["serial", "serial-port", "COM-port", "RS232", "tty"]
