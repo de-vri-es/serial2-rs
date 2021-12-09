@@ -11,7 +11,7 @@ categories = ["hardware-support", "network-programming", "os", "science::robotic
 edition = "2021"
 
 [target.'cfg(unix)'.dependencies]
-libc = "0.2.107"
+libc = "0.2.109"
 cfg-if = "1.0.0"
 
 [target.'cfg(windows)'.dependencies]

@@ -248,27 +248,27 @@ impl SerialPort {
 	}
 
 	pub fn set_rts(&self, state: bool) -> std::io::Result<()> {
-		set_pin(&self.file, TIOCM_RTS, state)
+		set_pin(&self.file, libc::TIOCM_RTS, state)
 	}
 
 	pub fn read_cts(&self) -> std::io::Result<bool> {
-		read_pin(&self.file, TIOCM_CTS)
+		read_pin(&self.file, libc::TIOCM_CTS)
 	}
 
 	pub fn set_dtr(&self, state: bool) -> std::io::Result<()> {
-		set_pin(&self.file, TIOCM_DTR, state)
+		set_pin(&self.file, libc::TIOCM_DTR, state)
 	}
 
 	pub fn read_dsr(&self) -> std::io::Result<bool> {
-		read_pin(&self.file, TIOCM_DSR)
+		read_pin(&self.file, libc::TIOCM_DSR)
 	}
 
 	pub fn read_ri(&self) -> std::io::Result<bool> {
-		read_pin(&self.file, TIOCM_RI)
+		read_pin(&self.file, libc::TIOCM_RI)
 	}
 
 	pub fn read_cd(&self) -> std::io::Result<bool> {
-		read_pin(&self.file, TIOCM_CD)
+		read_pin(&self.file, libc::TIOCM_CD)
 	}
 }
 
@@ -288,9 +288,9 @@ fn poll(file: &std::fs::File, events: std::os::raw::c_short, timeout_ms: u32) ->
 fn set_pin(file: &std::fs::File, pin: c_int, state: bool) -> std::io::Result<()> {
 	unsafe {
 		if state {
-			check(libc::ioctl(file.as_raw_fd(), TIOCMBIS as _, &pin))?;
+			check(libc::ioctl(file.as_raw_fd(), libc::TIOCMBIS as _, &pin))?;
 		} else {
-			check(libc::ioctl(file.as_raw_fd(), TIOCMBIC as _, &pin))?;
+			check(libc::ioctl(file.as_raw_fd(), libc::TIOCMBIC as _, &pin))?;
 		}
 		Ok(())
 	}
@@ -299,7 +299,7 @@ fn set_pin(file: &std::fs::File, pin: c_int, state: bool) -> std::io::Result<()>
 fn read_pin(file: &std::fs::File, pin: c_int) -> std::io::Result<bool> {
 	unsafe {
 		let mut bits: c_int = 0;
-		check(libc::ioctl(file.as_raw_fd(), TIOCMGET as _, &mut bits))?;
+		check(libc::ioctl(file.as_raw_fd(), libc::TIOCMGET as _, &mut bits))?;
 		Ok(bits & pin != 0)
 	}
 }
@@ -355,8 +355,8 @@ impl Settings {
 				//
 				// Also, we don't actually have a termios struct to pass to cfsetospeed or cfsetispeed.
 				self.termios.c_cflag &= !(libc::CBAUD | libc::CIBAUD);
-				self.termios.c_cflag |= BOTHER;
-				self.termios.c_cflag |= BOTHER << IBSHIFT;
+				self.termios.c_cflag |= libc::BOTHER;
+				self.termios.c_cflag |= libc::BOTHER << libc::IBSHIFT;
 				self.termios.c_ospeed = baud_rate;
 				self.termios.c_ispeed = baud_rate;
 				Ok(())
@@ -392,7 +392,7 @@ impl Settings {
 					any(target_os = "android", target_os = "linux"),
 					not(any(target_arch = "powerpc", target_arch = "powerpc64"))
 				))]
-				if self.termios.c_cflag & libc::CBAUD == BOTHER {
+				if self.termios.c_cflag & libc::CBAUD == libc::BOTHER {
 					return Ok(self.termios.c_ospeed);
 				}
 
@@ -502,7 +502,7 @@ impl PartialEq for Settings {
 
 		cfg_if::cfg_if! {
 			if #[cfg(any(target_os = "android", target_os = "linux"))] {
-				use libc::{CBAUD, CBAUDEX};
+				use libc::{CBAUD, CBAUDEX, IBSHIFT};
 				let no_baud = !(CBAUD | CBAUDEX | (CBAUD | CBAUDEX) << IBSHIFT);
 				let same = true;
 				let same = same && a.c_cflag & no_baud == b.c_cflag & no_baud;

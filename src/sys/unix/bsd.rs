@@ -1,16 +1,6 @@
 use cfg_if::cfg_if;
 use std::path::PathBuf;
 
-pub use libc::TIOCMBIC;
-pub use libc::TIOCMBIS;
-pub use libc::TIOCMGET;
-pub use libc::TIOCM_CD;
-pub use libc::TIOCM_CTS;
-pub use libc::TIOCM_DSR;
-pub use libc::TIOCM_DTR;
-pub use libc::TIOCM_RI;
-pub use libc::TIOCM_RTS;
-
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 	use std::os::unix::ffi::OsStrExt;
 	use std::os::unix::fs::FileTypeExt;
