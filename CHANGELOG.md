@@ -1,3 +1,6 @@
+# Unreleased
+- Add `write_all()` function that takes `&self`.
+
 # Version 0.1.6 - 2021-12-09
 - Remove fills for libc constants that are no longer needed.
 

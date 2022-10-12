@@ -101,6 +101,24 @@ impl SerialPort {
 		self.inner.write(buf)
 	}
 
+	/// Write all bytes to the serial port.
+	///
+	/// This will continue to call [`Self::write()`] until the entire buffer has been written,
+	/// or an I/O error occurs.
+	///
+	/// This is identical to [`std::io::Write::write_all()`], except that this function takes a const reference `&self`.
+	/// This allows you to use the serial port concurrently from multiple threads.
+	///
+	/// Note that data written to the same serial port from multiple threads may end up interleaved at the receiving side.
+	/// You should normally limit yourself to a single reading thread and a single writing thread.
+	pub fn write_all(&self, buf: &[u8]) -> std::io::Result<()> {
+		let mut written = 0;
+		while written < buf.len() {
+			written += self.write(&buf[written..])?;
+		}
+		Ok(())
+	}
+
 	/// Write bytes to the serial port from a slice of buffers.
 	///
 	/// This is identical to [`std::io::Write::write_vectored()`], except that this function takes a const reference `&self`.
