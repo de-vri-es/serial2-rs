@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.1.7 - 2022-10-12
 - Add `write_all()` function that takes `&self`.
 
 # Version 0.1.6 - 2021-12-09
