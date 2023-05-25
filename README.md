@@ -38,7 +38,7 @@ This example opens a serial port and echoes back everything that is read.
 ```rust
 use serial2::SerialPort;
 
-// On Windows, use something like "COM1".
+// On Windows, use r"\\\\.\\COM1" or just "COM1".
 let port = SerialPort::open("/dev/ttyUSB0", 115200)?;
 let mut buffer = [0; 256];
 loop {
