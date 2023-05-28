@@ -1,6 +1,7 @@
 # main
 - Mention the win32 device namespace in the documentation.
 - Implement `Debug` for `Settings`.
+- Fix setting of character size, stop bits and parity on Unix platforms.
 
 # Version 0.1.7 - 2022-10-12
 - Add `write_all()` function that takes `&self`.
