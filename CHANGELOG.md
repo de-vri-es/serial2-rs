@@ -1,4 +1,4 @@
-# main
+# Version 0.1.8 - 2023-05-28
 - Mention the win32 device namespace in the documentation.
 - Implement `Debug` for `Settings`.
 - Fix setting of character size, stop bits and parity on Unix platforms.
