@@ -38,6 +38,8 @@
 //! use serial2::SerialPort;
 //!
 //! // On Windows, use something like "COM1".
+//! // For COM ports above COM9, you need to use the win32 device namespace, for example "\\.\COM10" (or "\\\\.\\COM10" with string escaping).
+//! // For more details, see: https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN#win32-device-namespaces
 //! let port = SerialPort::open("/dev/ttyUSB0", 115200)?;
 //! let mut buffer = [0; 256];
 //! loop {
