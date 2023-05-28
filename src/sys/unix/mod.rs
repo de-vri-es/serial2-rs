@@ -119,24 +119,10 @@ impl SerialPort {
 	}
 
 	pub fn set_configuration(&mut self, settings: &Settings) -> std::io::Result<()> {
-		let initial_settings = settings;
-		let mut settings = settings.clone();
-
-		// Ensure input and output processing is disabled.
-		// TODO: Should we just expose "make_raw()" and push this burden to the user?
-		unsafe {
-			libc::cfmakeraw(&mut settings.termios as *mut _ as *mut libc::termios);
-		}
-		settings.set_baud_rate(initial_settings.get_baud_rate()?)?;
-		settings.set_char_size(initial_settings.get_char_size()?);
-		settings.set_stop_bits(initial_settings.get_stop_bits()?);
-		settings.set_parity(initial_settings.get_parity()?);
-		settings.set_flow_control(initial_settings.get_flow_control()?);
-
 		settings.set_on_file(&mut self.file)?;
 
 		let applied_settings = self.get_configuration()?;
-		if applied_settings != settings {
+		if applied_settings != *settings {
 			Err(other_error("failed to apply some or all settings"))
 		} else {
 			Ok(())
@@ -342,6 +328,16 @@ where
 }
 
 impl Settings {
+	pub fn set_raw(&mut self) {
+		unsafe {
+			libc::cfmakeraw(&mut self.termios as *mut _ as *mut libc::termios);
+		}
+		self.set_char_size(crate::CharSize::Bits8);
+		self.set_stop_bits(crate::StopBits::One);
+		self.set_parity(crate::Parity::None);
+		self.set_flow_control(crate::FlowControl::None);
+	}
+
 	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
 		cfg_if! {
 			if #[cfg(any(

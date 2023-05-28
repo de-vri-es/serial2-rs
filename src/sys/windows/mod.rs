@@ -323,6 +323,16 @@ where
 }
 
 impl Settings {
+	pub fn set_raw(&mut self) {
+		self.set_char_size(crate::CharSize::Bits8);
+		self.set_stop_bits(crate::StopBits::One);
+		self.set_parity(crate::Parity::None);
+		self.set_flow_control(crate::FlowControl::None);
+		self.dcb.set_fBinary(1);
+		self.dcb.set_fErrorChar(0);
+		self.dcb.set_fNull(0);
+	}
+
 	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
 		self.dcb.BaudRate = baud_rate;
 		Ok(())

@@ -1,3 +1,7 @@
+# main
+- Do not implicitly set the serial port to raw mode when using a closure as second argument to `SerialPort::open()`.
+- Add `Settings::set_raw()` to disable OS level input/output processing.
+
 # Version 0.1.9 - 2023-05-28
 - Disable `fDsrSensitivity` on Windows when configuring flow control.
 

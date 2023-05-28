@@ -77,6 +77,17 @@ pub enum FlowControl {
 }
 
 impl Settings {
+	/// Disable all OS level input and output processing.
+	///
+	/// All input and output processing will be disabled,
+	/// and the configuration will be set for 8 bit binary communication,
+	/// one stop bit, no parity checks and no flow control.
+	///
+	/// This is usually a good starting point for manual configuration.
+	pub fn set_raw(&mut self) {
+		self.inner.set_raw();
+	}
+
 	/// Set the baud rate to be configured.
 	///
 	/// This function returns an error if the platform does not support the requested band-width.

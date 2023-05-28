@@ -23,6 +23,7 @@
 //! In the simplest case, it is enough to pass a `u32` for the baud rate.
 //! Doing that will also configure a character size of 8 bits with 1 stop bit and disables parity checks and flow control.
 //! For full control over the applied settings, pass a closure that receives the the current [`Settings`] and return the desired settings.
+//! If you do, you will almost always want to call [`Settings::set_raw()`] before changing any other settings.
 //!
 //! The [`SerialPort`] struct implements the standard [`std::io::Read`] and [`std::io::Write`] traits,
 //! as well as [`read()`][SerialPort::read()] and [`write()`][SerialPort::write()] functions that take `&self` instead of `&mut self`.

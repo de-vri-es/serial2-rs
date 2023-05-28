@@ -3,10 +3,12 @@ use crate::Settings;
 /// Trait for objects that can configure a serial port.
 ///
 /// The simplest option is to pass a `u32`, which is used to set the baud rate of the port.
-/// That will also configure a character size of 8 bits with 1 stop bit,
+/// That will also disable all OS level input and output modification,
+/// configure a character size of 8 bits with 1 stop bit,
 /// and it disables paritity checks and flow control.
 ///
 /// For more control, it is possible to pass a `Fn(Settings) -> std::io::Result<Settings>`.
+/// If you do, you will generally want to start with a call to [`Settings::set_raw()`].
 ///
 /// To open a serial port without modifying any settings, pass [`KeepSettings`].
 pub trait IntoSettings {
@@ -26,11 +28,8 @@ where
 
 impl IntoSettings for u32 {
 	fn apply_to_settings(self, settings: &mut Settings) -> std::io::Result<()> {
+		settings.set_raw();
 		settings.set_baud_rate(self)?;
-		settings.set_char_size(crate::CharSize::Bits8);
-		settings.set_stop_bits(crate::StopBits::One);
-		settings.set_parity(crate::Parity::None);
-		settings.set_flow_control(crate::FlowControl::None);
 		Ok(())
 	}
 }
