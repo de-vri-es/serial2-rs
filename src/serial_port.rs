@@ -21,7 +21,7 @@ impl SerialPort {
 	///
 	/// On Windows, for COM ports above COM9, you need to use the win32 device namespace for the `name` parameter.
 	/// For example "\\.\COM10" (or "\\\\.\\COM10" with string escaping).
-	/// For more details, see: https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN#win32-device-namespaces
+	/// For more details, see [the documentation from Microsoft](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN#win32-device-namespaces).
 	///
 	/// # Example
 	/// ```no_run
