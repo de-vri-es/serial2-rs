@@ -1,4 +1,4 @@
-# main
+# Version 0.2.0 - 2023-05-28
 - Do not implicitly set the serial port to raw mode when using a closure as second argument to `SerialPort::open()`.
 - Add `Settings::set_raw()` to disable OS level input/output processing.
 
