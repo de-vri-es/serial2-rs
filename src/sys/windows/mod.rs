@@ -399,25 +399,28 @@ impl Settings {
 				self.dcb.set_fInX(0);
 				self.dcb.set_fOutX(0);
 				self.dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
+				self.dcb.set_fDsrSensitivity(0);
+				self.dcb.set_fOutxDsrFlow(0);
 				self.dcb.set_fRtsControl(winbase::RTS_CONTROL_DISABLE);
 				self.dcb.set_fOutxCtsFlow(0);
-				self.dcb.set_fOutxDsrFlow(0);
 			},
 			crate::FlowControl::XonXoff => {
 				self.dcb.set_fInX(1);
 				self.dcb.set_fOutX(1);
 				self.dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
+				self.dcb.set_fDsrSensitivity(0);
+				self.dcb.set_fOutxDsrFlow(0);
 				self.dcb.set_fRtsControl(winbase::RTS_CONTROL_DISABLE);
 				self.dcb.set_fOutxCtsFlow(0);
-				self.dcb.set_fOutxDsrFlow(0);
 			},
 			crate::FlowControl::RtsCts => {
 				self.dcb.set_fInX(0);
 				self.dcb.set_fOutX(0);
 				self.dcb.set_fDtrControl(winbase::DTR_CONTROL_DISABLE);
+				self.dcb.set_fDsrSensitivity(0);
+				self.dcb.set_fOutxDsrFlow(0);
 				self.dcb.set_fRtsControl(winbase::RTS_CONTROL_TOGGLE);
 				self.dcb.set_fOutxCtsFlow(1);
-				self.dcb.set_fOutxDsrFlow(0);
 			},
 		}
 	}

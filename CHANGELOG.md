@@ -1,3 +1,6 @@
+# main
+- Disable `fDsrSensitivity` on Windows when configuring flow control.
+
 # Version 0.1.8 - 2023-05-28
 - Mention the win32 device namespace in the documentation.
 - Implement `Debug` for `Settings`.
