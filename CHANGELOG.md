@@ -1,4 +1,4 @@
-# main
+# Version 0.1.9 - 2023-05-28
 - Disable `fDsrSensitivity` on Windows when configuring flow control.
 
 # Version 0.1.8 - 2023-05-28
