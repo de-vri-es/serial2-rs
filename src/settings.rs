@@ -133,3 +133,15 @@ impl Settings {
 		self.inner.get_flow_control()
 	}
 }
+
+impl std::fmt::Debug for Settings {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("Settings")
+			.field("baud_rate", &self.get_baud_rate())
+			.field("char_size", &self.get_char_size())
+			.field("stop_bits", &self.get_stop_bits())
+			.field("parity", &self.get_parity())
+			.field("flow_control", &self.get_flow_control())
+			.finish()
+	}
+}
