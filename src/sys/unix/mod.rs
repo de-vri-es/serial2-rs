@@ -465,7 +465,7 @@ impl Settings {
 	pub fn get_parity(&self) -> std::io::Result<crate::Parity> {
 		if self.termios.c_cflag & libc::PARENB == 0 {
 			Ok(crate::Parity::None)
-		} else if self.termios.c_cflag & libc::PARODD == 0 {
+		} else if self.termios.c_cflag & libc::PARODD != 0 {
 			Ok(crate::Parity::Odd)
 		} else {
 			Ok(crate::Parity::Even)

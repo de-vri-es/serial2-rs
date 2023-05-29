@@ -1,3 +1,6 @@
+# v0.1.x (unreleased)
+- Fix `Settings::get_parity()` on Unix platforms.
+
 # Version 0.1.9 - 2023-05-28
 - Disable `fDsrSensitivity` on Windows when configuring flow control.
 
