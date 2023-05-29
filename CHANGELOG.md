@@ -1,4 +1,4 @@
-# main
+# Version 0.2.1 - 2023-05-29
 - Fix `Settings::get_parity()` on Unix platforms.
 
 # Version 0.2.0 - 2023-05-28
