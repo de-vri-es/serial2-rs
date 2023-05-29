@@ -1,4 +1,4 @@
-# v0.1.x (unreleased)
+# Version 0.1.10 - 2023-05-29
 - Fix `Settings::get_parity()` on Unix platforms.
 
 # Version 0.1.9 - 2023-05-28
