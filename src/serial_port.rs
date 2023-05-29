@@ -49,6 +49,19 @@ impl SerialPort {
 		sys::enumerate()
 	}
 
+	/// Open all the ports that are available in the system with a fixed baud rate and returns a vector of Results to manage each port.
+	/// 
+	/// Subject to all the norms and limitations of `Serialport::available_ports()` and `Serialport::open()`.
+	/// If you want to manage settings for the port, you will have to manage each one.
+	pub fn open_available_ports(settings: u32) -> Vec<std::io::Result<Self>> {
+		let ports = SerialPort::available_ports().unwrap();
+		let mut serialport_vec: Vec<std::io::Result<Self>> = Vec::new();
+		for port in ports {
+			serialport_vec.push(Self::open(port, settings))	
+		}
+		serialport_vec
+	}
+
 	/// Configure (or reconfigure) the serial port.
 	pub fn set_configuration(&mut self, settings: &Settings) -> std::io::Result<()> {
 		self.inner.set_configuration(&settings.inner)
