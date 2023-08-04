@@ -493,9 +493,9 @@ impl Settings {
 		if !crtscts && !ixon && !ixoff {
 			Ok(crate::FlowControl::None)
 		} else if crtscts && !ixon && !ixoff {
-			Ok(crate::FlowControl::XonXoff)
-		} else if !crtscts && ixon && ixoff {
 			Ok(crate::FlowControl::RtsCts)
+		} else if !crtscts && ixon && ixoff {
+			Ok(crate::FlowControl::XonXoff)
 		} else {
 			Err(other_error("unknown flow control configuration"))
 		}

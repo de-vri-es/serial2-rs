@@ -1,3 +1,6 @@
+# main
+- Fix `Settings::get_flow_control()` on Unix platforms.
+
 # Version 0.2.1 - 2023-05-29
 - Fix `Settings::get_parity()` on Unix platforms.
 
