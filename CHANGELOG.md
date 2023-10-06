@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.6 - 2023-10-06
 - Remove wrong documentation about manually using the win32 device namespace on Windows.
 
 # Version 0.2.5 - 2023-10-06
