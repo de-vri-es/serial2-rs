@@ -279,6 +279,29 @@ impl std::io::Write for SerialPort {
 }
 
 #[cfg(unix)]
+impl From<SerialPort> for std::os::unix::io::OwnedFd {
+	fn from(value: SerialPort) -> Self {
+		value.inner.file.into()
+	}
+}
+
+#[cfg(unix)]
+impl From<std::os::unix::io::OwnedFd> for SerialPort {
+	fn from(value: std::os::unix::io::OwnedFd) -> Self {
+		Self {
+			inner: sys::SerialPort::from_file(value.into())
+		}
+	}
+}
+
+#[cfg(unix)]
+impl std::os::unix::io::AsFd for SerialPort {
+	fn as_fd(&self) -> std::os::unix::io::BorrowedFd<'_> {
+		self.inner.file.as_fd()
+	}
+}
+
+#[cfg(unix)]
 impl std::os::unix::io::AsRawFd for SerialPort {
 	fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
 		self.inner.file.as_raw_fd()
@@ -303,6 +326,32 @@ impl std::os::unix::io::FromRawFd for SerialPort {
 }
 
 #[cfg(windows)]
+impl From<SerialPort> for std::os::windows::io::OwnedHandle {
+	fn from(value: SerialPort) -> Self {
+		value.inner.file.into()
+	}
+}
+
+/// Convert an [`OwnedHandle`][std::os::windows::io::OwnedHandle] into a `SerialPort`.
+///
+/// The file handle must have been created with the `FILE_FLAG_OVERLAPPED` flag for the serial port to function correctly.
+#[cfg(windows)]
+impl From<std::os::windows::io::OwnedHandle> for SerialPort {
+	fn from(value: std::os::windows::io::OwnedHandle) -> Self {
+		Self {
+			inner: sys::SerialPort::from_file(value.into())
+		}
+	}
+}
+
+#[cfg(windows)]
+impl std::os::windows::io::AsHandle for SerialPort {
+	fn as_handle(&self) -> std::os::windows::io::BorrowedHandle<'_> {
+		self.inner.file.as_handle()
+	}
+}
+
+#[cfg(windows)]
 impl std::os::windows::io::AsRawHandle for SerialPort {
 	fn as_raw_handle(&self) -> std::os::windows::io::RawHandle {
 		self.inner.file.as_raw_handle()
@@ -316,6 +365,10 @@ impl std::os::windows::io::IntoRawHandle for SerialPort {
 	}
 }
 
+
+/// Convert an [`RawHandle`][std::os::windows::io::RawHandle] into a `SerialPort`.
+///
+/// The file handle must have been created with the `FILE_FLAG_OVERLAPPED` flag for the serial port to function correctly.
 #[cfg(windows)]
 impl std::os::windows::io::FromRawHandle for SerialPort {
 	unsafe fn from_raw_handle(handle: std::os::windows::io::RawHandle) -> Self {

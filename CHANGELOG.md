@@ -1,3 +1,7 @@
+# Unreleased
+- Implement `From<OwnedFd>`, `Into<OwnedFd>` and `AsFd` for `SerialPort` on Unix platforms.
+- Implement `From<OwnedHandle>`, `Into<OwnedHandle>` and `AsHandle` for `SerialPort` on Windows.
+
 # Version 0.2.2 - 2023-08-04
 - Fix `Settings::get_flow_control()` on Unix platforms.
 
