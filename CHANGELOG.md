@@ -1,3 +1,6 @@
+# Unreleased
+- Remove wrong documentation about manually using the win32 device namespace on Windows.
+
 # Version 0.2.5 - 2023-10-06
 - Increase the default read/write timeouts on Unix platforms to 3 seconds.
 - Explicitly set `VMIN` and `VTIME` to 0 on Unix platforms in `Settings::set_raw()`.
