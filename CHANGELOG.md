@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.4 - 2023-10-6
 - Always open serial ports with the `O_NONBLOCK` flag on Unix.
 
 # Version 0.2.3 - 2023-10-06
