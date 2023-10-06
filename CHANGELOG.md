@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.3 - 2023-10-06
 - Implement `From<OwnedFd>`, `Into<OwnedFd>` and `AsFd` for `SerialPort` on Unix platforms.
 - Implement `From<OwnedHandle>`, `Into<OwnedHandle>` and `AsHandle` for `SerialPort` on Windows.
 
