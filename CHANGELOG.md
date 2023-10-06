@@ -1,9 +1,9 @@
-# Unreleased
+# Version 0.2.5 - 2023-10-06
 - Increase the default read/write timeouts on Unix platforms to 3 seconds.
 - Explicitly set `VMIN` and `VTIME` to 0 on Unix platforms in `Settings::set_raw()`.
 - Mimic Unix behavior on Windows: read will return with available data as soon as possible.
 
-# Version 0.2.4 - 2023-10-6
+# Version 0.2.4 - 2023-10-06
 - Always open serial ports with the `O_NONBLOCK` flag on Unix.
 
 # Version 0.2.3 - 2023-10-06
