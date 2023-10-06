@@ -37,7 +37,14 @@ impl SerialPort {
 		unsafe {
 			let mut timeouts: winbase::COMMTIMEOUTS = std::mem::zeroed();
 			check_bool(commapi::GetCommTimeouts(file.as_raw_handle(), &mut timeouts))?;
-			timeouts.ReadIntervalTimeout = 10;
+			// Mimic POSIX behaviour for reads.
+			// For more details, see:
+			// https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts#remarks
+			timeouts.ReadIntervalTimeout = u32::MAX;
+			timeouts.ReadTotalTimeoutMultiplier = u32::MAX;
+			timeouts.ReadTotalTimeoutConstant = super::DEFAULT_TIMEOUT_MS;
+			timeouts.WriteTotalTimeoutMultiplier = 0;
+			timeouts.WriteTotalTimeoutConstant = super::DEFAULT_TIMEOUT_MS;
 			check_bool(commapi::SetCommTimeouts(file.as_raw_handle(), &mut timeouts))?;
 		}
 		Ok(Self::from_file(file))
@@ -65,10 +72,18 @@ impl SerialPort {
 	pub fn set_read_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
 		unsafe {
 			let mut timeouts = std::mem::zeroed();
+			// Mimic POSIX behaviour for reads.
+			// Timeout must be > 0 and < u32::MAX, so clamp it.
+			// For more details, see:
+			// https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts#remarks
+			let timeout_ms = timeout.as_millis()
+				.try_into()
+				.unwrap_or(u32::MAX)
+				.clamp(1, u32::MAX - 1);
 			check_bool(commapi::GetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))?;
-			timeouts.ReadIntervalTimeout = 0;
-			timeouts.ReadTotalTimeoutMultiplier = 0;
-			timeouts.ReadTotalTimeoutConstant = timeout.as_millis().try_into().unwrap_or(u32::MAX);
+			timeouts.ReadIntervalTimeout = u32::MAX;
+			timeouts.ReadTotalTimeoutMultiplier = u32::MAX;
+			timeouts.ReadTotalTimeoutConstant = timeout_ms;
 			check_bool(commapi::SetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))
 		}
 	}
@@ -84,9 +99,13 @@ impl SerialPort {
 	pub fn set_write_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
 		unsafe {
 			let mut timeouts = std::mem::zeroed();
+			let timeout_ms = timeout
+				.as_millis()
+				.try_into()
+				.unwrap_or(u32::MAX);
 			check_bool(commapi::GetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))?;
 			timeouts.WriteTotalTimeoutMultiplier = 0;
-			timeouts.WriteTotalTimeoutConstant = timeout.as_millis().try_into().unwrap_or(u32::MAX);
+			timeouts.WriteTotalTimeoutConstant = timeout_ms;
 			check_bool(commapi::SetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))
 		}
 	}
