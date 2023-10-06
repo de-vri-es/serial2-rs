@@ -9,3 +9,5 @@ mod windows;
 
 #[cfg(windows)]
 pub use windows::*;
+
+const DEFAULT_TIMEOUT_MS: u32 = 3000;

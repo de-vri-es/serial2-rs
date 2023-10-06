@@ -111,8 +111,8 @@ impl SerialPort {
 	pub fn from_file(file: std::fs::File) -> Self {
 		Self {
 			file,
-			read_timeout_ms: 100,
-			write_timeout_ms: 100,
+			read_timeout_ms: super::DEFAULT_TIMEOUT_MS,
+			write_timeout_ms: super::DEFAULT_TIMEOUT_MS,
 		}
 	}
 
@@ -333,6 +333,8 @@ impl Settings {
 	pub fn set_raw(&mut self) {
 		unsafe {
 			libc::cfmakeraw(&mut self.termios as *mut _ as *mut libc::termios);
+			self.termios.c_cc[libc::VMIN] = 0;
+			self.termios.c_cc[libc::VTIME] = 0;
 		}
 		self.set_char_size(crate::CharSize::Bits8);
 		self.set_stop_bits(crate::StopBits::One);
