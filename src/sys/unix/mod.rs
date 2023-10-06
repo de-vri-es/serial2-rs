@@ -97,10 +97,12 @@ cfg_if! {
 
 impl SerialPort {
 	pub fn open(path: &Path) -> std::io::Result<Self> {
+		use std::os::unix::fs::OpenOptionsExt;
 		let file = std::fs::OpenOptions::new()
 			.read(true)
 			.write(true)
 			.create(false)
+			.custom_flags(libc::O_NONBLOCK)
 			.open(path)?;
 
 		Ok(Self::from_file(file))
