@@ -1,4 +1,5 @@
 use std::io::{IoSlice, IoSliceMut};
+use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -91,6 +92,47 @@ impl SerialPort {
 	/// All platforms except for Windows support vectored reads.
 	pub fn is_read_vectored(&self) -> bool {
 		self.inner.is_read_vectored()
+	}
+
+	/// Will read a byte at a time until either a timeout is triggered, the size is reached, or memory is exhausted.
+	/// This differs from `read()` which will either timeout or read a single byte.
+	/// # Examples
+	///
+	/// ```
+	/// use SerialTester::read_to_timeout;
+	///
+	/// let mut port = serial2::Serialport::open("COM2", 9600);
+	/// assert_eq!(read_to_timeout(&mut port, None), );
+	/// assert_eq!(port, [0x48, 0x49, 0x20, 0x46, 0x45, 0x52, 0x52, 0x49, 0x53]);
+	/// ```
+	pub fn read_until_timeout(&self, size: Option<NonZeroUsize>) -> std::io::Result<Vec<u8>> {
+		let mut output = Vec::new();
+
+		loop {
+			let mut byte = [0];
+
+			// read to the byte
+			let res = self.read(&mut byte);
+
+			match res {
+				Ok(_) => {
+					output.push(byte[0]);
+
+					match size {
+						Some(max_size) => {
+							if output.len() == max_size.into() {
+								break Ok(output);
+							}
+						},
+						None => continue,
+					}
+				},
+				Err(err) => match err.kind() {
+					std::io::ErrorKind::TimedOut => break Ok(output),
+					_ => break Err(err),
+				},
+			}
+		}
 	}
 
 	/// Write bytes to the serial port.
@@ -288,7 +330,7 @@ impl From<SerialPort> for std::os::unix::io::OwnedFd {
 impl From<std::os::unix::io::OwnedFd> for SerialPort {
 	fn from(value: std::os::unix::io::OwnedFd) -> Self {
 		Self {
-			inner: sys::SerialPort::from_file(value.into())
+			inner: sys::SerialPort::from_file(value.into()),
 		}
 	}
 }
@@ -338,7 +380,7 @@ impl From<SerialPort> for std::os::windows::io::OwnedHandle {
 impl From<std::os::windows::io::OwnedHandle> for SerialPort {
 	fn from(value: std::os::windows::io::OwnedHandle) -> Self {
 		Self {
-			inner: sys::SerialPort::from_file(value.into())
+			inner: sys::SerialPort::from_file(value.into()),
 		}
 	}
 }
@@ -363,7 +405,6 @@ impl std::os::windows::io::IntoRawHandle for SerialPort {
 		self.inner.file.into_raw_handle()
 	}
 }
-
 
 /// Convert an [`RawHandle`][std::os::windows::io::RawHandle] into a `SerialPort`.
 ///
