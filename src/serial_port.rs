@@ -176,6 +176,46 @@ impl SerialPort {
 		self.inner.get_write_timeout()
 	}
 
+	/// Get the platform specific timeouts of a serial port on Windows.
+	///
+	/// This allows for full control over the platform specifics timeouts, but it is only available on Windows.
+	///
+	/// Also note that changing the read timeouts can easily lead to the serial port timing out on every read unless you are very careful.
+	/// Please read the whole article about serial port timeouts on MSDN before using this, including all remarks:
+	/// [https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts)
+	///
+	/// You are strongly suggested to use [`Self::get_read_timeout()`] and [`Self::get_write_timeout()`] instead.
+	#[cfg(any(doc, all(feature = "windows", windows)))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
+	pub fn get_windows_timeouts(&self) -> std::io::Result<crate::os::windows::CommTimeouts> {
+		#[cfg(windows)] {
+			self.inner.get_windows_timeouts()
+		}
+		#[cfg(not(windows))] {
+			unreachable!("this code is only enabled on windows or during documentation generation")
+		}
+	}
+
+	/// Set the platform specific timeouts of a serial port on Windows.
+	///
+	/// This allows for full control over the platform specifics timeouts, but it is only available on Windows.
+	///
+	/// Also note that changing the read timeouts can easily lead to the serial port timing out on every read unless you are very careful.
+	/// Please read the whole article about serial port timeouts on MSDN before using this, including all remarks:
+	/// [https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts)
+	///
+	/// You are strongly suggested to use [`Self::set_read_timeout()`] and [`Self::set_write_timeout()`] instead.
+	#[cfg(any(doc, all(feature = "windows", windows)))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
+	pub fn set_windows_timeouts(&self, timeouts: &crate::os::windows::CommTimeouts) -> std::io::Result<()> {
+		#[cfg(windows)] {
+			self.inner.set_windows_timeouts(timeouts)
+		}
+		#[cfg(not(windows))] {
+			unreachable!("this code is only enabled on windows or during documentation generation")
+		}
+	}
+
 	/// Discard the kernel input and output buffers for the serial port.
 	///
 	/// When you write to a serial port, the data may be put in a buffer by the OS to be transmitted by the actual device later.

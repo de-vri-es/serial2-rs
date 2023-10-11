@@ -22,14 +22,24 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --workspace --all-targets --all-features --color=always
+          args: --workspace --all-targets --color=always
       - name: Test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --workspace --all-targets --all-features --color=always
+          args: --workspace --all-targets --color=always
+      - name: Build (with unix feature)
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --workspace --all-targets --color=always --features unix
+      - name: Test (with unix feature)
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --workspace --all-targets --color=always --features unix
       - name: Clippy
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --workspace --all-targets --all-features
+          args: --workspace --all-targets

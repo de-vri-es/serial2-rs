@@ -1,3 +1,10 @@
+# Unreleased
+- Add the `"unix"` crate feature to enable Unix specific extensions.
+- Add the `"windows"` crate feature to enable Windows specific extensions.
+- Add `Settings::as_raw_termios()` and `as_raw_termios_mut()` on Unix platforms.
+- Add `Settings::as_raw_dcb()` and `as_raw_dcb_mut()` on Windows.
+- Add `SerialPort::get_windows_timeouts()` and `set_windows_timeouts()` on Windows.
+
 # Version 0.2.6 - 2023-10-06
 - Remove wrong documentation about manually using the win32 device namespace on Windows.
 

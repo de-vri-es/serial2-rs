@@ -143,6 +143,52 @@ impl Settings {
 	pub fn get_flow_control(&self) -> std::io::Result<FlowControl> {
 		self.inner.get_flow_control()
 	}
+
+	/// Get a reference to the raw `termios` struct.
+	///
+	/// On Linux and Android this is actually a `termios2` struct.
+	/// On other Unix platforms, this is a `termios` struct.
+	///
+	/// You can use this function to access Unix specific features of the serial port.
+	/// You code will not be cross platform anymore if you use this.
+	#[cfg(any(doc, all(unix, feature = "unix")))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
+	pub fn as_termios(&self) -> &crate::os::unix::RawTermios {
+		&self.inner.termios
+	}
+
+	/// Get a mutable reference to the raw `termios` struct.
+	///
+	/// On Linux and Android this is actually a `termios2` struct.
+	/// On other Unix platforms, this is a `termios` struct.
+	///
+	/// You can use this function to access Unix specific features of the serial port.
+	/// You code will not be cross platform anymore if you use this.
+	#[cfg(any(doc, all(unix, feature = "unix")))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
+	pub fn as_termios_mut(&mut self) -> &mut crate::os::unix::RawTermios {
+		&mut self.inner.termios
+	}
+
+	/// Get a reference to the raw `DCB` struct.
+	///
+	/// You can use this function to access Windows specific features of the serial port.
+	/// You code will not be cross platform anymore if you use this.
+	#[cfg(any(doc, all(windows, feature = "windows")))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
+	pub fn as_raw_dbc(&self) -> &crate::os::windows::DCB {
+		&self.inner.dcb
+	}
+
+	/// Get a mutable reference to the raw  `DCB` struct.
+	///
+	/// You can use this function to access Windows specific features of the serial port.
+	/// You code will not be cross platform anymore if you use this.
+	#[cfg(any(doc, all(windows, feature = "windows")))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
+	pub fn as_raw_dbc_mut(&mut self) -> &mut crate::os::windows::DCB {
+		&mut self.inner.dcb
+	}
 }
 
 impl std::fmt::Debug for Settings {
