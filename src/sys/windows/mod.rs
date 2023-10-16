@@ -14,7 +14,7 @@ pub struct SerialPort {
 
 #[derive(Clone)]
 pub struct Settings {
-	dcb: winbase::DCB,
+	pub dcb: winbase::DCB,
 }
 
 impl SerialPort {
@@ -115,6 +115,36 @@ impl SerialPort {
 			let mut timeouts = std::mem::zeroed();
 			check_bool(commapi::GetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))?;
 			Ok(Duration::from_millis(timeouts.WriteTotalTimeoutConstant.into()))
+		}
+	}
+
+	#[cfg(any(doc, all(feature = "windows", windows)))]
+	pub fn get_windows_timeouts(&self) -> std::io::Result<crate::os::windows::CommTimeouts> {
+		unsafe {
+			let mut timeouts = std::mem::zeroed();
+			check_bool(commapi::GetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))?;
+			Ok(crate::os::windows::CommTimeouts {
+				read_interval_timeout: timeouts.ReadIntervalTimeout,
+				read_total_timeout_multiplier: timeouts.ReadTotalTimeoutMultiplier,
+				read_total_timeout_constant: timeouts.ReadTotalTimeoutConstant,
+				write_total_timeout_multiplier: timeouts.WriteTotalTimeoutMultiplier,
+				write_total_timeout_constant: timeouts.WriteTotalTimeoutConstant,
+			})
+		}
+	}
+
+	#[cfg(any(doc, all(feature = "windows", windows)))]
+	pub fn set_windows_timeouts(&self, timeouts: &crate::os::windows::CommTimeouts) -> std::io::Result<()> {
+		let mut timeouts = winapi::um::winbase::COMMTIMEOUTS {
+			ReadIntervalTimeout: timeouts.read_interval_timeout,
+			ReadTotalTimeoutMultiplier: timeouts.read_total_timeout_multiplier,
+			ReadTotalTimeoutConstant: timeouts.read_total_timeout_constant,
+			WriteTotalTimeoutMultiplier: timeouts.write_total_timeout_multiplier,
+			WriteTotalTimeoutConstant: timeouts.write_total_timeout_constant,
+		};
+		unsafe {
+			check_bool(commapi::SetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))?;
+			Ok(())
 		}
 	}
 

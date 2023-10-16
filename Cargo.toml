@@ -10,9 +10,22 @@ categories = ["hardware-support", "network-programming", "os", "science::robotic
 
 edition = "2021"
 
+[features]
+# The "unix" feature enables Unix specific extensions.
+unix = []
+
+# The "windows" features enables windows specific extensions.
+windows = []
+
+# Add #[doc(cfg(...))] annotations to platform specific items for better documentation (requires nightly toolchain).
+doc-cfg = []
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2.109"
 cfg-if = "1.0.0"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["commapi", "fileapi", "handleapi", "ioapiset", "std", "synchapi", "winbase", "winerror", "winreg"] }
+
+[package.metadata.docs.rs]
+features = ["doc-cfg"]

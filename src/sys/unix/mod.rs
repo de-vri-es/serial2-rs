@@ -49,9 +49,11 @@ cfg_if! {
 		not(any(target_arch = "powerpc", target_arch = "powerpc64"))
 	))]
 	{
+		pub type RawTermios = libc::termios2;
+
 		#[derive(Clone)]
 		pub struct Settings {
-			pub termios: libc::termios2,
+			pub termios: RawTermios,
 		}
 
 		impl Settings {
@@ -71,9 +73,11 @@ cfg_if! {
 			}
 		}
 	} else {
+		pub type RawTermios = libc::termios;
+
 		#[derive(Clone)]
 		pub struct Settings {
-			pub termios: libc::termios,
+			pub termios: RawTermios,
 		}
 
 		impl Settings {
@@ -526,11 +530,14 @@ impl PartialEq for Settings {
 					return false;
 				}
 
+				// NOTE: This `PartialEq` only exists to check if applying settings worked.
+				// So if we don't understand the speed of either struct, just ignore them.
+				// Otherwise, applying settings with speed that we do not understand would also result in errors.
 				// TODO: Deal with input speed != output speed
-				if let (Ok(speed_a), Ok(speed_b)) = (self.get_baud_rate(), other.get_baud_rate()) {
-					speed_a == speed_b
-				} else {
-					false
+				match (self.get_baud_rate(), other.get_baud_rate()) {
+					(Ok(speed_a), Ok(speed_b)) => speed_a == speed_b,
+					(Err(_), Err(_)) => true,
+					_ => false,
 				}
 			} else {
 				let same = true;

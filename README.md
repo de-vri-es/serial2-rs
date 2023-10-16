@@ -19,6 +19,7 @@ Currently supported features:
   * Parity checks
   * Flow control
   * Read/write timeouts
+* Full access to platform specific serial port settings using target specific feature flags (`"unix"` or `"windows"`).
 
 You can open and configure a serial port in one go with [`SerialPort::open()`].
 The second argument to `open()` must be a type that implements [`IntoSettings`].
