@@ -8,6 +8,7 @@ documentation = "https://docs.rs/serial2"
 keywords = ["serial", "serial-port", "COM-port", "RS232", "tty"]
 categories = ["hardware-support", "network-programming", "os", "science::robotics"]
 
+publish = ["crates-io"]
 edition = "2021"
 
 [features]
