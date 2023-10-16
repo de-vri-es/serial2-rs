@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.7 - 2023-10-16
 - [add][minor] Add the `"unix"` crate feature to enable Unix specific extensions.
 - [add][minor] Add the `"windows"` crate feature to enable Windows specific extensions.
 - [add][minor] Add `Settings::as_raw_termios()` and `as_raw_termios_mut()` on Unix platforms.
