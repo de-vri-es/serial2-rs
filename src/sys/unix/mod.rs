@@ -337,7 +337,7 @@ impl Settings {
 	pub fn set_raw(&mut self) {
 		unsafe {
 			libc::cfmakeraw(&mut self.termios as *mut _ as *mut libc::termios);
-			self.termios.c_cc[libc::VMIN] = 0;
+			self.termios.c_cc[libc::VMIN] = 1;
 			self.termios.c_cc[libc::VTIME] = 0;
 		}
 		self.set_char_size(crate::CharSize::Bits8);
