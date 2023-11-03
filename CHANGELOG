@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.8 - 2023-11-03
 - [change][minor] Set `VMIN` to 1 on Unix platforms to work correctly with `epoll()` on Linux.
 
 # Version 0.2.7 - 2023-10-16
