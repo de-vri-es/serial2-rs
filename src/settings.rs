@@ -67,7 +67,7 @@ pub enum Parity {
 
 /// The type of flow control for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum FlowControl {
 	/// Do not perform any automatic flow control.
 	None,
