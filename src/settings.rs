@@ -1,4 +1,4 @@
-#[cfg(feature = "with-serde")]
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 /// The settings of a serial port.
