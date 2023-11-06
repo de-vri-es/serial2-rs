@@ -1,3 +1,6 @@
+#[cfg(feature = "with-serde")]
+use serde::{Deserialize, Serialize};
+
 /// The settings of a serial port.
 #[derive(Clone)]
 pub struct Settings {
@@ -16,6 +19,7 @@ pub const COMMON_BAUD_RATES: &[u32] = &[
 
 /// The number of bits per character for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub enum CharSize {
 	/// Characters of 5 bits.
 	Bits5,
@@ -32,6 +36,7 @@ pub enum CharSize {
 
 /// The number of stop bits per character for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub enum StopBits {
 	/// One stop bit.
 	One,
@@ -42,6 +47,7 @@ pub enum StopBits {
 
 /// The type of parity check for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub enum Parity {
 	/// Do not add a parity bit and do not check for parity.
 	None,
@@ -61,6 +67,7 @@ pub enum Parity {
 
 /// The type of flow control for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
+#[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
 pub enum FlowControl {
 	/// Do not perform any automatic flow control.
 	None,
