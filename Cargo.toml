@@ -21,7 +21,7 @@ windows = []
 # Add #[doc(cfg(...))] annotations to platform specific items for better documentation (requires nightly toolchain).
 doc-cfg = []
 
-with-serde = ["serde/derive"]
+serde = ["dep:serde"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"], optional = true }
