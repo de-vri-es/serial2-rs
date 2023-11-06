@@ -19,7 +19,7 @@ pub const COMMON_BAUD_RATES: &[u32] = &[
 
 /// The number of bits per character for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[cfg_attr(feature = "with-serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum CharSize {
 	/// Characters of 5 bits.
 	Bits5,
