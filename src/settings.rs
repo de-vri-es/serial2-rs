@@ -1,5 +1,8 @@
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use {
+	serde::{Deserialize, Serialize},
+	serde_repr::{Serialize_repr, Deserialize_repr},
+};
 
 /// The settings of a serial port.
 #[derive(Clone)]
@@ -19,30 +22,30 @@ pub const COMMON_BAUD_RATES: &[u32] = &[
 
 /// The number of bits per character for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize_repr, Deserialize_repr), repr(u8))]
 pub enum CharSize {
 	/// Characters of 5 bits.
-	Bits5,
+	Bits5 = 5,
 
 	/// Characters of 6 bits.
-	Bits6,
+	Bits6 = 6,
 
 	/// Characters of 7 bits.
-	Bits7,
+	Bits7 = 7,
 
 	/// Characters of 8 bits.
-	Bits8,
+	Bits8 = 8,
 }
 
 /// The number of stop bits per character for a serial port.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize_repr, Deserialize_repr), repr(u8))]
 pub enum StopBits {
 	/// One stop bit.
-	One,
+	One = 1,
 
 	/// Two stop bit.
-	Two,
+	Two = 2,
 }
 
 /// The type of parity check for a serial port.
