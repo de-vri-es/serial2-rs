@@ -1,3 +1,6 @@
+# Unreleased
+- [change][patch] Tweak the documentation style for the optional `serde` support.
+
 # Version 0.2.9 - 2023-11-21
 - [add][minor] Add optional support for `serde` with the `serde` feature.
 

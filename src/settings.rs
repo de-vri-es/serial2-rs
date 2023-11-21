@@ -16,47 +16,86 @@ pub const COMMON_BAUD_RATES: &[u32] = &[
 
 /// The number of bits per character for a serial port.
 ///
-/// # serde
-/// If the `serde` feature is enabled this type implements (de)serialization as a number with the value 5, 6, 7 or 8.
+/// <div>
+/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+/// This type supports (de)serialization as a number.
+/// </div>
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 #[repr(u8)]
 pub enum CharSize {
 	/// Characters of 5 bits.
+	///
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the number <code>5</code>.
+	/// </div>
 	Bits5 = 5,
 
 	/// Characters of 6 bits.
+	///
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the number <code>7</code>.
+	/// </div>
 	Bits6 = 6,
 
 	/// Characters of 7 bits.
+	///
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the number <code>7</code>.
+	/// </div>
 	Bits7 = 7,
 
 	/// Characters of 8 bits.
+	///
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the number <code>8</code>.
+	/// </div>
 	Bits8 = 8,
 }
 
 /// The number of stop bits per character for a serial port.
 ///
-/// # serde
-/// If the `serde` feature is enabled this type implements (de)serialization as a number with the value 1 or 2.
+/// <div>
+/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+/// This type supports (de)serialization as a number.
+/// </div>
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 #[repr(u8)]
 pub enum StopBits {
 	/// One stop bit.
+	///
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the number <code>1</code>.
+	/// </div>
 	One = 1,
 
 	/// Two stop bit.
+	///
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the number <code>2</code>.
+	/// </div>
 	Two = 2,
 }
 
 /// The type of parity check for a serial port.
 ///
-/// # serde
-/// If the `serde` feature is enabled this type implements (de)serialization as a string.
+/// <div>
+/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+/// This type supports (de)serialization as a string.
+/// </div>
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum Parity {
 	/// Do not add a parity bit and do not check for parity.
 	///
-	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"none"`.
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the string <code>"none"</code>.
+	/// </div>
 	None,
 
 	/// Add a bit to ensure odd parity of all characters send over the serial port.
@@ -64,7 +103,11 @@ pub enum Parity {
 	/// Received characters are also expected to have a parity bit and odd parity.
 	/// What happens with received characters that have invalid parity is platform and device specific.
 	///
-	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"odd"`.
+	///
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the string <code>"odd"</code>.
+	/// </div>
 	Odd,
 
 	/// Add a bit to ensure even parity of all characters send over the serial port.
@@ -72,33 +115,48 @@ pub enum Parity {
 	/// Received characters are also expected to have a parity bit and even parity.
 	/// What happens with received characters that have invalid parity is platform and device specific.
 	///
-	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"even"`.
+	///
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the string <code>"even"</code>.
+	/// </div>
 	Even,
 }
 
 /// The type of flow control for a serial port.
 ///
-/// # serde
-/// If the `serde` feature is enabled this type implements (de)serialization as a string.
+/// <div>
+/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+/// This type supports (de)serialization as a string.
+/// </div>
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub enum FlowControl {
 	/// Do not perform any automatic flow control.
 	///
-	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"none"`.
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the string <code>"none"</code>.
+	/// </div>
 	None,
 
 	/// Perform XON/XOFF flow control.
 	///
 	/// This is also sometimes referred to as "software flow control".
 	///
-	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"xon/xoff"`.
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the string <code>"xon/xoff"</code>.
+	/// </div>
 	XonXoff,
 
 	/// Perform RTS/CTS flow control.
 	///
 	/// This is also sometimes referred to as "hardware flow control".
 	///
-	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"rts/cts"`.
+	/// <div class="item-info" style="margin-left: 0">
+	/// <span class="stab portability" style="display: inline">Available on <strong>crate feature <code>serde</code></strong> only:</span>
+	/// This variant is (de)serialized as the string <code>"rts/cts"</code>.
+	/// </div>
 	RtsCts,
 }
 
