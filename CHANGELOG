@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.9 - 2023-11-21
 - [add][minor] Add optional support for `serde` with the `serde` feature.
 
 # Version 0.2.8 - 2023-11-03
