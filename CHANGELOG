@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.10 - 2023-11-21
 - [change][patch] Tweak the documentation style for the optional `serde` support.
 
 # Version 0.2.9 - 2023-11-21
