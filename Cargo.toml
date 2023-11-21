@@ -21,12 +21,22 @@ windows = []
 # Add #[doc(cfg(...))] annotations to platform specific items for better documentation (requires nightly toolchain).
 doc-cfg = []
 
+serde = ["dep:serde"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"], optional = true }
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2.109"
 cfg-if = "1.0.0"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["commapi", "fileapi", "handleapi", "ioapiset", "std", "synchapi", "winbase", "winerror", "winreg"] }
+
+[dev-dependencies]
+assert2 = "0.3.11"
+serde_json = "1.0.108"
+serial2 = { path = ".", features = ["serde"] }
 
 [package.metadata.docs.rs]
 features = ["doc-cfg"]
