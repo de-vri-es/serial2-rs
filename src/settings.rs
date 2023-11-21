@@ -1,9 +1,3 @@
-#[cfg(feature = "serde")]
-use {
-	serde::{Deserialize, Serialize},
-	serde_repr::{Serialize_repr, Deserialize_repr},
-};
-
 /// The settings of a serial port.
 #[derive(Clone)]
 pub struct Settings {
@@ -21,8 +15,11 @@ pub const COMMON_BAUD_RATES: &[u32] = &[
 ];
 
 /// The number of bits per character for a serial port.
+///
+/// # serde
+/// If the `serde` feature is enabled this type implements (de)serialization as a number with the value 5, 6, 7 or 8.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize_repr, Deserialize_repr), repr(u8))]
+#[repr(u8)]
 pub enum CharSize {
 	/// Characters of 5 bits.
 	Bits5 = 5,
@@ -38,8 +35,11 @@ pub enum CharSize {
 }
 
 /// The number of stop bits per character for a serial port.
+///
+/// # serde
+/// If the `serde` feature is enabled this type implements (de)serialization as a number with the value 1 or 2.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize_repr, Deserialize_repr), repr(u8))]
+#[repr(u8)]
 pub enum StopBits {
 	/// One stop bit.
 	One = 1,
@@ -49,40 +49,56 @@ pub enum StopBits {
 }
 
 /// The type of parity check for a serial port.
+///
+/// # serde
+/// If the `serde` feature is enabled this type implements (de)serialization as a string.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum Parity {
 	/// Do not add a parity bit and do not check for parity.
+	///
+	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"none"`.
 	None,
 
 	/// Add a bit to ensure odd parity of all characters send over the serial port.
 	///
 	/// Received characters are also expected to have a parity bit and odd parity.
 	/// What happens with received characters that have invalid parity is platform and device specific.
+	///
+	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"odd"`.
 	Odd,
 
 	/// Add a bit to ensure even parity of all characters send over the serial port.
 	///
 	/// Received characters are also expected to have a parity bit and even parity.
 	/// What happens with received characters that have invalid parity is platform and device specific.
+	///
+	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"even"`.
 	Even,
 }
 
 /// The type of flow control for a serial port.
+///
+/// # serde
+/// If the `serde` feature is enabled this type implements (de)serialization as a string.
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum FlowControl {
 	/// Do not perform any automatic flow control.
+	///
+	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"none"`.
 	None,
 
 	/// Perform XON/XOFF flow control.
 	///
 	/// This is also sometimes referred to as "software flow control".
+	///
+	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"xon/xoff"`.
 	XonXoff,
 
 	/// Perform RTS/CTS flow control.
 	///
 	/// This is also sometimes referred to as "hardware flow control".
+	///
+	/// If the `serde` feature is enabled, this variant is (de)serialized as the string `"rts/cts"`.
 	RtsCts,
 }
 
@@ -210,5 +226,137 @@ impl std::fmt::Debug for Settings {
 			.field("parity", &self.get_parity())
 			.field("flow_control", &self.get_flow_control())
 			.finish()
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for CharSize {
+	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		serializer.serialize_u8(*self as u8)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for CharSize {
+	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+		struct Visitor;
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = CharSize;
+			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+				formatter.write_str("the number 5, 6, 7 or 8")
+			}
+
+			fn visit_u64<E: serde::de::Error>(self, data: u64) -> Result<Self::Value, E> {
+				match data {
+					5 => Ok(CharSize::Bits5),
+					6 => Ok(CharSize::Bits6),
+					7 => Ok(CharSize::Bits7),
+					8 => Ok(CharSize::Bits8),
+					x => Err(E::invalid_value(serde::de::Unexpected::Unsigned(x), &"the number 5, 6, 7 or 8")),
+				}
+			}
+		}
+
+		deserializer.deserialize_u8(Visitor)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for StopBits {
+	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		serializer.serialize_u8(*self as u8)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for StopBits {
+	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+		struct Visitor;
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = StopBits;
+			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+				formatter.write_str("the number 1 or 2")
+			}
+
+			fn visit_u64<E: serde::de::Error>(self, data: u64) -> Result<Self::Value, E> {
+				match data {
+					1 => Ok(StopBits::One),
+					2 => Ok(StopBits::Two),
+					x => Err(E::invalid_value(serde::de::Unexpected::Unsigned(x), &"the number 1 or 2")),
+				}
+			}
+		}
+
+		deserializer.deserialize_u8(Visitor)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Parity {
+	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		match self {
+			Self::None => serializer.serialize_str("none"),
+			Self::Even => serializer.serialize_str("even"),
+			Self::Odd => serializer.serialize_str("odd"),
+		}
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Parity {
+	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+		struct Visitor;
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = Parity;
+			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+				formatter.write_str("the string \"none\", \"even\" or \"odd\"")
+			}
+
+			fn visit_str<E: serde::de::Error>(self, data: &str) -> Result<Self::Value, E> {
+				match data {
+					"none" => Ok(Parity::None),
+					"even" => Ok(Parity::Even),
+					"odd" => Ok(Parity::Odd),
+					x => Err(E::invalid_value(serde::de::Unexpected::Str(x), &"the string \"none\", \"even\" or \"odd\"")),
+				}
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
+	}
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for FlowControl {
+	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		match self {
+			Self::None => serializer.serialize_str("none"),
+			Self::XonXoff => serializer.serialize_str("xon/xoff"),
+			Self::RtsCts => serializer.serialize_str("rts/cts"),
+		}
+	}
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for FlowControl {
+	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+		struct Visitor;
+		impl<'de> serde::de::Visitor<'de> for Visitor {
+			type Value = FlowControl;
+			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+				formatter.write_str("the string \"none\", \"xon/xoff\" or \"rts/cts\"")
+			}
+
+			fn visit_str<E: serde::de::Error>(self, data: &str) -> Result<Self::Value, E> {
+				match data {
+					"none" => Ok(FlowControl::None),
+					"xon/xoff" => Ok(FlowControl::XonXoff),
+					"rts/cts" => Ok(FlowControl::RtsCts),
+					x => Err(E::invalid_value(serde::de::Unexpected::Str(x), &"the string \"none\", \"xon/xoff\" or \"rts/cts\"")),
+				}
+			}
+		}
+
+		deserializer.deserialize_str(Visitor)
 	}
 }
