@@ -26,9 +26,12 @@
 //! For full control over the applied settings, pass a closure that receives the the current [`Settings`] and return the desired settings.
 //! If you do, you will almost always want to call [`Settings::set_raw()`] before changing any other settings.
 //!
-//! The [`SerialPort`] struct implements the standard [`std::io::Read`] and [`std::io::Write`] traits,
-//! as well as [`read()`][SerialPort::read()] and [`write()`][SerialPort::write()] functions that take `&self` instead of `&mut self`.
-//! This allows you to use the serial port concurrently from multiple threads.
+//! The standard [`std::io::Read`] and [`std::io::Write`] traits are implemented for [`SerialPort`] and  [`&SerialPort`][`SerialPort`].
+//! This allows you to use the serial port concurrently from multiple threads through a non-mutable reference.
+//!
+//! There are also non-trait [`read()`][SerialPort::read()] and [`write()`][SerialPort::write()] functions,
+//! so you can use the serial port without importing any traits.
+//! These take `&self`, so they can also be used from multiple threads concurrently.
 //!
 //! The [`SerialPort::available_ports()`] function can be used to get a list of available serial ports on supported platforms.
 //!

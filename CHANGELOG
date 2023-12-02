@@ -1,3 +1,6 @@
+# Unreleased
+- [add][minor] Implement `Read` and `Write` for `&SerialPort`.
+
 # Version 0.2.11 - 2023-12-02
 - [change][patch] Add example for `SerialPort::open()` for configuring the serial port with a closure.
 

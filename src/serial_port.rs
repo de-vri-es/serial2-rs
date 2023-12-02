@@ -312,25 +312,49 @@ impl SerialPort {
 
 impl std::io::Read for SerialPort {
 	fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-		self.inner.read(buf)
+		SerialPort::read(self, buf)
 	}
 
 	fn read_vectored(&mut self, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
-		self.inner.read_vectored(buf)
+		SerialPort::read_vectored(self, buf)
+	}
+}
+
+impl std::io::Read for &'_ SerialPort {
+	fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+		SerialPort::read(self, buf)
+	}
+
+	fn read_vectored(&mut self, buf: &mut [IoSliceMut<'_>]) -> std::io::Result<usize> {
+		SerialPort::read_vectored(self, buf)
 	}
 }
 
 impl std::io::Write for SerialPort {
 	fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-		self.inner.write(buf)
+		SerialPort::write(self, buf)
 	}
 
 	fn write_vectored(&mut self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
-		self.inner.write_vectored(buf)
+		SerialPort::write_vectored(self, buf)
 	}
 
 	fn flush(&mut self) -> std::io::Result<()> {
-		self.inner.flush_output()
+		SerialPort::flush(self)
+	}
+}
+
+impl std::io::Write for &'_ SerialPort {
+	fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+		SerialPort::write(self, buf)
+	}
+
+	fn write_vectored(&mut self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
+		SerialPort::write_vectored(self, buf)
+	}
+
+	fn flush(&mut self) -> std::io::Result<()> {
+		SerialPort::flush(self)
 	}
 }
 
