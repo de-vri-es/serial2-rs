@@ -1,3 +1,6 @@
+# Unreleased
+- [change][patch] Add example for `SerialPort::open()` for configuring the serial port with a closure.
+
 # Version 0.2.10 - 2023-11-21
 - [change][patch] Tweak the documentation style for the optional `serde` support.
 

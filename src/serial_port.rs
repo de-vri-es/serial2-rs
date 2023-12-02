@@ -22,11 +22,28 @@ impl SerialPort {
 	/// The library automatically uses the win32 device namespace on Windows,
 	/// so COM ports above COM9 are supported out of the box.
 	///
-	/// # Example
-	/// ```no_run
+	/// # Example 1: Open a serial port with a specific baud rate and default settings.
+	/// ```
 	/// # use serial2::SerialPort;
-	/// # fn main() -> std::io::Result<()> {
+	/// # fn foo() -> std::io::Result<()> {
 	/// SerialPort::open("/dev/ttyUSB0", 115200)?;
+	/// #   Ok(())
+	/// # }
+	/// ```
+	///
+	/// # Example 2: Open a serial port with full control over the settings.
+	/// ```
+	/// # use serial2::{CharSize, FlowControl, Parity, SerialPort, Settings, StopBits};
+	/// # fn foo() -> std::io::Result<()> {
+	/// SerialPort::open("/dev/ttyUSB0", |mut settings: Settings| {
+	///    settings.set_raw();
+	///    settings.set_baud_rate(115200)?;
+	///    settings.set_char_size(CharSize::Bits7);
+	///    settings.set_stop_bits(StopBits::Two);
+	///    settings.set_parity(Parity::Odd);
+	///    settings.set_flow_control(FlowControl::RtsCts);
+	///    Ok(settings)
+	/// })?;
 	/// #   Ok(())
 	/// # }
 	/// ```
