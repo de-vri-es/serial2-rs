@@ -55,6 +55,8 @@
 #![cfg_attr(feature = "doc-cfg", feature(doc_cfg))]
 
 #![warn(missing_docs)]
+#![warn(private_interfaces)]
+#![warn(private_bounds)]
 
 mod sys;
 
@@ -65,6 +67,6 @@ mod serial_port;
 pub use serial_port::SerialPort;
 
 mod settings;
-pub use settings::{CharSize, FlowControl, Parity, Settings, StopBits, COMMON_BAUD_RATES};
+pub use settings::{CharSize, FlowControl, Parity, Settings, StopBits, TryFromError, COMMON_BAUD_RATES};
 
 pub mod os;

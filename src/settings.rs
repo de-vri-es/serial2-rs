@@ -622,9 +622,13 @@ impl<'de> serde::Deserialize<'de> for FlowControl {
 	}
 }
 
+/// Error that can occur when converting from a primitive type.
 #[derive(Debug, Clone)]
 pub struct TryFromError<Raw> {
+	/// The unexpected value.
 	unexpected: Raw,
+
+	/// A description of what was expected instead.
 	expected: &'static str,
 }
 

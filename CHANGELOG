@@ -1,3 +1,6 @@
+# Unreleased
+ - [fix][minor] Make `TryFromError` public.
+
 # Version 0.2.13 - 2023-12-16
 - [add][minor] Add `CharSize::as_u8()`.
 - [add][minor] Add `StopBits::as_u8()`.
