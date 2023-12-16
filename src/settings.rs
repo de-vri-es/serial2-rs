@@ -61,10 +61,10 @@ pub enum CharSize {
 impl Display for CharSize {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
-			CharSize::Bits5 => write!(f, "Five"),
-			CharSize::Bits6 => write!(f, "Six"),
-			CharSize::Bits7 => write!(f, "Seven"),
-			CharSize::Bits8 => write!(f, "Eight"),
+			CharSize::Bits5 => write!(f, "5"),
+			CharSize::Bits6 => write!(f, "6"),
+			CharSize::Bits7 => write!(f, "7"),
+			CharSize::Bits8 => write!(f, "8"),
 		}
 	}
 }
@@ -98,8 +98,8 @@ pub enum StopBits {
 impl Display for StopBits {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
-			StopBits::One => write!(f, "One"),
-			StopBits::Two => write!(f, "Two"),
+			StopBits::One => write!(f, "1"),
+			StopBits::Two => write!(f, "2"),
 		}
 	}
 }
@@ -148,9 +148,9 @@ pub enum Parity {
 impl Display for Parity {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
-			Parity::None => write!(f, "None"),
-			Parity::Odd => write!(f, "Odd"),
-			Parity::Even => write!(f, "Even"),
+			Parity::None => write!(f, "none"),
+			Parity::Odd => write!(f, "odd"),
+			Parity::Even => write!(f, "even"),
 		}
 	}
 }
@@ -195,9 +195,9 @@ pub enum FlowControl {
 impl Display for FlowControl {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		match self {
-			FlowControl::None => write!(f, "None"),
-			FlowControl::XonXoff => write!(f, "Software"),
-			FlowControl::RtsCts => write!(f, "Hardware"),
+			FlowControl::None => write!(f, "none"),
+			FlowControl::XonXoff => write!(f, "xon/xoff"),
+			FlowControl::RtsCts => write!(f, "rts/cts"),
 		}
 	}
 }
