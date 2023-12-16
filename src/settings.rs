@@ -1,5 +1,3 @@
-use std::fmt::{Display, Formatter};
-
 /// The settings of a serial port.
 #[derive(Clone)]
 pub struct Settings {
@@ -65,9 +63,9 @@ impl CharSize {
 	}
 }
 
-impl Display for CharSize {
-	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		Display::fmt(&self.as_u8(), f)
+impl std::fmt::Display for CharSize {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		std::fmt::Display::fmt(&self.as_u8(), f)
 	}
 }
 
@@ -104,9 +102,9 @@ impl StopBits {
 	}
 }
 
-impl Display for StopBits {
-	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		Display::fmt(&self.as_u8(), f)
+impl std::fmt::Display for StopBits {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		std::fmt::Display::fmt(&self.as_u8(), f)
 	}
 }
 
@@ -162,8 +160,8 @@ impl Parity {
 	}
 }
 
-impl Display for Parity {
-	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Display for Parity {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.write_str(self.as_str())
 	}
 }
@@ -216,8 +214,8 @@ impl FlowControl {
 	}
 }
 
-impl Display for FlowControl {
-	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Display for FlowControl {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.write_str(self.as_str())
 	}
 }
