@@ -58,9 +58,16 @@ pub enum CharSize {
 	Bits8 = 8,
 }
 
+impl CharSize {
+	/// Get the number of data bits per character as a [`u8`].
+	pub fn as_u8(self) -> u8 {
+		self as u8
+	}
+}
+
 impl Display for CharSize {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		Display::fmt(&(*self as u8), f)
+		Display::fmt(&self.as_u8(), f)
 	}
 }
 
@@ -90,9 +97,16 @@ pub enum StopBits {
 	Two = 2,
 }
 
+impl StopBits {
+	/// Get the number of stop bits as a [`u8`].
+	pub fn as_u8(self) -> u8 {
+		self as u8
+	}
+}
+
 impl Display for StopBits {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		Display::fmt(&(*self as u8), f)
+		Display::fmt(&self.as_u8(), f)
 	}
 }
 
@@ -137,13 +151,20 @@ pub enum Parity {
 	Even,
 }
 
+impl Parity {
+	/// Get the parity as lowercase [`&str`].
+	pub fn as_str(self) -> &'static str {
+		match self {
+			Self::None => "none",
+			Self::Odd => "odd",
+			Self::Even => "even",
+		}
+	}
+}
+
 impl Display for Parity {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		match self {
-			Parity::None => write!(f, "none"),
-			Parity::Odd => write!(f, "odd"),
-			Parity::Even => write!(f, "even"),
-		}
+		f.write_str(self.as_str())
 	}
 }
 
@@ -184,13 +205,20 @@ pub enum FlowControl {
 	RtsCts,
 }
 
+impl FlowControl {
+	/// Get the flow control method as lowercase [`&str`].
+	pub fn as_str(self) -> &'static str {
+		match self {
+			Self::None => "none",
+			Self::XonXoff => "xon/xoff",
+			Self::RtsCts => "rts/cts",
+		}
+	}
+}
+
 impl Display for FlowControl {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		match self {
-			FlowControl::None => write!(f, "none"),
-			FlowControl::XonXoff => write!(f, "xon/xoff"),
-			FlowControl::RtsCts => write!(f, "rts/cts"),
-		}
+		f.write_str(self.as_str())
 	}
 }
 
@@ -324,7 +352,7 @@ impl std::fmt::Debug for Settings {
 #[cfg(feature = "serde")]
 impl serde::Serialize for CharSize {
 	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-		serializer.serialize_u8(*self as u8)
+		serializer.serialize_u8(self.as_u8())
 	}
 }
 
@@ -359,7 +387,7 @@ impl<'de> serde::Deserialize<'de> for CharSize {
 #[cfg(feature = "serde")]
 impl serde::Serialize for StopBits {
 	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-		serializer.serialize_u8(*self as u8)
+		serializer.serialize_u8(self.as_u8())
 	}
 }
 
@@ -392,11 +420,7 @@ impl<'de> serde::Deserialize<'de> for StopBits {
 #[cfg(feature = "serde")]
 impl serde::Serialize for Parity {
 	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-		match self {
-			Self::None => serializer.serialize_str("none"),
-			Self::Even => serializer.serialize_str("even"),
-			Self::Odd => serializer.serialize_str("odd"),
-		}
+		serializer.serialize_str(self.as_str())
 	}
 }
 
@@ -430,11 +454,7 @@ impl<'de> serde::Deserialize<'de> for Parity {
 #[cfg(feature = "serde")]
 impl serde::Serialize for FlowControl {
 	fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-		match self {
-			Self::None => serializer.serialize_str("none"),
-			Self::XonXoff => serializer.serialize_str("xon/xoff"),
-			Self::RtsCts => serializer.serialize_str("rts/cts"),
-		}
+		serializer.serialize_str(self.as_str())
 	}
 }
 

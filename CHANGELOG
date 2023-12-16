@@ -1,4 +1,8 @@
 # Unreleased
+- [add][minor] Add `CharSize::as_u8()`.
+- [add][minor] Add `StopBits::as_u8()`.
+- [add][minor] Add `Parity::as_str()`.
+- [add][minor] Add `FlowControl::as_str()`.
 - [add][minor] Implement `Display` for `CharSize`, `StopBits`, `Parity` and `FlowControl`.
 
 # Version 0.2.12 - 2023-12-02
