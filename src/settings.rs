@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 /// The settings of a serial port.
 #[derive(Clone)]
 pub struct Settings {
@@ -56,6 +58,12 @@ pub enum CharSize {
 	Bits8 = 8,
 }
 
+impl Display for CharSize {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		Display::fmt(&(*self as u8), f)
+	}
+}
+
 /// The number of stop bits per character for a serial port.
 ///
 /// <div>
@@ -80,6 +88,12 @@ pub enum StopBits {
 	/// This variant is (de)serialized as the number <code>2</code>.
 	/// </div>
 	Two = 2,
+}
+
+impl Display for StopBits {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		Display::fmt(&(*self as u8), f)
+	}
 }
 
 /// The type of parity check for a serial port.
@@ -123,6 +137,16 @@ pub enum Parity {
 	Even,
 }
 
+impl Display for Parity {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Parity::None => write!(f, "none"),
+			Parity::Odd => write!(f, "odd"),
+			Parity::Even => write!(f, "even"),
+		}
+	}
+}
+
 /// The type of flow control for a serial port.
 ///
 /// <div>
@@ -158,6 +182,16 @@ pub enum FlowControl {
 	/// This variant is (de)serialized as the string <code>"rts/cts"</code>.
 	/// </div>
 	RtsCts,
+}
+
+impl Display for FlowControl {
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		match self {
+			FlowControl::None => write!(f, "none"),
+			FlowControl::XonXoff => write!(f, "xon/xoff"),
+			FlowControl::RtsCts => write!(f, "rts/cts"),
+		}
+	}
 }
 
 impl Settings {
@@ -310,7 +344,10 @@ impl<'de> serde::Deserialize<'de> for CharSize {
 					6 => Ok(CharSize::Bits6),
 					7 => Ok(CharSize::Bits7),
 					8 => Ok(CharSize::Bits8),
-					x => Err(E::invalid_value(serde::de::Unexpected::Unsigned(x), &"the number 5, 6, 7 or 8")),
+					x => Err(E::invalid_value(
+						serde::de::Unexpected::Unsigned(x),
+						&"the number 5, 6, 7 or 8",
+					)),
 				}
 			}
 		}
@@ -340,7 +377,10 @@ impl<'de> serde::Deserialize<'de> for StopBits {
 				match data {
 					1 => Ok(StopBits::One),
 					2 => Ok(StopBits::Two),
-					x => Err(E::invalid_value(serde::de::Unexpected::Unsigned(x), &"the number 1 or 2")),
+					x => Err(E::invalid_value(
+						serde::de::Unexpected::Unsigned(x),
+						&"the number 1 or 2",
+					)),
 				}
 			}
 		}
@@ -375,7 +415,10 @@ impl<'de> serde::Deserialize<'de> for Parity {
 					"none" => Ok(Parity::None),
 					"even" => Ok(Parity::Even),
 					"odd" => Ok(Parity::Odd),
-					x => Err(E::invalid_value(serde::de::Unexpected::Str(x), &"the string \"none\", \"even\" or \"odd\"")),
+					x => Err(E::invalid_value(
+						serde::de::Unexpected::Str(x),
+						&"the string \"none\", \"even\" or \"odd\"",
+					)),
 				}
 			}
 		}
@@ -410,7 +453,10 @@ impl<'de> serde::Deserialize<'de> for FlowControl {
 					"none" => Ok(FlowControl::None),
 					"xon/xoff" => Ok(FlowControl::XonXoff),
 					"rts/cts" => Ok(FlowControl::RtsCts),
-					x => Err(E::invalid_value(serde::de::Unexpected::Str(x), &"the string \"none\", \"xon/xoff\" or \"rts/cts\"")),
+					x => Err(E::invalid_value(
+						serde::de::Unexpected::Str(x),
+						&"the string \"none\", \"xon/xoff\" or \"rts/cts\"",
+					)),
 				}
 			}
 		}
