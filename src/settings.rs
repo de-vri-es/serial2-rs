@@ -60,12 +60,7 @@ pub enum CharSize {
 
 impl Display for CharSize {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		match self {
-			CharSize::Bits5 => write!(f, "5"),
-			CharSize::Bits6 => write!(f, "6"),
-			CharSize::Bits7 => write!(f, "7"),
-			CharSize::Bits8 => write!(f, "8"),
-		}
+		Display::fmt(&(*self as u8), f)
 	}
 }
 
@@ -97,10 +92,7 @@ pub enum StopBits {
 
 impl Display for StopBits {
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-		match self {
-			StopBits::One => write!(f, "1"),
-			StopBits::Two => write!(f, "2"),
-		}
+		Display::fmt(&(*self as u8), f)
 	}
 }
 
