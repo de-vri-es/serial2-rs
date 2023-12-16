@@ -1,3 +1,6 @@
+# Unreleased
+- [add][minor] Implement `Display` for `CharSize`, `StopBits`, `Parity` and `FlowControl`.
+
 # Version 0.2.12 - 2023-12-02
 - [add][minor] Implement `Read` and `Write` for `&SerialPort`.
 
