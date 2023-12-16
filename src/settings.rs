@@ -14,6 +14,22 @@ pub const COMMON_BAUD_RATES: &[u32] = &[
 	4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 500000, 576000, 921600, 1000000, 1500000, 2000000,
 ];
 
+/// Implement a trait be delegating to an existing implementation.
+macro_rules! delegate_impl {
+	(TryFrom<$from:ty> for $for:ty as u8) => {
+		impl TryFrom<$from> for $for {
+			type Error = TryFromError<$from>;
+
+			fn try_from(value: $from) -> Result<Self, Self::Error> {
+				let narrowed = u8::try_from(value)
+					.map_err(|_| Self::unexpected(value))?;
+				Self::try_from(narrowed)
+					.map_err(|_| Self::unexpected(value))
+			}
+		}
+	};
+}
+
 /// The number of bits per character for a serial port.
 ///
 /// <div>
@@ -57,9 +73,19 @@ pub enum CharSize {
 }
 
 impl CharSize {
+	const EXPECTED: &'static str = "the number 5, 6, 7 or 8";
+
 	/// Get the number of data bits per character as a [`u8`].
 	pub fn as_u8(self) -> u8 {
 		self as u8
+	}
+
+	/// Create a [`TryFromError`] for an unexpected value.
+	fn unexpected<T>(unexpected: T) -> TryFromError<T> {
+		TryFromError {
+			unexpected,
+			expected: Self::EXPECTED,
+		}
 	}
 }
 
@@ -68,6 +94,30 @@ impl std::fmt::Display for CharSize {
 		std::fmt::Display::fmt(&self.as_u8(), f)
 	}
 }
+
+impl TryFrom<u8> for CharSize {
+	type Error = TryFromError<u8>;
+
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			5 => Ok(Self::Bits5),
+			6 => Ok(Self::Bits6),
+			7 => Ok(Self::Bits7),
+			8 => Ok(Self::Bits8),
+			x => Err(Self::unexpected(x)),
+		}
+	}
+}
+
+delegate_impl!(TryFrom<i8> for CharSize as u8);
+delegate_impl!(TryFrom<u16> for CharSize as u8);
+delegate_impl!(TryFrom<i16> for CharSize as u8);
+delegate_impl!(TryFrom<u32> for CharSize as u8);
+delegate_impl!(TryFrom<i32> for CharSize as u8);
+delegate_impl!(TryFrom<u64> for CharSize as u8);
+delegate_impl!(TryFrom<i64> for CharSize as u8);
+delegate_impl!(TryFrom<usize> for CharSize as u8);
+delegate_impl!(TryFrom<isize> for CharSize as u8);
 
 /// The number of stop bits per character for a serial port.
 ///
@@ -96,9 +146,19 @@ pub enum StopBits {
 }
 
 impl StopBits {
+	const EXPECTED: &'static str = "the number 1 or 2";
+
 	/// Get the number of stop bits as a [`u8`].
 	pub fn as_u8(self) -> u8 {
 		self as u8
+	}
+
+	/// Create a [`TryFromError`] for an unexpected value.
+	fn unexpected<T>(unexpected: T) -> TryFromError<T> {
+		TryFromError {
+			unexpected,
+			expected: Self::EXPECTED,
+		}
 	}
 }
 
@@ -107,6 +167,29 @@ impl std::fmt::Display for StopBits {
 		std::fmt::Display::fmt(&self.as_u8(), f)
 	}
 }
+
+impl TryFrom<u8> for StopBits {
+	type Error = TryFromError<u8>;
+
+	fn try_from(value: u8) -> Result<Self, Self::Error> {
+		match value {
+			1 => Ok(Self::One),
+			2 => Ok(Self::Two),
+			x => Err(Self::unexpected(x)),
+		}
+	}
+}
+
+delegate_impl!(TryFrom<i8> for StopBits as u8);
+delegate_impl!(TryFrom<u16> for StopBits as u8);
+delegate_impl!(TryFrom<i16> for StopBits as u8);
+delegate_impl!(TryFrom<u32> for StopBits as u8);
+delegate_impl!(TryFrom<i32> for StopBits as u8);
+delegate_impl!(TryFrom<u64> for StopBits as u8);
+delegate_impl!(TryFrom<i64> for StopBits as u8);
+delegate_impl!(TryFrom<usize> for StopBits as u8);
+delegate_impl!(TryFrom<isize> for StopBits as u8);
+
 
 /// The type of parity check for a serial port.
 ///
@@ -150,6 +233,8 @@ pub enum Parity {
 }
 
 impl Parity {
+	const EXPECTED: &'static str = "the string \"none\", \"odd\" or \"even\"";
+
 	/// Get the parity as lowercase [`&str`].
 	pub fn as_str(self) -> &'static str {
 		match self {
@@ -158,11 +243,41 @@ impl Parity {
 			Self::Even => "even",
 		}
 	}
+
+	/// Parse the parity from a string.
+	#[allow(clippy::should_implement_trait)] // We do implement the trait, but this is borrows the input for the error.
+	pub fn from_str(input: &str) -> Result<Self, TryFromError<&str>> {
+		match input {
+			"none" => Ok(Self::None),
+			"odd" => Ok(Self::Odd),
+			"even" => Ok(Self::Even),
+			unexpected => Err(TryFromError {
+				unexpected,
+				expected: Self::EXPECTED,
+			}),
+		}
+	}
 }
 
 impl std::fmt::Display for Parity {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.write_str(self.as_str())
+	}
+}
+
+impl<'a> TryFrom<&'a str> for Parity {
+	type Error = TryFromError<&'a str>;
+
+	fn try_from(value: &'a str) -> Result<Self, Self::Error> {
+		Self::from_str(value)
+	}
+}
+
+impl std::str::FromStr for Parity {
+	type Err = TryFromError<String>;
+
+	fn from_str(input: &str) -> Result<Self, Self::Err> {
+		Self::from_str(input).map_err(|e| e.convert())
 	}
 }
 
@@ -204,6 +319,8 @@ pub enum FlowControl {
 }
 
 impl FlowControl {
+	const EXPECTED: &'static str = "the string \"none\", \"xon/xoff\" or \"rts/cts\"";
+
 	/// Get the flow control method as lowercase [`&str`].
 	pub fn as_str(self) -> &'static str {
 		match self {
@@ -212,11 +329,49 @@ impl FlowControl {
 			Self::RtsCts => "rts/cts",
 		}
 	}
+
+	/// Parse the parity from a string.
+	#[allow(clippy::should_implement_trait)] // We do implement the trait, but this is borrows the input for the error.
+	pub fn from_str(input: &str) -> Result<Self, TryFromError<&str>> {
+		match input {
+			"none" => Ok(Self::None),
+			"xon/xoff" => Ok(Self::XonXoff),
+			"rts/cts" => Ok(Self::RtsCts),
+			unexpected => Err(TryFromError {
+				unexpected,
+				expected: Self::EXPECTED,
+			}),
+		}
+	}
 }
 
 impl std::fmt::Display for FlowControl {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		f.write_str(self.as_str())
+	}
+}
+
+impl<'a> TryFrom<&'a str> for FlowControl {
+	type Error = TryFromError<&'a str>;
+
+	fn try_from(value: &'a str) -> Result<Self, Self::Error> {
+		match value {
+			"none" => Ok(Self::None),
+			"xon/xoff" => Ok(Self::XonXoff),
+			"rts/cts" => Ok(Self::RtsCts),
+			unexpected => Err(TryFromError {
+				unexpected,
+				expected: Self::EXPECTED,
+			}),
+		}
+	}
+}
+
+impl std::str::FromStr for FlowControl {
+	type Err = TryFromError<String>;
+
+	fn from_str(input: &str) -> Result<Self, Self::Err> {
+		Self::from_str(input).map_err(|e| e.convert())
 	}
 }
 
@@ -361,20 +516,15 @@ impl<'de> serde::Deserialize<'de> for CharSize {
 		impl<'de> serde::de::Visitor<'de> for Visitor {
 			type Value = CharSize;
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-				formatter.write_str("the number 5, 6, 7 or 8")
+				formatter.write_str(Self::Value::EXPECTED)
 			}
 
 			fn visit_u64<E: serde::de::Error>(self, data: u64) -> Result<Self::Value, E> {
-				match data {
-					5 => Ok(CharSize::Bits5),
-					6 => Ok(CharSize::Bits6),
-					7 => Ok(CharSize::Bits7),
-					8 => Ok(CharSize::Bits8),
-					x => Err(E::invalid_value(
-						serde::de::Unexpected::Unsigned(x),
-						&"the number 5, 6, 7 or 8",
-					)),
-				}
+				Self::Value::try_from(data)
+					.map_err(|e| E::invalid_value(
+						serde::de::Unexpected::Unsigned(e.unexpected),
+						&e.expected
+					))
 			}
 		}
 
@@ -396,18 +546,15 @@ impl<'de> serde::Deserialize<'de> for StopBits {
 		impl<'de> serde::de::Visitor<'de> for Visitor {
 			type Value = StopBits;
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-				formatter.write_str("the number 1 or 2")
+				formatter.write_str(Self::Value::EXPECTED)
 			}
 
 			fn visit_u64<E: serde::de::Error>(self, data: u64) -> Result<Self::Value, E> {
-				match data {
-					1 => Ok(StopBits::One),
-					2 => Ok(StopBits::Two),
-					x => Err(E::invalid_value(
-						serde::de::Unexpected::Unsigned(x),
-						&"the number 1 or 2",
-					)),
-				}
+				Self::Value::try_from(data)
+					.map_err(|e| E::invalid_value(
+						serde::de::Unexpected::Unsigned(e.unexpected),
+						&e.expected
+					))
 			}
 		}
 
@@ -429,19 +576,15 @@ impl<'de> serde::Deserialize<'de> for Parity {
 		impl<'de> serde::de::Visitor<'de> for Visitor {
 			type Value = Parity;
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-				formatter.write_str("the string \"none\", \"even\" or \"odd\"")
+				formatter.write_str(Self::Value::EXPECTED)
 			}
 
 			fn visit_str<E: serde::de::Error>(self, data: &str) -> Result<Self::Value, E> {
-				match data {
-					"none" => Ok(Parity::None),
-					"even" => Ok(Parity::Even),
-					"odd" => Ok(Parity::Odd),
-					x => Err(E::invalid_value(
-						serde::de::Unexpected::Str(x),
-						&"the string \"none\", \"even\" or \"odd\"",
-					)),
-				}
+				Self::Value::try_from(data)
+					.map_err(|e| E::invalid_value(
+						serde::de::Unexpected::Str(e.unexpected),
+						&e.expected,
+					))
 			}
 		}
 
@@ -463,22 +606,41 @@ impl<'de> serde::Deserialize<'de> for FlowControl {
 		impl<'de> serde::de::Visitor<'de> for Visitor {
 			type Value = FlowControl;
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-				formatter.write_str("the string \"none\", \"xon/xoff\" or \"rts/cts\"")
+				formatter.write_str(Self::Value::EXPECTED)
 			}
 
 			fn visit_str<E: serde::de::Error>(self, data: &str) -> Result<Self::Value, E> {
-				match data {
-					"none" => Ok(FlowControl::None),
-					"xon/xoff" => Ok(FlowControl::XonXoff),
-					"rts/cts" => Ok(FlowControl::RtsCts),
-					x => Err(E::invalid_value(
-						serde::de::Unexpected::Str(x),
-						&"the string \"none\", \"xon/xoff\" or \"rts/cts\"",
-					)),
-				}
+				Self::Value::try_from(data)
+					.map_err(|e| E::invalid_value(
+						serde::de::Unexpected::Str(e.unexpected),
+						&e.expected,
+					))
 			}
 		}
 
 		deserializer.deserialize_str(Visitor)
 	}
 }
+
+#[derive(Debug, Clone)]
+pub struct TryFromError<Raw> {
+	unexpected: Raw,
+	expected: &'static str,
+}
+
+impl<Raw> TryFromError<Raw> {
+	fn convert<U: From<Raw>>(self) -> TryFromError<U> {
+		TryFromError {
+			unexpected: self.unexpected.into(),
+			expected: self.expected,
+		}
+	}
+}
+
+impl<Raw: std::fmt::Debug> std::fmt::Display for TryFromError<Raw> {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "invalid value: {:?}, expected {}", self.unexpected, self. expected)
+	}
+}
+
+impl<Raw: std::fmt::Debug> std::error::Error for TryFromError<Raw> {}

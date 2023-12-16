@@ -51,7 +51,7 @@ fn test_serde_parity() {
 	assert!(let Ok(serial2::Parity::Odd) = serde_json::from_str::<serial2::Parity>("\"odd\""));
 
 	let_assert!(Err(e) = serde_json::from_str::<serial2::Parity>("\"even-then-odd\""));
-	assert!(e.to_string() == "invalid value: string \"even-then-odd\", expected the string \"none\", \"even\" or \"odd\" at line 1 column 15");
+	assert!(e.to_string() == "invalid value: string \"even-then-odd\", expected the string \"none\", \"odd\" or \"even\" at line 1 column 15");
 }
 
 #[test]
