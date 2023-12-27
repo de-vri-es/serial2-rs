@@ -80,6 +80,18 @@ impl SerialPort {
 		})
 	}
 
+	/// Try to clone the serial port handle.
+	///
+	/// The cloned object refers to the same serial port.
+	///
+	/// Mixing reads and writes on different handles to the same serial port from different threads may lead to unexpect results.
+	/// The data may end up interleaved in unpredictable ways.
+	pub fn try_clone(&self) -> std::io::Result<Self> {
+		Ok(Self {
+			inner: self.inner.try_clone()?,
+		})
+	}
+
 	/// Read bytes from the serial port.
 	///
 	/// This is identical to [`std::io::Read::read()`], except that this function takes a const reference `&self`.

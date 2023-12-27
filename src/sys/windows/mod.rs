@@ -54,6 +54,12 @@ impl SerialPort {
 		Self { file }
 	}
 
+	pub fn try_clone(&self) -> std::io::Result<Self> {
+		Ok(Self {
+			file: self.file.try_clone()?,
+		})
+	}
+
 	pub fn get_configuration(&self) -> std::io::Result<Settings> {
 		unsafe {
 			let mut dcb: winbase::DCB = std::mem::zeroed();

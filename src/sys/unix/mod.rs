@@ -120,6 +120,14 @@ impl SerialPort {
 		}
 	}
 
+	pub fn try_clone(&self) -> std::io::Result<Self> {
+		Ok(Self {
+			file: self.file.try_clone()?,
+			read_timeout_ms: self.read_timeout_ms,
+			write_timeout_ms: self.write_timeout_ms,
+		})
+	}
+
 	pub fn get_configuration(&self) -> std::io::Result<Settings> {
 		Settings::get_from_file(&self.file)
 	}
