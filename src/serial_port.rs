@@ -57,6 +57,27 @@ impl SerialPort {
 		Ok(serial_port)
 	}
 
+	/// Open a connected pair of pseudo-terminals.
+	#[cfg(any(doc, all(unix, feature = "unix")))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
+	pub fn pair() -> std::io::Result<(Self, Self)> {
+		let (pty_a, pty_b) = sys::SerialPort::pair()?;
+		let mut pty_a = Self { inner: pty_a };
+		let mut pty_b = Self { inner: pty_b };
+		{
+			let mut settings = pty_a.get_configuration()?;
+			settings.set_raw();
+			pty_a.set_configuration(&settings)?;
+		}
+		{
+			let mut settings = pty_b.get_configuration()?;
+			settings.set_raw();
+			pty_b.set_configuration(&settings)?;
+		}
+
+		Ok((pty_a, pty_b))
+	}
+
 	/// Get a list of available serial ports.
 	///
 	/// Not currently supported on all platforms.
