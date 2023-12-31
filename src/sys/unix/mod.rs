@@ -112,6 +112,21 @@ impl SerialPort {
 		Ok(Self::from_file(file))
 	}
 
+	#[cfg(any(doc, all(unix, feature = "unix")))]
+	pub fn pair() -> std::io::Result<(Self, Self)> {
+		use std::os::unix::io::FromRawFd;
+		unsafe {
+			let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_CLOEXEC | libc::O_NOCTTY))?;
+			let pty_a = std::fs::File::from_raw_fd(pty_a);
+			let pty_a = Self::from_file(pty_a);
+			let pty_b_name = pts_name(&pty_a)?;
+			check(libc::unlockpt(pty_a.file.as_raw_fd()))?;
+			check(libc::grantpt(pty_a.file.as_raw_fd()))?;
+			let pty_b = Self::open(&pty_b_name)?;
+			Ok((pty_a, pty_b))
+		}
+	}
+
 	pub fn from_file(file: std::fs::File) -> Self {
 		Self {
 			file,
@@ -339,6 +354,49 @@ where
 	E: Into<Box<dyn std::error::Error + Send + Sync>>,
 {
 	std::io::Error::new(std::io::ErrorKind::Other, msg)
+}
+
+#[cfg(any(doc, all(unix, feature = "unix")))]
+fn pts_name(master: &SerialPort) -> std::io::Result<std::path::PathBuf> {
+	use std::os::unix::ffi::OsStringExt;
+	use std::ffi::OsString;
+
+	cfg_if! {
+		if #[cfg(any(
+				target_os = "ios",
+				target_os = "macos",
+				target_os = "netbsd",
+				target_os = "illumos",
+				target_os = "solaris",
+		))] {
+			static PTSNAME: std::sync::Mutex<()> = std::sync::Mutex::new(());
+			let _lock = PTSNAME.lock();
+			unsafe {
+				let name = libc::ptsname(master.file.as_raw_fd());
+				let name = std::ffi::CStr::from_ptr(name).to_bytes().to_vec();
+				return Ok(OsString::from_vec(name).into())
+			}
+		} else {
+			let mut name = Vec::with_capacity(256);
+			let ptr = name.spare_capacity_mut().as_mut_ptr().cast();
+			loop {
+				unsafe {
+					let ret = libc::ptsname_r(master.file.as_raw_fd(), ptr, name.capacity());
+					match ret {
+						0 => {
+							let len = std::ffi::CStr::from_ptr(ptr).to_bytes().len();
+							name.set_len(len);
+							return Ok(OsString::from_vec(name).into())
+						},
+						libc::ERANGE if name.capacity() < 2048 => {
+							name.reserve(name.capacity() * 2);
+						},
+						error => return Err(std::io::Error::from_raw_os_error(error)),
+					}
+				}
+			}
+		}
+	}
 }
 
 impl Settings {
