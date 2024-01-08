@@ -122,6 +122,37 @@ impl SerialPort {
 		self.inner.is_read_vectored()
 	}
 
+	/// Read the exact number of bytes required to fill the buffer from the serial port.
+	///
+	/// This will repeatedly call `read()` until the entire buffer is filled.
+	/// Errors of the type [`std::io::ErrorKind::Interrupted`] are silently ignored.
+	/// Any other errors (including timeouts) will be returned immediately.
+	///
+	/// If this function returns an error, it may already have read some data from the serial port into the provided buffer.
+	///
+	/// This function is identical to [`std::io::Read::read_exact()`], except that this function takes a const reference `&self`.
+	/// This allows you to use the serial port concurrently from multiple threads.
+	///
+	/// Note that there are no guarantees on which thread receives what data when multiple threads are reading from the serial port.
+	/// You should normally limit yourself to a single reading thread and a single writing thread.
+	pub fn read_exact(&self, buf: &mut [u8]) -> std::io::Result<()> {
+		let mut buf = buf;
+		while !buf.is_empty() {
+			match self.read(buf) {
+				Ok(0) => return Err(std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "failed to fill whole buffer")),
+				Ok(n) => buf = &mut buf[n..],
+				Err(e) => {
+					if e.kind() != std::io::ErrorKind::Interrupted {
+						return Err(e);
+					} else {
+						continue;
+					}
+				},
+			}
+		}
+		Ok(())
+	}
+
 	/// Write bytes to the serial port.
 	///
 	/// This is identical to [`std::io::Write::write()`], except that this function takes a const reference `&self`.
