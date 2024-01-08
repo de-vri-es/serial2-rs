@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.16 - 2024-01-08
 - [add][minor] Add `SerialPort::read_exact()` that takes `&self`.
 - [fix][minor] Fix behavior of `SerialPort::write_all()` when a write returns `Ok(0)`.
 - [fix][minor] Fix behavior of `SerialPort::write_all()` when a write is interrupted.
