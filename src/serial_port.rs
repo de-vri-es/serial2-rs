@@ -135,8 +135,11 @@ impl SerialPort {
 
 	/// Write all bytes to the serial port.
 	///
-	/// This will continue to call [`Self::write()`] until the entire buffer has been written,
-	/// or an I/O error occurs.
+	/// This will repeatedly call [`Self::write()`] until the entire buffer has been written.
+	/// Errors of the type [`std::io::ErrorKind::Interrupted`] are silently ignored.
+	/// Any other errors (including timeouts) will be returned immediately.
+	///
+	/// If this function returns an error, it may already have transmitted some data from the buffer over the serial port.
 	///
 	/// This is identical to [`std::io::Write::write_all()`], except that this function takes a const reference `&self`.
 	/// This allows you to use the serial port concurrently from multiple threads.
@@ -144,9 +147,19 @@ impl SerialPort {
 	/// Note that data written to the same serial port from multiple threads may end up interleaved at the receiving side.
 	/// You should normally limit yourself to a single reading thread and a single writing thread.
 	pub fn write_all(&self, buf: &[u8]) -> std::io::Result<()> {
-		let mut written = 0;
-		while written < buf.len() {
-			written += self.write(&buf[written..])?;
+		let mut buf = buf;
+		while !buf.is_empty() {
+			match self.write(buf) {
+				Ok(0) => return Err(std::io::Error::new(std::io::ErrorKind::WriteZero, "failed to write whole buffer")),
+				Ok(n) => buf = &buf[n..],
+				Err(e) => {
+					if e.kind() != std::io::ErrorKind::Interrupted {
+						return Err(e);
+					} else {
+						continue;
+					}
+				},
+			}
 		}
 		Ok(())
 	}
