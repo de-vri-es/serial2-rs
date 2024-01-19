@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.17 - 2024-01-19
 - [fix][minor] Set the `IGNBRK` and `IGNPAR` flags in `Settings::set_raw()` on Unix platforms.
 
 # Version 0.2.16 - 2024-01-08
