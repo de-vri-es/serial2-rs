@@ -1,3 +1,6 @@
+# Unreleased
+- [fix][minor] Set the `IGNBRK` and `IGNPAR` flags in `Settings::set_raw()` on Unix platforms.
+
 # Version 0.2.16 - 2024-01-08
 - [add][minor] Add `SerialPort::read_exact()` that takes `&self`.
 - [fix][minor] Fix behavior of `SerialPort::write_all()` when a write returns `Ok(0)`.

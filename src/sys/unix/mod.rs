@@ -345,6 +345,7 @@ impl Settings {
 	pub fn set_raw(&mut self) {
 		unsafe {
 			libc::cfmakeraw(&mut self.termios as *mut _ as *mut libc::termios);
+			self.termios.c_iflag |= libc::IGNBRK | libc::IGNPAR;
 			self.termios.c_cc[libc::VMIN] = 1;
 			self.termios.c_cc[libc::VTIME] = 0;
 		}
