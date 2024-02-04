@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.19 - 2024-02-04
 - [add][minor] Add `SerialPort::pair()` on Unix platforms to open a pair of connected pseudo-terminals.
 
 # Version 0.2.18 - 2024-02-04
