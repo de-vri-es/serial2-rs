@@ -106,7 +106,7 @@ impl SerialPort {
 			.read(true)
 			.write(true)
 			.create(false)
-			.custom_flags(libc::O_NONBLOCK)
+			.custom_flags(libc::O_NONBLOCK | libc::O_NOCTTY)
 			.open(path)?;
 
 		Ok(Self::from_file(file))
