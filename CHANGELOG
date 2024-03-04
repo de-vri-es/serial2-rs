@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.20 - 2024-03-04
 - [fix][minor] Fix write timeout for Unix platforms.
 
 # Version 0.2.19 - 2024-02-04
