@@ -1,3 +1,6 @@
+# Unreleased
+- [fix][minor] Fix write timeout for Unix platforms.
+
 # Version 0.2.19 - 2024-02-04
 - [add][minor] Add `SerialPort::pair()` on Unix platforms to open a pair of connected pseudo-terminals.
 
