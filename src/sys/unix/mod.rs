@@ -219,7 +219,7 @@ impl SerialPort {
 	}
 
 	pub fn write(&self, buf: &[u8]) -> std::io::Result<usize> {
-		if !poll(&self.file, libc::POLLOUT, self.read_timeout_ms)? {
+		if !poll(&self.file, libc::POLLOUT, self.write_timeout_ms)? {
 			return Err(std::io::ErrorKind::TimedOut.into());
 		}
 		unsafe {
@@ -234,7 +234,7 @@ impl SerialPort {
 	}
 
 	pub fn write_vectored(&self, buf: &[IoSlice<'_>]) -> std::io::Result<usize> {
-		if !poll(&self.file, libc::POLLOUT, self.read_timeout_ms)? {
+		if !poll(&self.file, libc::POLLOUT, self.write_timeout_ms)? {
 			return Err(std::io::ErrorKind::TimedOut.into());
 		}
 		unsafe {
