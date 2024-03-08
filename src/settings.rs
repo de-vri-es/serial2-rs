@@ -469,6 +469,12 @@ impl Settings {
 		&mut self.inner.termios
 	}
 
+	#[cfg(any(doc, all(unix, feature = "unix")))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
+	pub fn enable_rs485(&mut self) {
+		self.inner.enable_rs485()
+	}
+
 	/// Get a reference to the raw `DCB` struct.
 	///
 	/// You can use this function to access Windows specific features of the serial port.

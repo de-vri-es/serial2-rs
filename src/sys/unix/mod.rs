@@ -400,6 +400,11 @@ fn pts_name(master: &SerialPort) -> std::io::Result<std::path::PathBuf> {
 }
 
 impl Settings {
+	pub fn enable_rs485(&mut self) {
+		let mut rs485 = self.rs485.unwrap_or(rs485::SerialRs485::new());
+		rs485.set_enabled(true);
+		self.rs485 = Some(rs485);
+	}
 	pub fn set_raw(&mut self) {
 		unsafe {
 			libc::cfmakeraw(&mut self.termios as *mut _ as *mut libc::termios);
@@ -411,6 +416,7 @@ impl Settings {
 		self.set_stop_bits(crate::StopBits::One);
 		self.set_parity(crate::Parity::None);
 		self.set_flow_control(crate::FlowControl::None);
+		self.rs485 = None;
 	}
 
 	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
