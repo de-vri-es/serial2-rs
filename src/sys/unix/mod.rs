@@ -5,6 +5,8 @@ use std::os::unix::io::AsRawFd;
 use std::path::Path;
 use std::time::Duration;
 
+mod rs485;
+
 pub struct SerialPort {
 	pub file: std::fs::File,
 	pub read_timeout_ms: u32,

@@ -469,6 +469,12 @@ impl Settings {
 		&mut self.inner.termios
 	}
 
+	/// Enable RS485 mode.
+	///
+	/// This will enable RS485 mode on the serial port using ioctl
+	///
+	/// You can use this function to access Unix specific features of the serial port.
+	/// Your code will not be cross-platform anymore if you use this.
 	#[cfg(any(doc, all(unix, feature = "unix")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
 	pub fn enable_rs485(&mut self) {
