@@ -170,8 +170,8 @@ impl SerialPort {
 			));
 			match ret {
 				// Windows reports timeouts as a succesfull transfer of 0 bytes.
-				Ok(_) if read == 0 => return Err(std::io::ErrorKind::TimedOut.into()),
-				Ok(_) => return Ok(read as usize),
+				Ok(()) if read == 0 => return Err(std::io::ErrorKind::TimedOut.into()),
+				Ok(()) => return Ok(read as usize),
 				// BrokenPipe with reads means EOF on Windows.
 				Err(ref e) if e.kind() == std::io::ErrorKind::BrokenPipe => return Ok(0),
 				Err(ref e) if e.raw_os_error() == Some(winerror::ERROR_IO_PENDING as i32) => (),
@@ -210,8 +210,8 @@ impl SerialPort {
 			));
 			match ret {
 				// Windows reports timeouts as a succesfull transfer of 0 bytes.
-				Ok(_) if written == 0 => return Err(std::io::ErrorKind::TimedOut.into()),
-				Ok(_) => return Ok(written as usize),
+				Ok(()) if written == 0 => return Err(std::io::ErrorKind::TimedOut.into()),
+				Ok(()) => return Ok(written as usize),
 				Err(ref e) if e.raw_os_error() == Some(winerror::ERROR_IO_PENDING as i32) => (),
 				Err(e) => return Err(e),
 			}
