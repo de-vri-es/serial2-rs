@@ -5,8 +5,6 @@ use std::os::unix::io::AsRawFd;
 use std::path::Path;
 use std::time::Duration;
 
-mod rs485;
-
 pub struct SerialPort {
 	pub file: std::fs::File,
 	pub read_timeout_ms: u32,
@@ -55,8 +53,7 @@ cfg_if! {
 
 		#[derive(Clone)]
 		pub struct Settings {
-			pub termios: RawTermios,
-			pub rs485: Option<rs485::SerialRs485>,
+			pub(crate) termios: RawTermios,
 		}
 
 		impl Settings {
@@ -64,20 +61,13 @@ cfg_if! {
 				unsafe {
 					let mut termios = std::mem::zeroed();
 					check(libc::ioctl(file.as_raw_fd(), libc::TCGETS2 as _, &mut termios))?;
-					if let Ok(rs485) = rs485::SerialRs485::from_fd(file.as_raw_fd()) {
-						Ok(Settings { termios, rs485: Some(rs485)})
-					} else {
-						Ok(Settings { termios, rs485: None})
-					}
+					Ok(Settings { termios })
 				}
 			}
 
 			fn set_on_file(&self, file: &mut std::fs::File) -> std::io::Result<()> {
 				unsafe {
 					check(libc::ioctl(file.as_raw_fd(), libc::TCSETSW2 as _, &self.termios))?;
-				}
-				if let Some(rs485) = self.rs485 {
-					rs485.set_on_fd(file.as_raw_fd())?;
 				}
 				Ok(())
 			}
@@ -410,17 +400,6 @@ fn pts_name(master: &SerialPort) -> std::io::Result<std::path::PathBuf> {
 }
 
 impl Settings {
-	pub fn enable_rs485(&mut self) {
-		let mut rs485 = self.rs485.unwrap_or(rs485::SerialRs485::new());
-		rs485.set_enabled(true);
-		self.rs485 = Some(rs485);
-	}
-	pub fn get_rs485(&self) -> Option<rs485::SerialRs485> {
-		self.rs485
-	}
-	pub fn set_rs485(&mut self, rs485: rs485::SerialRs485) {
-		self.rs485 = Some(rs485);
-	}
 	pub fn set_raw(&mut self) {
 		unsafe {
 			libc::cfmakeraw(&mut self.termios as *mut _ as *mut libc::termios);
@@ -432,7 +411,6 @@ impl Settings {
 		self.set_stop_bits(crate::StopBits::One);
 		self.set_parity(crate::Parity::None);
 		self.set_flow_control(crate::FlowControl::None);
-		self.rs485 = None;
 	}
 
 	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
@@ -640,3 +618,4 @@ impl PartialEq for Settings {
 		}
 	}
 }
+

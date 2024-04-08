@@ -4,6 +4,9 @@ use std::time::Duration;
 
 use crate::{sys, IntoSettings, Settings};
 
+#[cfg(any(doc, all(feature = "rs4xx", target_os = "linux")))]
+use crate::rs4xx;
+
 /// A serial port.
 pub struct SerialPort {
 	inner: sys::SerialPort,
@@ -384,6 +387,48 @@ impl SerialPort {
 	/// or the Receive Line Signal Detect (RLSD) line.
 	pub fn read_cd(&self) -> std::io::Result<bool> {
 		self.inner.read_cd()
+	}
+
+	/// Get the RS-4xx mode of the serial port transceiver.
+	///
+	/// This is currently only supported on Linux.
+	///
+	/// Not all serial ports can be configured in a different mode by software.
+	/// Some serial ports are always in RS-485 or RS-422 mode,
+	/// and some may have hardware switches or jumpers to configure the transceiver.
+	/// In those cases, this function will usually report an error or [`rs4xx::TransceiverMode::Default`],
+	/// even though the serial port is configured is RS-485 or RS-422 mode.
+	///
+	/// Note that driver support for this feature is very limited and sometimes inconsistent.
+	/// Please read all the warnings in the [`rs4xx`] module carefully.
+	#[cfg(any(doc, all(feature = "rs4xx", target_os = "linux")))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(all(feature = "rs4xx", target_os = "linux"))))]
+	pub fn get_rs4xx_mode(&self) -> std::io::Result<rs4xx::TransceiverMode> {
+		#[cfg(doc)]
+		panic!("compiled with cfg(doc)");
+		#[cfg(not(doc))]
+		sys::get_rs4xx_mode(&self.inner)
+	}
+
+	/// Set the RS-4xx mode of the serial port transceiver.
+	///
+	/// This is currently only supported on Linux.
+	///
+	/// Not all serial ports can be configured in a different mode by software.
+	/// Some serial ports are always in RS-485 or RS-422 mode,
+	/// and some may have hardware switches or jumpers to configure the transceiver.
+	/// In that case, this function will usually return an error,
+	/// but the port can still be in RS-485 or RS-422 mode.
+	///
+	/// Note that driver support for this feature is very limited and sometimes inconsistent.
+	/// Please read all the warnings in the [`rs4xx`] module carefully.
+	#[cfg(any(doc, all(feature = "rs4xx", target_os = "linux")))]
+	#[cfg_attr(feature = "doc-cfg", doc(cfg(all(feature = "rs4xx", target_os = "linux"))))]
+	pub fn set_rs4xx_mode(&self, mode: &rs4xx::TransceiverMode) -> std::io::Result<()> {
+		#[cfg(doc)]
+		panic!("compiled with cfg(doc)");
+		#[cfg(not(doc))]
+		sys::set_rs4xx_mode(&self.inner, mode)
 	}
 }
 

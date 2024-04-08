@@ -70,3 +70,7 @@ mod settings;
 pub use settings::{CharSize, FlowControl, Parity, Settings, StopBits, TryFromError, COMMON_BAUD_RATES};
 
 pub mod os;
+
+#[cfg(any(doc, feature = "rs4xx"))]
+#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "rs4xx")))]
+pub mod rs4xx;

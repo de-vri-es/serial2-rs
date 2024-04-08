@@ -1,17 +1,22 @@
-use std::{thread, time::Duration};
+use std::time::Duration;
 use serial2::{SerialPort, Settings};
+use serial2::rs4xx::Rs485Config;
 
 fn main() -> std::io::Result<()> {
-    let port_name = "/dev/ttyS5";
-    let ser = SerialPort::open(port_name, |mut settings: Settings| {
-        settings.set_raw();
-        settings.set_baud_rate(115200)?;
-        settings.enable_rs485();
-        Ok(settings)
-    })?;
+	let port_name = "/dev/ttyS5";
+	let serial_port = SerialPort::open(port_name, |mut settings: Settings| {
+		settings.set_raw();
+		settings.set_baud_rate(115200)?;
+		Ok(settings)
+	})?;
 
-    loop {
-        ser.write(b"test").unwrap();
-        thread::sleep(Duration::from_millis(500));
-    }
+	let mut rs485_config = Rs485Config::new();
+	rs485_config.set_bus_termination(true);
+	rs485_config.set_full_duplex(true);
+	serial_port.set_rs4xx_mode(&rs485_config.into())?;
+
+	loop {
+		serial_port.write(b"test").unwrap();
+		std::thread::sleep(Duration::from_millis(500));
+	}
 }
