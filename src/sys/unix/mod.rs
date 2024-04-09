@@ -374,7 +374,7 @@ fn pts_name(master: &SerialPort) -> std::io::Result<std::path::PathBuf> {
 			unsafe {
 				let name = libc::ptsname(master.file.as_raw_fd());
 				let name = std::ffi::CStr::from_ptr(name).to_bytes().to_vec();
-				return Ok(OsString::from_vec(name).into())
+				Ok(OsString::from_vec(name).into())
 			}
 		} else {
 			let mut name = Vec::with_capacity(256);
@@ -402,6 +402,7 @@ fn pts_name(master: &SerialPort) -> std::io::Result<std::path::PathBuf> {
 impl Settings {
 	pub fn set_raw(&mut self) {
 		unsafe {
+			#[allow(clippy::unnecessary_cast)] // not unnecessary for all targets
 			libc::cfmakeraw(&mut self.termios as *mut _ as *mut libc::termios);
 			self.termios.c_iflag |= libc::IGNBRK | libc::IGNPAR;
 			self.termios.c_cc[libc::VMIN] = 1;
@@ -467,7 +468,10 @@ impl Settings {
 			))]
 			{
 				unsafe {
-					return Ok(libc::cfgetospeed(&self.termios).try_into().unwrap());
+					let baud_rate = libc::cfgetospeed(&self.termios);
+					#[allow(clippy::useless_conversion)] // Not useless on all platforms.
+					baud_rate.try_into()
+						.map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, format!("baud rate out of range: {} > {}", baud_rate, u32::MAX)))
 				}
 			} else {
 				#[cfg(all(
@@ -607,13 +611,17 @@ impl PartialEq for Settings {
 					_ => false,
 				}
 			} else {
-				let same = true;
-				let same = same && a.c_cflag == b.c_cflag;
-				let same = same && a.c_iflag == b.c_iflag;
-				let same = same && a.c_oflag == b.c_oflag;
-				let same = same && a.c_lflag == b.c_lflag;
-				let same = same && a.c_cc == b.c_cc;
-				same
+				{
+					let same = true;
+					let same = same && a.c_cflag == b.c_cflag;
+					let same = same && a.c_iflag == b.c_iflag;
+					let same = same && a.c_oflag == b.c_oflag;
+					let same = same && a.c_lflag == b.c_lflag;
+					let same = same && a.c_cc == b.c_cc;
+
+					#[allow(clippy::let_and_return)]
+					same
+				}
 			}
 		}
 	}
