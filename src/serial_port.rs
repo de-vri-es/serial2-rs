@@ -246,26 +246,36 @@ impl SerialPort {
 
 	/// Set the read timeout for the serial port.
 	///
-	/// The timeout set by this function is an upper bound on individual calls to [`std::io::Read::read()`].
+	/// The timeout set by this function is an upper bound on individual calls to [`read()`][Self::read].
 	/// Other platform specific time-outs may trigger before this timeout does.
+	/// Additionally, some functions (like [`Self::read_exact`]) perform multiple calls to `read()`.
 	pub fn set_read_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
 		self.inner.set_read_timeout(timeout)
 	}
 
 	/// Get the read timeout of the serial port.
+	///
+	/// The timeout set by this function is an upper bound on individual calls to [`read()`][Self::read].
+	/// Other platform specific time-outs may trigger before this timeout does.
+	/// Additionally, some functions (like [`Self::read_exact`]) perform multiple calls to `read()`.
 	pub fn get_read_timeout(&self) -> std::io::Result<Duration> {
 		self.inner.get_read_timeout()
 	}
 
 	/// Set the write timeout for the serial port.
 	///
-	/// The timeout set by this function is an upper bound on individual calls to [`std::io::Write::write()`].
+	/// The timeout set by this function is an upper bound on individual calls to [`write()`][Self::write].
 	/// Other platform specific time-outs may trigger before this timeout does.
+	/// Additionally, some functions (like [`Self::write_all`]) perform multiple calls to `write()`.
 	pub fn set_write_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
 		self.inner.set_write_timeout(timeout)
 	}
 
 	/// Get the write timeout of the serial port.
+	///
+	/// The timeout set by this function is an upper bound on individual calls to [`write()`][Self::write].
+	/// Other platform specific time-outs may trigger before this timeout does.
+	/// Additionally, some functions (like [`Self::write_all`]) perform multiple calls to `write()`.
 	pub fn get_write_timeout(&self) -> std::io::Result<Duration> {
 		self.inner.get_write_timeout()
 	}
