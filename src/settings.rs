@@ -387,14 +387,14 @@ impl Settings {
 		self.inner.set_raw();
 	}
 
-	/// Set the baud rate to be configured.
-	///
-	/// This function returns an error if the platform does not support the requested band-width.
-	/// Note that the device itself may also not support the requested baud rate, even if the platform does.
-	/// In that case [`SerialPort::set_configuration()`][crate::SerialPort::set_configuration] will return an error.
-	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
-		self.inner.set_baud_rate(baud_rate)
-	}
+    /// Set the baud rate to be configured.
+    ///
+    /// This function returns an error if the platform does not support the requested bandwidth.
+    /// Note that the device itself may also not support the requested baud rate, even if the platform does.
+    /// In that case [`SerialPort::set_configuration()`][crate::SerialPort::set_configuration] will return an error.
+    pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
+        self.inner.set_baud_rate(baud_rate)
+    }
 
 	/// Get the baud rate from the configuration.
 	pub fn get_baud_rate(&self) -> std::io::Result<u32> {
@@ -443,51 +443,51 @@ impl Settings {
 		self.inner.get_flow_control()
 	}
 
-	/// Get a reference to the raw `termios` struct.
-	///
-	/// On Linux and Android this is actually a `termios2` struct.
-	/// On other Unix platforms, this is a `termios` struct.
-	///
-	/// You can use this function to access Unix specific features of the serial port.
-	/// You code will not be cross platform anymore if you use this.
-	#[cfg(any(doc, all(unix, feature = "unix")))]
-	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
-	pub fn as_termios(&self) -> &crate::os::unix::RawTermios {
-		&self.inner.termios
-	}
+    /// Get a reference to the raw `termios` struct.
+    ///
+    /// On Linux and Android this is actually a `termios2` struct.
+    /// On other Unix platforms, this is a `termios` struct.
+    ///
+    /// You can use this function to access Unix specific features of the serial port.
+    /// Your code will not be cross-platform anymore if you use this.
+    #[cfg(any(doc, all(unix, feature = "unix")))]
+    #[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
+    pub fn as_termios(&self) -> &crate::os::unix::RawTermios {
+        &self.inner.termios
+    }
 
-	/// Get a mutable reference to the raw `termios` struct.
-	///
-	/// On Linux and Android this is actually a `termios2` struct.
-	/// On other Unix platforms, this is a `termios` struct.
-	///
-	/// You can use this function to access Unix specific features of the serial port.
-	/// You code will not be cross platform anymore if you use this.
-	#[cfg(any(doc, all(unix, feature = "unix")))]
-	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
-	pub fn as_termios_mut(&mut self) -> &mut crate::os::unix::RawTermios {
-		&mut self.inner.termios
-	}
+    /// Get a mutable reference to the raw `termios` struct.
+    ///
+    /// On Linux and Android this is actually a `termios2` struct.
+    /// On other Unix platforms, this is a `termios` struct.
+    ///
+    /// You can use this function to access Unix specific features of the serial port.
+    /// Your code will not be cross-platform anymore if you use this.
+    #[cfg(any(doc, all(unix, feature = "unix")))]
+    #[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
+    pub fn as_termios_mut(&mut self) -> &mut crate::os::unix::RawTermios {
+        &mut self.inner.termios
+    }
 
-	/// Get a reference to the raw `DCB` struct.
-	///
-	/// You can use this function to access Windows specific features of the serial port.
-	/// You code will not be cross platform anymore if you use this.
-	#[cfg(any(doc, all(windows, feature = "windows")))]
-	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
-	pub fn as_raw_dbc(&self) -> &crate::os::windows::DCB {
-		&self.inner.dcb
-	}
+    /// Get a reference to the raw `DCB` struct.
+    ///
+    /// You can use this function to access Windows specific features of the serial port.
+    /// Your code will not be cross-platform anymore if you use this.
+    #[cfg(any(doc, all(windows, feature = "windows")))]
+    #[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
+    pub fn as_raw_dbc(&self) -> &crate::os::windows::DCB {
+        &self.inner.dcb
+    }
 
-	/// Get a mutable reference to the raw  `DCB` struct.
-	///
-	/// You can use this function to access Windows specific features of the serial port.
-	/// You code will not be cross platform anymore if you use this.
-	#[cfg(any(doc, all(windows, feature = "windows")))]
-	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
-	pub fn as_raw_dbc_mut(&mut self) -> &mut crate::os::windows::DCB {
-		&mut self.inner.dcb
-	}
+    /// Get a mutable reference to the raw  `DCB` struct.
+    ///
+    /// You can use this function to access Windows specific features of the serial port.
+    /// Your code will not be cross-platform anymore if you use this.
+    #[cfg(any(doc, all(windows, feature = "windows")))]
+    #[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
+    pub fn as_raw_dbc_mut(&mut self) -> &mut crate::os::windows::DCB {
+        &mut self.inner.dcb
+    }
 }
 
 impl std::fmt::Debug for Settings {

@@ -341,14 +341,14 @@ impl SerialPort {
 		self.inner.discard_buffers(false, true)
 	}
 
-	/// Set the state of the Ready To Send line.
-	///
-	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
-	/// The function may fail with an error or it may silently be ignored.
-	/// It may even succeed and interfere with the flow control.
-	pub fn set_rts(&self, state: bool) -> std::io::Result<()> {
-		self.inner.set_rts(state)
-	}
+    /// Set the state of the Ready To Send line.
+    ///
+    /// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
+    /// The function may fail with an error, or it may silently be ignored.
+    /// It may even succeed and interfere with the flow control.
+    pub fn set_rts(&self, state: bool) -> std::io::Result<()> {
+        self.inner.set_rts(state)
+    }
 
 	/// Read the state of the Clear To Send line.
 	///
@@ -358,13 +358,13 @@ impl SerialPort {
 		self.inner.read_cts()
 	}
 
-	/// Set the state of the Data Terminal Ready line.
-	///
-	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
-	/// The function may fail with an error or it may silently be ignored.
-	pub fn set_dtr(&self, state: bool) -> std::io::Result<()> {
-		self.inner.set_dtr(state)
-	}
+    /// Set the state of the Data Terminal Ready line.
+    ///
+    /// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
+    /// The function may fail with an error, or it may silently be ignored.
+    pub fn set_dtr(&self, state: bool) -> std::io::Result<()> {
+        self.inner.set_dtr(state)
+    }
 
 	/// Read the state of the Data Set Ready line.
 	///

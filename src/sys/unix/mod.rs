@@ -348,7 +348,7 @@ fn check_isize(ret: isize) -> std::io::Result<usize> {
 	}
 }
 
-/// Create an std::io::Error with custom message.
+/// Create a std::io::Error with custom message.
 fn other_error<E>(msg: E) -> std::io::Error
 where
 	E: Into<Box<dyn std::error::Error + Send + Sync>>,
