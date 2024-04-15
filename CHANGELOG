@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.21 - 2024-04-15
 - [change][patch] Improve documentation about timeouts and composed operations like `read_exact()` and `write_all()`.
 
 # Version 0.2.20 - 2024-03-04
