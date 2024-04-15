@@ -1,3 +1,6 @@
+# Unreleased
+- [change][patch] Improve documentation about timeouts and composed operations like `read_exact()` and `write_all()`.
+
 # Version 0.2.20 - 2024-03-04
 - [fix][minor] Fix write timeout for Unix platforms.
 
