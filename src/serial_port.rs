@@ -64,21 +64,26 @@ impl SerialPort {
 	#[cfg(any(feature = "doc", all(unix, feature = "unix")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
 	pub fn pair() -> std::io::Result<(Self, Self)> {
-		let (pty_a, pty_b) = sys::SerialPort::pair()?;
-		let mut pty_a = Self { inner: pty_a };
-		let mut pty_b = Self { inner: pty_b };
-		{
-			let mut settings = pty_a.get_configuration()?;
-			settings.set_raw();
-			pty_a.set_configuration(&settings)?;
-		}
-		{
-			let mut settings = pty_b.get_configuration()?;
-			settings.set_raw();
-			pty_b.set_configuration(&settings)?;
-		}
+		#[cfg(unix)] {
+			let (pty_a, pty_b) = sys::SerialPort::pair()?;
+			let mut pty_a = Self { inner: pty_a };
+			let mut pty_b = Self { inner: pty_b };
+			{
+				let mut settings = pty_a.get_configuration()?;
+				settings.set_raw();
+				pty_a.set_configuration(&settings)?;
+			}
+			{
+				let mut settings = pty_b.get_configuration()?;
+				settings.set_raw();
+				pty_b.set_configuration(&settings)?;
+			}
 
-		Ok((pty_a, pty_b))
+			Ok((pty_a, pty_b))
+		}
+		#[cfg(windows)] {
+			unreachable!("this code is only enabled on Unix platforms or during documentation generation")
+		}
 	}
 
 	/// Get a list of available serial ports.
@@ -299,7 +304,7 @@ impl SerialPort {
 			self.inner.get_windows_timeouts()
 		}
 		#[cfg(not(windows))] {
-			unreachable!("this code is only enabled on windows or during documentation generation")
+			unreachable!("this code is only enabled on Windows or during documentation generation")
 		}
 	}
 
@@ -319,7 +324,8 @@ impl SerialPort {
 			self.inner.set_windows_timeouts(timeouts)
 		}
 		#[cfg(not(windows))] {
-			unreachable!("this code is only enabled on windows or during documentation generation")
+			let _ = timeouts;
+			unreachable!("this code is only enabled on Windows or during documentation generation")
 		}
 	}
 
@@ -439,6 +445,7 @@ impl SerialPort {
 		#[cfg(all(feature = "rs4xx", target_os = "linux"))]
 		return sys::set_rs4xx_mode(&self.inner, &mode.into());
 		#[allow(unreachable_code)] {
+			let  _ = mode;
 			panic!("unsupported platform");
 		}
 	}

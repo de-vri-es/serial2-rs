@@ -452,7 +452,12 @@ impl Settings {
 	#[cfg(any(feature = "doc", all(unix, feature = "unix")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
 	pub fn as_termios(&self) -> &crate::os::unix::RawTermios {
-		&self.inner.termios
+		#[cfg(unix)] {
+			&self.inner.termios
+		}
+		#[cfg(not(unix))] {
+			unreachable!("this code is only enabled on Unix platforms or during documentation generation")
+		}
 	}
 
 	/// Get a mutable reference to the raw `termios` struct.
@@ -465,7 +470,12 @@ impl Settings {
 	#[cfg(any(feature = "doc", all(unix, feature = "unix")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
 	pub fn as_termios_mut(&mut self) -> &mut crate::os::unix::RawTermios {
-		&mut self.inner.termios
+		#[cfg(unix)] {
+			&mut self.inner.termios
+		}
+		#[cfg(not(unix))] {
+			unreachable!("this code is only enabled on Unix platforms or during documentation generation")
+		}
 	}
 
 	/// Get a reference to the raw `DCB` struct.
@@ -475,7 +485,12 @@ impl Settings {
 	#[cfg(any(feature = "doc", all(windows, feature = "windows")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
 	pub fn as_raw_dbc(&self) -> &crate::os::windows::DCB {
-		&self.inner.dcb
+		#[cfg(windows)] {
+			&self.inner.dcb
+		}
+		#[cfg(not(windows))] {
+			unreachable!("this code is only enabled on Windows or during documentation generation")
+		}
 	}
 
 	/// Get a mutable reference to the raw  `DCB` struct.
@@ -485,7 +500,12 @@ impl Settings {
 	#[cfg(any(feature = "doc", all(windows, feature = "windows")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
 	pub fn as_raw_dbc_mut(&mut self) -> &mut crate::os::windows::DCB {
-		&mut self.inner.dcb
+		#[cfg(windows)] {
+			&mut self.inner.dcb
+		}
+		#[cfg(not(windows))] {
+			unreachable!("this code is only enabled on Windows or during documentation generation")
+		}
 	}
 }
 
