@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.24 - 2024-04-23
 - [fix][patch] Fix compilation with "doc" feature on supported platforms.
 
 # Version 0.2.23 - 2024-04-23
