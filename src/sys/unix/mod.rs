@@ -112,7 +112,7 @@ impl SerialPort {
 		Ok(Self::from_file(file))
 	}
 
-	#[cfg(any(doc, all(unix, feature = "unix")))]
+	#[cfg(any(feature = "doc", all(unix, feature = "unix")))]
 	pub fn pair() -> std::io::Result<(Self, Self)> {
 		use std::os::unix::io::FromRawFd;
 		unsafe {
@@ -356,7 +356,7 @@ where
 	std::io::Error::new(std::io::ErrorKind::Other, msg)
 }
 
-#[cfg(any(doc, all(unix, feature = "unix")))]
+#[cfg(any(doc, feature = "doc", all(unix, feature = "unix")))]
 fn pts_name(master: &SerialPort) -> std::io::Result<std::path::PathBuf> {
 	use std::ffi::OsString;
 	use std::os::unix::ffi::OsStringExt;

@@ -13,7 +13,7 @@ fn main() -> std::io::Result<()> {
 	let mut rs485_config = Rs485Config::new();
 	rs485_config.set_bus_termination(true);
 	rs485_config.set_full_duplex(true);
-	serial_port.set_rs4xx_mode(&rs485_config.into())?;
+	serial_port.set_rs4xx_mode(rs485_config)?;
 
 	loop {
 		serial_port.write(b"test").unwrap();

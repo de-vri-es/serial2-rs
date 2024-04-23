@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use crate::{sys, IntoSettings, Settings};
 
-#[cfg(any(doc, all(feature = "rs4xx", target_os = "linux")))]
+#[cfg(any(feature = "doc", all(feature = "rs4xx", target_os = "linux")))]
 use crate::rs4xx;
 
 /// A serial port.
@@ -61,7 +61,7 @@ impl SerialPort {
 	}
 
 	/// Open a connected pair of pseudo-terminals.
-	#[cfg(any(doc, all(unix, feature = "unix")))]
+	#[cfg(any(feature = "doc", all(unix, feature = "unix")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
 	pub fn pair() -> std::io::Result<(Self, Self)> {
 		let (pty_a, pty_b) = sys::SerialPort::pair()?;
@@ -292,7 +292,7 @@ impl SerialPort {
 	/// [https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts)
 	///
 	/// You are strongly suggested to use [`Self::get_read_timeout()`] and [`Self::get_write_timeout()`] instead.
-	#[cfg(any(doc, all(feature = "windows", windows)))]
+	#[cfg(any(feature = "doc", all(feature = "windows", windows)))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
 	pub fn get_windows_timeouts(&self) -> std::io::Result<crate::os::windows::CommTimeouts> {
 		#[cfg(windows)] {
@@ -312,7 +312,7 @@ impl SerialPort {
 	/// [https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts)
 	///
 	/// You are strongly suggested to use [`Self::set_read_timeout()`] and [`Self::set_write_timeout()`] instead.
-	#[cfg(any(doc, all(feature = "windows", windows)))]
+	#[cfg(any(feature = "doc", all(feature = "windows", windows)))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
 	pub fn set_windows_timeouts(&self, timeouts: &crate::os::windows::CommTimeouts) -> std::io::Result<()> {
 		#[cfg(windows)] {
@@ -411,13 +411,14 @@ impl SerialPort {
 	///
 	/// Note that driver support for this feature is very limited and sometimes inconsistent.
 	/// Please read all the warnings in the [`rs4xx`] module carefully.
-	#[cfg(any(doc, all(feature = "rs4xx", target_os = "linux")))]
+	#[cfg(any(feature = "doc", all(feature = "rs4xx", target_os = "linux")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(all(feature = "rs4xx", target_os = "linux"))))]
 	pub fn get_rs4xx_mode(&self) -> std::io::Result<rs4xx::TransceiverMode> {
-		#[cfg(doc)]
-		panic!("compiled with cfg(doc)");
-		#[cfg(not(doc))]
-		sys::get_rs4xx_mode(&self.inner)
+		#[cfg(all(feature = "rs4xx", target_os = "linux"))]
+		return sys::get_rs4xx_mode(&self.inner);
+		#[allow(unreachable_code)] {
+			panic!("unsupported platform");
+		}
 	}
 
 	/// Set the RS-4xx mode of the serial port transceiver.
@@ -432,13 +433,14 @@ impl SerialPort {
 	///
 	/// Note that driver support for this feature is very limited and sometimes inconsistent.
 	/// Please read all the warnings in the [`rs4xx`] module carefully.
-	#[cfg(any(doc, all(feature = "rs4xx", target_os = "linux")))]
+	#[cfg(any(feature = "doc", all(feature = "rs4xx", target_os = "linux")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(all(feature = "rs4xx", target_os = "linux"))))]
 	pub fn set_rs4xx_mode(&self, mode: impl Into<rs4xx::TransceiverMode>) -> std::io::Result<()> {
-		#[cfg(doc)]
-		panic!("compiled with cfg(doc)");
-		#[cfg(not(doc))]
-		sys::set_rs4xx_mode(&self.inner, &mode.into())
+		#[cfg(all(feature = "rs4xx", target_os = "linux"))]
+		return sys::set_rs4xx_mode(&self.inner, &mode.into());
+		#[allow(unreachable_code)] {
+			panic!("unsupported platform");
+		}
 	}
 }
 
