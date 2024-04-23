@@ -424,11 +424,11 @@ impl SerialPort {
 	/// Please read all the warnings in the [`rs4xx`] module carefully.
 	#[cfg(any(doc, all(feature = "rs4xx", target_os = "linux")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(all(feature = "rs4xx", target_os = "linux"))))]
-	pub fn set_rs4xx_mode(&self, mode: &rs4xx::TransceiverMode) -> std::io::Result<()> {
+	pub fn set_rs4xx_mode(&self, mode: impl Into<rs4xx::TransceiverMode>) -> std::io::Result<()> {
 		#[cfg(doc)]
 		panic!("compiled with cfg(doc)");
 		#[cfg(not(doc))]
-		sys::set_rs4xx_mode(&self.inner, mode)
+		sys::set_rs4xx_mode(&self.inner, &mode.into())
 	}
 }
 
