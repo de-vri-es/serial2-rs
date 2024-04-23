@@ -1,3 +1,6 @@
+# Unreleased
+- [fix][patch] Fix compilation with "doc" feature on supported platforms.
+
 # Version 0.2.23 - 2024-04-23
 - [add][minor] Add a "doc" feature to enable all feature and platform specific items with stubs for documentation purposes.
 
