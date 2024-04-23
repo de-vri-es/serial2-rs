@@ -26,14 +26,14 @@ pub enum TransceiverMode {
 	/// Note that some device drivers may interpret full duplex RS-485 mode as RS-422 instead.
 	Rs422,
 
-    /// RS-485 mode.
-    ///
-    /// In RS-485 mode, the kernel will automatically set the RTS (request-to-send) signal high before each transmission,
-    /// and low again after each transmission.
-    ///
-    /// For full-duplex (or 4-wire) RS-485 mode, set [`Rs485Config::set_full_duplex()`] to true.
-    /// Otherwise, the receiver will be disabled during transmissions to avoid reading back your own message.
-    Rs485(Rs485Config),
+	/// RS-485 mode.
+	///
+	/// In RS-485 mode, the kernel will automatically set the RTS (request-to-send) signal high before each transmission,
+	/// and low again after each transmission.
+	///
+	/// For full-duplex (or 4-wire) RS-485 mode, set [`Rs485Config::set_full_duplex()`] to true.
+	/// Otherwise, the receiver will be disabled during transmissions to avoid reading back your own message.
+	Rs485(Rs485Config),
 }
 
 /// RS-485 specific configuration options.
@@ -47,12 +47,12 @@ pub struct Rs485Config {
 	/// With this mode enabled, the receiver will be left enabled while transmitting data.
 	full_duplex: bool,
 
-    /// Some transceivers allow enabling or disabling a termination resistor for the RS-485 bus.
-    ///
-    /// If set to true, enable the termination resistor.
-    ///
-    /// Note that this option may be silently ignored by devices that do not support it.
-    terminate_bus: bool,
+	/// Some transceivers allow enabling or disabling a termination resistor for the RS-485 bus.
+	///
+	/// If set to true, enable the termination resistor.
+	///
+	/// Note that this option may be silently ignored by devices that do not support it.
+	terminate_bus: bool,
 
 	/// Time in milliseconds to delay after setting the RTS signal, before starting transmission.
 	///
@@ -96,10 +96,10 @@ impl Rs485Config {
 		self.terminate_bus = enable;
 	}
 
-    /// Check if the bus termination resistor is enabled.
-    pub fn get_bus_termination(&self) -> bool {
-        self.terminate_bus
-    }
+	/// Check if the bus termination resistor is enabled.
+	pub fn get_bus_termination(&self) -> bool {
+		self.terminate_bus
+	}
 
 	/// Set the time to delay after setting the RTS signal, before starting a transmission.
 	///
@@ -135,14 +135,14 @@ impl Rs485Config {
 		self.delay_after_send
 	}
 
-    /// Set whether to invert the level of the RTS signal.
-    ///
-    /// If enabled, the RTS signal will be set low during transmissions and high again after each transmission.
-    ///
-    /// Note that this option may be silently ignored by devices that do not support it.
-    pub fn set_invert_rts(&mut self, invert: bool) {
-        self.invert_rts = invert;
-    }
+	/// Set whether to invert the level of the RTS signal.
+	///
+	/// If enabled, the RTS signal will be set low during transmissions and high again after each transmission.
+	///
+	/// Note that this option may be silently ignored by devices that do not support it.
+	pub fn set_invert_rts(&mut self, invert: bool) {
+		self.invert_rts = invert;
+	}
 
 	/// Check if the level of the RTS signal is inverted.
 	///

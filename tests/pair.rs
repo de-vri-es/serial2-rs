@@ -1,7 +1,7 @@
 #![cfg(unix)]
 
-use serial2::SerialPort;
 use assert2::{assert, let_assert};
+use serial2::SerialPort;
 
 #[test]
 fn open_pair() {

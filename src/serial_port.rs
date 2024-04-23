@@ -341,14 +341,14 @@ impl SerialPort {
 		self.inner.discard_buffers(false, true)
 	}
 
-    /// Set the state of the Ready To Send line.
-    ///
-    /// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
-    /// The function may fail with an error, or it may silently be ignored.
-    /// It may even succeed and interfere with the flow control.
-    pub fn set_rts(&self, state: bool) -> std::io::Result<()> {
-        self.inner.set_rts(state)
-    }
+	/// Set the state of the Ready To Send line.
+	///
+	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
+	/// The function may fail with an error, or it may silently be ignored.
+	/// It may even succeed and interfere with the flow control.
+	pub fn set_rts(&self, state: bool) -> std::io::Result<()> {
+		self.inner.set_rts(state)
+	}
 
 	/// Read the state of the Clear To Send line.
 	///
@@ -358,13 +358,13 @@ impl SerialPort {
 		self.inner.read_cts()
 	}
 
-    /// Set the state of the Data Terminal Ready line.
-    ///
-    /// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
-    /// The function may fail with an error, or it may silently be ignored.
-    pub fn set_dtr(&self, state: bool) -> std::io::Result<()> {
-        self.inner.set_dtr(state)
-    }
+	/// Set the state of the Data Terminal Ready line.
+	///
+	/// If hardware flow control is enabled on the serial port, it is platform specific what will happen.
+	/// The function may fail with an error, or it may silently be ignored.
+	pub fn set_dtr(&self, state: bool) -> std::io::Result<()> {
+		self.inner.set_dtr(state)
+	}
 
 	/// Read the state of the Data Set Ready line.
 	///
@@ -491,7 +491,7 @@ impl From<SerialPort> for std::os::unix::io::OwnedFd {
 impl From<std::os::unix::io::OwnedFd> for SerialPort {
 	fn from(value: std::os::unix::io::OwnedFd) -> Self {
 		Self {
-			inner: sys::SerialPort::from_file(value.into())
+			inner: sys::SerialPort::from_file(value.into()),
 		}
 	}
 }
@@ -541,7 +541,7 @@ impl From<SerialPort> for std::os::windows::io::OwnedHandle {
 impl From<std::os::windows::io::OwnedHandle> for SerialPort {
 	fn from(value: std::os::windows::io::OwnedHandle) -> Self {
 		Self {
-			inner: sys::SerialPort::from_file(value.into())
+			inner: sys::SerialPort::from_file(value.into()),
 		}
 	}
 }
@@ -566,7 +566,6 @@ impl std::os::windows::io::IntoRawHandle for SerialPort {
 		self.inner.file.into_raw_handle()
 	}
 }
-
 
 /// Convert an [`RawHandle`][std::os::windows::io::RawHandle] into a `SerialPort`.
 ///

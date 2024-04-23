@@ -82,7 +82,8 @@ impl SerialPort {
 			// Timeout must be > 0 and < u32::MAX, so clamp it.
 			// For more details, see:
 			// https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-commtimeouts#remarks
-			let timeout_ms = timeout.as_millis()
+			let timeout_ms = timeout
+				.as_millis()
 				.try_into()
 				.unwrap_or(u32::MAX)
 				.clamp(1, u32::MAX - 1);
@@ -105,10 +106,7 @@ impl SerialPort {
 	pub fn set_write_timeout(&mut self, timeout: Duration) -> std::io::Result<()> {
 		unsafe {
 			let mut timeouts = std::mem::zeroed();
-			let timeout_ms = timeout
-				.as_millis()
-				.try_into()
-				.unwrap_or(u32::MAX);
+			let timeout_ms = timeout.as_millis().try_into().unwrap_or(u32::MAX);
 			check_bool(commapi::GetCommTimeouts(self.file.as_raw_handle(), &mut timeouts))?;
 			timeouts.WriteTotalTimeoutMultiplier = 0;
 			timeouts.WriteTotalTimeoutConstant = timeout_ms;

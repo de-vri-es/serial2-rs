@@ -1,6 +1,6 @@
-use std::time::Duration;
-use serial2::{SerialPort, Settings};
 use serial2::rs4xx::Rs485Config;
+use serial2::{SerialPort, Settings};
+use std::time::Duration;
 
 fn main() -> std::io::Result<()> {
 	let port_name = "/dev/ttyS5";

@@ -85,18 +85,17 @@ impl SerialRs485 {
 		Ok(conf)
 	}
 
-
-    /// Apply settings to file descriptor
-    ///
-    /// Applies the constructed configuration a raw file-descriptor using
-    /// `ioctl`.
-    pub fn set_on_fd(&self, fd: &impl AsFd) -> std::io::Result<()> {
-        let fd = fd.as_fd().as_raw_fd();
-        unsafe {
-            check(libc::ioctl(fd, libc::TIOCSRS485, self))?;
-        }
-        Ok(())
-    }
+	/// Apply settings to file descriptor
+	///
+	/// Applies the constructed configuration a raw file-descriptor using
+	/// `ioctl`.
+	pub fn set_on_fd(&self, fd: &impl AsFd) -> std::io::Result<()> {
+		let fd = fd.as_fd().as_raw_fd();
+		unsafe {
+			check(libc::ioctl(fd, libc::TIOCSRS485, self))?;
+		}
+		Ok(())
+	}
 }
 
 impl From<&'_ TransceiverMode> for SerialRs485 {
@@ -110,28 +109,26 @@ impl From<&'_ TransceiverMode> for SerialRs485 {
 }
 
 impl From<&'_ Rs485Config> for SerialRs485 {
-    fn from(config: &Rs485Config) -> Self {
-        let mut flags = flags::SER_RS485_ENABLED;
-        if config.get_full_duplex() {
-            flags |= flags::SER_RS485_RX_DURING_TX;
-        }
-        if config.get_bus_termination() {
-            flags |= flags::SER_RS485_TERMINATE_BUS;
-        }
-        if config.get_invert_rts() {
-            flags |= flags::SER_RS485_RTS_AFTER_SEND;
-        } else {
-            flags |= flags::SER_RS485_RTS_ON_SEND;
-        }
+	fn from(config: &Rs485Config) -> Self {
+		let mut flags = flags::SER_RS485_ENABLED;
+		if config.get_full_duplex() {
+			flags |= flags::SER_RS485_RX_DURING_TX;
+		}
+		if config.get_bus_termination() {
+			flags |= flags::SER_RS485_TERMINATE_BUS;
+		}
+		if config.get_invert_rts() {
+			flags |= flags::SER_RS485_RTS_AFTER_SEND;
+		} else {
+			flags |= flags::SER_RS485_RTS_ON_SEND;
+		}
 
-		let delay_rts_before_send_ms = config.get_delay_before_send()
+		let delay_rts_before_send_ms = config
+			.get_delay_before_send()
 			.as_millis()
 			.try_into()
 			.unwrap_or(u32::MAX);
-		let delay_rts_after_send_ms = config.get_delay_after_send()
-			.as_millis()
-			.try_into()
-			.unwrap_or(u32::MAX);
+		let delay_rts_after_send_ms = config.get_delay_after_send().as_millis().try_into().unwrap_or(u32::MAX);
 
 		Self {
 			flags,

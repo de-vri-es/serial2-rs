@@ -358,8 +358,8 @@ where
 
 #[cfg(any(doc, all(unix, feature = "unix")))]
 fn pts_name(master: &SerialPort) -> std::io::Result<std::path::PathBuf> {
-	use std::os::unix::ffi::OsStringExt;
 	use std::ffi::OsString;
+	use std::os::unix::ffi::OsStringExt;
 
 	cfg_if! {
 		if #[cfg(any(
@@ -626,4 +626,3 @@ impl PartialEq for Settings {
 		}
 	}
 }
-
