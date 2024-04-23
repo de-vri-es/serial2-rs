@@ -2,7 +2,6 @@
 
 targets=(
 	x86_64-pc-solaris
-	x86_64-sun-solaris
 	x86_64-unknown-illumos
 	aarch64-linux-android
 	aarch64-unknown-linux-gnu
@@ -24,10 +23,6 @@ targets=(
 	i686-linux-android
 	i686-unknown-linux-gnu
 	i686-unknown-linux-musl
-	mips-unknown-linux-musl
-	mips64-unknown-linux-muslabi64
-	mips64el-unknown-linux-muslabi64
-	mipsel-unknown-linux-musl
 	powerpc-unknown-linux-gnu
 	powerpc64-unknown-linux-gnu
 	powerpc64le-unknown-linux-gnu
@@ -55,9 +50,9 @@ for target in "${targets[@]}"; do
 	printf "Checking target: %s\n" "$target"
 	rustup target add "$target"
 
-	cargo check --target "$target"
+	cargo clippy --target "$target" "$@"
 	if (( $? != 0 )); then
-		printf "cargo check --target %s failed\n" "$target"
+		printf "cargo clippy --target %s failed\n" "$target"
 	fi
 	echo
 done

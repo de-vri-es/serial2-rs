@@ -35,8 +35,8 @@ pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 	// https://illumos.org/man/1M/ports
 	// Let's hope Solaris is doing the same.
 	// If only Oracle actually had navigatable documentation.
-	let cua = std::fs::read_dir("/dev/cua")?.into_iter();
-	let term = std::fs::read_dir("/dev/cua")?.into_iter();
+	let cua = std::fs::read_dir("/dev/cua")?;
+	let term = std::fs::read_dir("/dev/cua")?;
 
 	let serial_ports = cua
 		.chain(term)

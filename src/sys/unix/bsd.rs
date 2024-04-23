@@ -6,7 +6,6 @@ pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 	use std::os::unix::fs::FileTypeExt;
 
 	let serial_ports = std::fs::read_dir("/dev")?
-		.into_iter()
 		.filter_map(|entry| {
 			let entry = entry.ok()?;
 			let kind = entry.metadata().ok()?.file_type();

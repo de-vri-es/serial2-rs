@@ -43,3 +43,38 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --workspace --all-targets
+
+  check_configurations:
+    name: Check codebase
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: "-D warnings"
+      RUSTDOCFLAGS: "-D warnings"
+    strategy:
+      matrix:
+        target:
+        - "x86_64-unknown-linux-gnu"
+        - "aarch64-unknown-linux-gnu"
+        - "x86_64-pc-windows-msvc"
+        - "x86_64-apple-darwin"
+        - "x86_64-unknown-freebsd"
+        - "x86_64-unknown-netbsd"
+        with-rs4xx: ["", "--features rs4xx"]
+        with-unix: ["", "--features unix"]
+        with-windows: ["", "--features windows"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.target }}
+      - name: Install toolchain
+        run: rustup target add ${{ matrix.target }}
+      - name: Check
+        run: cargo clippy --workspace --color=always --target ${{ matrix.target }} ${{ matrix.with-rs4xx }} ${{ matrix.with-unix }} ${{ matrix.with-windows }}
+      - name: Doc
+        run: cargo doc    --workspace --color=always --target ${{ matrix.target }} ${{ matrix.with-rs4xx }} ${{ matrix.with-unix }} ${{ matrix.with-windows }}

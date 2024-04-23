@@ -1,6 +1,12 @@
 use cfg_if::cfg_if;
 use std::path::{Path, PathBuf};
 
+#[cfg(feature = "rs4xx")]
+mod rs4xx;
+
+#[cfg(feature = "rs4xx")]
+pub use rs4xx::*;
+
 cfg_if! {
 	if #[cfg(any(target_arch = "sparc", target_arch = "sparc64"))] {
 		pub const BAUD_RATES: [(u32, u32); 30] = [

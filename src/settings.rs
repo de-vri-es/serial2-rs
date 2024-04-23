@@ -190,7 +190,6 @@ delegate_impl!(TryFrom<i64> for StopBits as u8);
 delegate_impl!(TryFrom<usize> for StopBits as u8);
 delegate_impl!(TryFrom<isize> for StopBits as u8);
 
-
 /// The type of parity check for a serial port.
 ///
 /// <div>
@@ -389,7 +388,7 @@ impl Settings {
 
 	/// Set the baud rate to be configured.
 	///
-	/// This function returns an error if the platform does not support the requested band-width.
+	/// This function returns an error if the platform does not support the requested bandwidth.
 	/// Note that the device itself may also not support the requested baud rate, even if the platform does.
 	/// In that case [`SerialPort::set_configuration()`][crate::SerialPort::set_configuration] will return an error.
 	pub fn set_baud_rate(&mut self, baud_rate: u32) -> std::io::Result<()> {
@@ -449,7 +448,7 @@ impl Settings {
 	/// On other Unix platforms, this is a `termios` struct.
 	///
 	/// You can use this function to access Unix specific features of the serial port.
-	/// You code will not be cross platform anymore if you use this.
+	/// Your code will not be cross-platform anymore if you use this.
 	#[cfg(any(doc, all(unix, feature = "unix")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
 	pub fn as_termios(&self) -> &crate::os::unix::RawTermios {
@@ -462,7 +461,7 @@ impl Settings {
 	/// On other Unix platforms, this is a `termios` struct.
 	///
 	/// You can use this function to access Unix specific features of the serial port.
-	/// You code will not be cross platform anymore if you use this.
+	/// Your code will not be cross-platform anymore if you use this.
 	#[cfg(any(doc, all(unix, feature = "unix")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
 	pub fn as_termios_mut(&mut self) -> &mut crate::os::unix::RawTermios {
@@ -472,7 +471,7 @@ impl Settings {
 	/// Get a reference to the raw `DCB` struct.
 	///
 	/// You can use this function to access Windows specific features of the serial port.
-	/// You code will not be cross platform anymore if you use this.
+	/// Your code will not be cross-platform anymore if you use this.
 	#[cfg(any(doc, all(windows, feature = "windows")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
 	pub fn as_raw_dbc(&self) -> &crate::os::windows::DCB {
@@ -482,7 +481,7 @@ impl Settings {
 	/// Get a mutable reference to the raw  `DCB` struct.
 	///
 	/// You can use this function to access Windows specific features of the serial port.
-	/// You code will not be cross platform anymore if you use this.
+	/// Your code will not be cross-platform anymore if you use this.
 	#[cfg(any(doc, all(windows, feature = "windows")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
 	pub fn as_raw_dbc_mut(&mut self) -> &mut crate::os::windows::DCB {
@@ -515,16 +514,14 @@ impl<'de> serde::Deserialize<'de> for CharSize {
 		struct Visitor;
 		impl<'de> serde::de::Visitor<'de> for Visitor {
 			type Value = CharSize;
+
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
 				formatter.write_str(Self::Value::EXPECTED)
 			}
 
 			fn visit_u64<E: serde::de::Error>(self, data: u64) -> Result<Self::Value, E> {
 				Self::Value::try_from(data)
-					.map_err(|e| E::invalid_value(
-						serde::de::Unexpected::Unsigned(e.unexpected),
-						&e.expected
-					))
+					.map_err(|e| E::invalid_value(serde::de::Unexpected::Unsigned(e.unexpected), &e.expected))
 			}
 		}
 
@@ -545,16 +542,14 @@ impl<'de> serde::Deserialize<'de> for StopBits {
 		struct Visitor;
 		impl<'de> serde::de::Visitor<'de> for Visitor {
 			type Value = StopBits;
+
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
 				formatter.write_str(Self::Value::EXPECTED)
 			}
 
 			fn visit_u64<E: serde::de::Error>(self, data: u64) -> Result<Self::Value, E> {
 				Self::Value::try_from(data)
-					.map_err(|e| E::invalid_value(
-						serde::de::Unexpected::Unsigned(e.unexpected),
-						&e.expected
-					))
+					.map_err(|e| E::invalid_value(serde::de::Unexpected::Unsigned(e.unexpected), &e.expected))
 			}
 		}
 
@@ -575,16 +570,14 @@ impl<'de> serde::Deserialize<'de> for Parity {
 		struct Visitor;
 		impl<'de> serde::de::Visitor<'de> for Visitor {
 			type Value = Parity;
+
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
 				formatter.write_str(Self::Value::EXPECTED)
 			}
 
 			fn visit_str<E: serde::de::Error>(self, data: &str) -> Result<Self::Value, E> {
 				Self::Value::try_from(data)
-					.map_err(|e| E::invalid_value(
-						serde::de::Unexpected::Str(e.unexpected),
-						&e.expected,
-					))
+					.map_err(|e| E::invalid_value(serde::de::Unexpected::Str(e.unexpected), &e.expected))
 			}
 		}
 
@@ -605,16 +598,14 @@ impl<'de> serde::Deserialize<'de> for FlowControl {
 		struct Visitor;
 		impl<'de> serde::de::Visitor<'de> for Visitor {
 			type Value = FlowControl;
+
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
 				formatter.write_str(Self::Value::EXPECTED)
 			}
 
 			fn visit_str<E: serde::de::Error>(self, data: &str) -> Result<Self::Value, E> {
 				Self::Value::try_from(data)
-					.map_err(|e| E::invalid_value(
-						serde::de::Unexpected::Str(e.unexpected),
-						&e.expected,
-					))
+					.map_err(|e| E::invalid_value(serde::de::Unexpected::Str(e.unexpected), &e.expected))
 			}
 		}
 
@@ -643,7 +634,7 @@ impl<Raw> TryFromError<Raw> {
 
 impl<Raw: std::fmt::Debug> std::fmt::Display for TryFromError<Raw> {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "invalid value: {:?}, expected {}", self.unexpected, self. expected)
+		write!(f, "invalid value: {:?}, expected {}", self.unexpected, self.expected)
 	}
 }
 
