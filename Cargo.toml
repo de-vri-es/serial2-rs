@@ -24,10 +24,11 @@ rs4xx = []
 # Add #[doc(cfg(...))] annotations to platform specific items for better documentation (requires nightly toolchain).
 doc-cfg = []
 
+# Enable limited serde support for serial port configuration.
+serde = ["dep:serde"]
+
 # Add stub implementation of all feature and platform specific items, to allow full documentation to build on all platforms.
 doc = []
-
-serde = ["dep:serde"]
 
 [[example]]
 name = "rs485"
