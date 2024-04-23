@@ -122,7 +122,7 @@ impl SerialPort {
 		}
 	}
 
-	#[cfg(any(doc, all(feature = "windows", windows)))]
+	#[cfg(any(feature = "doc", all(feature = "windows", windows)))]
 	pub fn get_windows_timeouts(&self) -> std::io::Result<crate::os::windows::CommTimeouts> {
 		unsafe {
 			let mut timeouts = std::mem::zeroed();
@@ -137,7 +137,7 @@ impl SerialPort {
 		}
 	}
 
-	#[cfg(any(doc, all(feature = "windows", windows)))]
+	#[cfg(any(feature = "doc", all(feature = "windows", windows)))]
 	pub fn set_windows_timeouts(&self, timeouts: &crate::os::windows::CommTimeouts) -> std::io::Result<()> {
 		let mut timeouts = winapi::um::winbase::COMMTIMEOUTS {
 			ReadIntervalTimeout: timeouts.read_interval_timeout,

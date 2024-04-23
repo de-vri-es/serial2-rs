@@ -1,3 +1,6 @@
+# Unreleased
+- [add][minor] Add a "doc-stubs" feature to enable all feature and platform specific items with stubs for documentation purposes.
+
 # Version 0.2.22 - 2024-04-23
 - [add][minor] Add `SerialPort::set_rs4xx_mode()` and `get_rs4xx_mode()` behind `rs4xx` feature flag.
 

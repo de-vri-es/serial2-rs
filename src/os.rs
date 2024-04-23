@@ -1,7 +1,7 @@
 //! OS specific definitions.
 
 /// Unix specific definitions.
-#[cfg(any(doc, all(feature = "unix", unix)))]
+#[cfg(any(feature = "doc", all(feature = "unix", unix)))]
 #[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
 pub mod unix {
 	/// Raw Unix specific serial port settings.
@@ -32,7 +32,7 @@ pub mod unix {
 }
 
 /// Windows specific definitions.
-#[cfg(any(doc, all(feature = "windows", windows)))]
+#[cfg(any(feature = "doc", all(feature = "windows", windows)))]
 #[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "windows")))]
 pub mod windows {
 	/// Raw Windows specific serial port settings.

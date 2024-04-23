@@ -39,9 +39,8 @@ jobs:
           command: test
           args: --workspace --all-targets --color=always --features unix
       - name: Clippy
-        uses: actions-rs/clippy-check@v1
+        uses: actions-rs-plus/clippy-check@v2.1.1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           args: --workspace --all-targets
 
   check_configurations:
