@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.25 - 2024-06-13
 - [fix][patch] Fix documentation build failre on http://docs.rs.
 
 # Version 0.2.24 - 2024-04-23
