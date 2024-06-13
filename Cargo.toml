@@ -50,4 +50,4 @@ serde_json = "1.0.108"
 serial2 = { path = ".", features = ["serde", "unix", "windows"] }
 
 [package.metadata.docs.rs]
-features = ["doc-cfg", "doc-stubs"]
+features = ["doc-cfg", "doc"]

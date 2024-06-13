@@ -1,3 +1,6 @@
+# Unreleased
+- [fix][patch] Fix documentation build failre on http://docs.rs.
+
 # Version 0.2.24 - 2024-04-23
 - [fix][patch] Fix compilation with "doc" feature on supported platforms.
 
