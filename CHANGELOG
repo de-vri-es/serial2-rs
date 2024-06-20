@@ -1,3 +1,6 @@
+# Unlreased
+- [add][minor] Support more custom baud rates on iOS and macOS.
+
 # Version 0.2.25 - 2024-06-13
 - [fix][patch] Fix documentation build failre on http://docs.rs.
 
