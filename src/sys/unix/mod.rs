@@ -13,12 +13,17 @@ pub struct SerialPort {
 
 cfg_if! {
 	if #[cfg(any(
-			target_os = "dragonfly",
-			target_os = "freebsd",
-			target_os = "ios",
-			target_os = "macos",
-			target_os = "netbsd",
-			target_os = "openbsd",
+		target_os = "ios",
+		target_os = "macos",
+	))] {
+		mod apple;
+		pub use apple::*;
+
+	} else if #[cfg(any(
+		target_os = "dragonfly",
+		target_os = "freebsd",
+		target_os = "netbsd",
+		target_os = "openbsd",
 	))] {
 		mod bsd;
 		pub use bsd::*;
@@ -148,7 +153,25 @@ impl SerialPort {
 	}
 
 	pub fn set_configuration(&mut self, settings: &Settings) -> std::io::Result<()> {
+		// On iOS and macOS we set the baud rate with the IOSSIOSPEED ioctl.
+		// But we also need to ensure the `set_on_file()` doesn't fail.
+		// So fill in a safe speed in the termios struct which we will override shortly after.
+		#[cfg(any(target_os = "ios", target_os = "macos"))]
+		let (settings, baud_rate) = {
+			let baud_rate = settings.termios.c_ospeed;
+			let mut settings = settings.clone();
+			settings.termios.c_ispeed = 9600;
+			settings.termios.c_ospeed = 9600;
+			(settings, baud_rate)
+		};
+		#[cfg(any(target_os = "ios", target_os = "macos"))]
+		let settings = &settings;
+
 		settings.set_on_file(&mut self.file)?;
+
+		// On iOS and macOS, override the speed with the IOSSIOSPEED ioctl.
+		#[cfg(any(target_os = "ios", target_os = "macos"))]
+		ioctl_iossiospeed(self.file.as_raw_fd(), baud_rate)?;
 
 		let applied_settings = self.get_configuration()?;
 		if applied_settings != *settings {

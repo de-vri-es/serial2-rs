@@ -1,4 +1,3 @@
-use cfg_if::cfg_if;
 use std::path::PathBuf;
 
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
@@ -20,48 +19,37 @@ pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 }
 
 fn is_tty_name(name: &[u8]) -> bool {
-	cfg_if! {
-		if #[cfg(any(target_os = "ios", target_os = "macos"))] {
-			// Sigh, closed source doesn't have to mean undocumented.
-			// Anyway:
-			// https://stackoverflow.com/questions/14074413/serial-port-names-on-mac-os-x
-			// https://learn.adafruit.com/ftdi-friend/com-slash-serial-port-name
-			name.starts_with(b"tty.") || name.starts_with(b"cu.")
+		// For BSD variants, we simply report all entries in /dev that look like a TTY.
+		// This may contain a lot of false positives for pseudo-terminals or other fake terminals.
+		// If anyone can improve this for a specific BSD they love, by all means send a PR.
 
-		} else {
-			// For BSD variants, we simply report all entries in /dev that look like a TTY.
-			// This may contain a lot of false positives for pseudo-terminals or other fake terminals.
-			// If anyone can improve this for a specific BSD they love, by all means send a PR.
+		// https://man.dragonflybsd.org/?command=sio&section=4
+		// https://leaf.dragonflybsd.org/cgi/web-man?command=ucom&section=ANY
+		#[cfg(target_os = "dragonfly")]
+		const PREFIXES: [&[u8]; 4] = [b"ttyd", b"cuaa", b"ttyU", b"cuaU"];
 
-			// https://man.dragonflybsd.org/?command=sio&section=4
-			// https://leaf.dragonflybsd.org/cgi/web-man?command=ucom&section=ANY
-			#[cfg(target_os = "dragonfly")]
-			const PREFIXES: [&[u8]; 4] = [b"ttyd", b"cuaa", b"ttyU", b"cuaU"];
+		// https://www.freebsd.org/cgi/man.cgi?query=uart&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
+		// https://www.freebsd.org/cgi/man.cgi?query=ucom&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
+		#[cfg(target_os = "freebsd")]
+		const PREFIXES: [&[u8]; 5] = [b"ttyu", b"cuau", b"cuad", b"ttyU", b"cuaU"];
 
-			// https://www.freebsd.org/cgi/man.cgi?query=uart&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
-			// https://www.freebsd.org/cgi/man.cgi?query=ucom&sektion=4&apropos=0&manpath=FreeBSD+13.0-RELEASE+and+Ports
-			#[cfg(target_os = "freebsd")]
-			const PREFIXES: [&[u8]; 5] = [b"ttyu", b"cuau", b"cuad", b"ttyU", b"cuaU"];
+		// https://man.netbsd.org/com.4
+		// https://man.netbsd.org/ucom.4
+		#[cfg(target_os = "netbsd")]
+		const PREFIXES: [&[u8]; 4] = [b"tty", b"dty", b"ttyU", b"dtyU"];
 
-			// https://man.netbsd.org/com.4
-			// https://man.netbsd.org/ucom.4
-			#[cfg(target_os = "netbsd")]
-			const PREFIXES: [&[u8]; 4] = [b"tty", b"dty", b"ttyU", b"dtyU"];
+		// https://man.openbsd.org/com
+		// https://man.openbsd.org/ucom
+		#[cfg(target_os = "openbsd")]
+		const PREFIXES: [&[u8]; 4] = [b"tty", b"cua", b"ttyU", b"cuaU"];
 
-			// https://man.openbsd.org/com
-			// https://man.openbsd.org/ucom
-			#[cfg(target_os = "openbsd")]
-			const PREFIXES: [&[u8]; 4] = [b"tty", b"cua", b"ttyU", b"cuaU"];
-
-			for prefix in PREFIXES {
-				if let Some(suffix) = name.strip_prefix(prefix) {
-					if !suffix.is_empty() && suffix.iter().all(|c| c.is_ascii_digit()) {
-						return true;
-					}
+		for prefix in PREFIXES {
+			if let Some(suffix) = name.strip_prefix(prefix) {
+				if !suffix.is_empty() && suffix.iter().all(|c| c.is_ascii_digit()) {
+					return true;
 				}
 			}
-
-			false
 		}
-	}
+
+		false
 }
