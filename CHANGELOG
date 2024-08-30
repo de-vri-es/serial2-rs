@@ -1,4 +1,5 @@
 # Unreleased
+- [fix][minor] Allow for a 2.5% deviation in actual baud rate when applying settings on Unix.
 - [add][minor] Implement `Debug` for `SerialPort` showing the underlying file descriptor (Unix) or handle (Windows).
 
 # Version 0.2.26 - 2024-06-21

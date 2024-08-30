@@ -182,7 +182,7 @@ impl SerialPort {
 		ioctl_iossiospeed(self.file.as_raw_fd(), baud_rate)?;
 
 		let applied_settings = self.get_configuration()?;
-		if applied_settings != *settings {
+		if !applied_settings.matches_requested(settings) {
 			Err(other_error("failed to apply some or all settings"))
 		} else {
 			Ok(())
@@ -612,48 +612,51 @@ impl Settings {
 	}
 }
 
-impl PartialEq for Settings {
-	fn eq(&self, other: &Self) -> bool {
+impl Settings {
+	fn matches_requested(&self, requested: &Self) -> bool {
 		let a = &self.termios;
-		let b = &other.termios;
+		let b = &requested.termios;
 
 		cfg_if::cfg_if! {
 			if #[cfg(any(target_os = "android", target_os = "linux"))] {
 				use libc::{CBAUD, CBAUDEX, IBSHIFT};
 				let no_baud = !(CBAUD | CBAUDEX | (CBAUD | CBAUDEX) << IBSHIFT);
 				let same = true;
-				let same = same && a.c_cflag & no_baud == b.c_cflag & no_baud;
+				let same = same && (a.c_cflag & no_baud == b.c_cflag & no_baud);
+				let same = same && (a.c_iflag == b.c_iflag);
+				let same = same && (a.c_oflag == b.c_oflag);
+				let same = same && (a.c_lflag == b.c_lflag);
+				let same = same && (a.c_cc == b.c_cc);
+				let same = same && (a.c_line == b.c_line);
+				if !same {
+					return false;
+				}
+			} else {
+				let same = true;
+				let same = same && a.c_cflag == b.c_cflag;
 				let same = same && a.c_iflag == b.c_iflag;
 				let same = same && a.c_oflag == b.c_oflag;
 				let same = same && a.c_lflag == b.c_lflag;
 				let same = same && a.c_cc == b.c_cc;
-				let same = same && a.c_line == b.c_line;
 				if !same {
 					return false;
 				}
-
-				// NOTE: This `PartialEq` only exists to check if applying settings worked.
-				// So if we don't understand the speed of either struct, just ignore them.
-				// Otherwise, applying settings with speed that we do not understand would also result in errors.
-				// TODO: Deal with input speed != output speed
-				match (self.get_baud_rate(), other.get_baud_rate()) {
-					(Ok(speed_a), Ok(speed_b)) => speed_a == speed_b,
-					(Err(_), Err(_)) => true,
-					_ => false,
-				}
-			} else {
-				{
-					let same = true;
-					let same = same && a.c_cflag == b.c_cflag;
-					let same = same && a.c_iflag == b.c_iflag;
-					let same = same && a.c_oflag == b.c_oflag;
-					let same = same && a.c_lflag == b.c_lflag;
-					let same = same && a.c_cc == b.c_cc;
-
-					#[allow(clippy::let_and_return)]
-					same
-				}
 			}
+		}
+
+		// If we don't understand the speed of either struct, just ignore them.
+		// Otherwise, applying settings with a speed that we do not understand would also result in errors.
+		// TODO: Deal with input speed != output speed
+		match (self.get_baud_rate(), requested.get_baud_rate()) {
+			(Ok(speed_actual), Ok(speed_requested)) => {
+				// Allow for a 2.5% deviation in the actual baud rate.
+				// The OS needs to select proper clock divisors to get the desired baud rate.
+				// The exact baud rate may not be possible to achieve by dividing the clock with an integer,
+				// so the actual baud rate may deviate somewhat from the requested baud rate.
+				speed_actual.abs_diff(speed_requested) <= speed_requested / 40
+			},
+			(Err(_), Err(_)) => true,
+			_ => false,
 		}
 	}
 }
