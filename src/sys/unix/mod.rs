@@ -11,6 +11,14 @@ pub struct SerialPort {
 	pub write_timeout_ms: u32,
 }
 
+impl std::fmt::Debug for SerialPort {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("SerialPort")
+			.field("fd", &self.file.as_raw_fd())
+			.finish()
+	}
+}
+
 cfg_if! {
 	if #[cfg(any(
 		target_os = "ios",

@@ -451,6 +451,12 @@ impl SerialPort {
 	}
 }
 
+impl std::fmt::Debug for SerialPort {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		std::fmt::Debug::fmt(&self.inner, f)
+	}
+}
+
 impl std::io::Read for SerialPort {
 	fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
 		SerialPort::read(self, buf)

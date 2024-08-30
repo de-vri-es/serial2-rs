@@ -1,3 +1,6 @@
+# Unreleased
+- [add][minor] Implement `Debug` for `SerialPort` showing the underlying file descriptor (Unix) or handle (Windows).
+
 # Version 0.2.26 - 2024-06-21
 - [add][minor] Support more custom baud rates on iOS and macOS.
 

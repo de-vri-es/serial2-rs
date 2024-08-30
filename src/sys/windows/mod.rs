@@ -12,6 +12,14 @@ pub struct SerialPort {
 	pub file: std::fs::File,
 }
 
+impl std::fmt::Debug for SerialPort {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.debug_struct("SerialPort")
+			.field("handle", &self.file.as_raw_handle())
+			.finish()
+	}
+}
+
 #[derive(Clone)]
 pub struct Settings {
 	pub dcb: winbase::DCB,
