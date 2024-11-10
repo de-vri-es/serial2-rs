@@ -164,22 +164,22 @@ impl SerialPort {
 		// On iOS and macOS we set the baud rate with the IOSSIOSPEED ioctl.
 		// But we also need to ensure the `set_on_file()` doesn't fail.
 		// So fill in a safe speed in the termios struct which we will override shortly after.
-		#[cfg(any(target_os = "ios", target_os = "macos"))]
-		let (settings, baud_rate) = {
-			let baud_rate = settings.termios.c_ospeed;
-			let mut settings = settings.clone();
-			settings.termios.c_ispeed = 9600;
-			settings.termios.c_ospeed = 9600;
-			(settings, baud_rate)
-		};
-		#[cfg(any(target_os = "ios", target_os = "macos"))]
-		let settings = &settings;
+		cfg_if! {
+			if #[cfg(any(target_os = "ios", target_os = "macos"))] {
+				let mut apply_settings = settings.clone();
+				apply_settings.termios.c_ispeed = 9600;
+				apply_settings.termios.c_ospeed = 9600;
+				let apply_settings = &apply_settings;
+			} else {
+				let apply_settings = settings;
+			}
+		}
 
-		settings.set_on_file(&mut self.file)?;
+		apply_settings.set_on_file(&mut self.file)?;
 
 		// On iOS and macOS, override the speed with the IOSSIOSPEED ioctl.
 		#[cfg(any(target_os = "ios", target_os = "macos"))]
-		ioctl_iossiospeed(self.file.as_raw_fd(), baud_rate)?;
+		ioctl_iossiospeed(self.file.as_raw_fd(), settings.termios.c_ospeed)?;
 
 		let applied_settings = self.get_configuration()?;
 		if !applied_settings.matches_requested(settings) {
