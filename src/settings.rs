@@ -532,7 +532,7 @@ impl serde::Serialize for CharSize {
 impl<'de> serde::Deserialize<'de> for CharSize {
 	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
 		struct Visitor;
-		impl<'de> serde::de::Visitor<'de> for Visitor {
+		impl serde::de::Visitor<'_> for Visitor {
 			type Value = CharSize;
 
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -560,7 +560,7 @@ impl serde::Serialize for StopBits {
 impl<'de> serde::Deserialize<'de> for StopBits {
 	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
 		struct Visitor;
-		impl<'de> serde::de::Visitor<'de> for Visitor {
+		impl serde::de::Visitor<'_> for Visitor {
 			type Value = StopBits;
 
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -588,7 +588,7 @@ impl serde::Serialize for Parity {
 impl<'de> serde::Deserialize<'de> for Parity {
 	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
 		struct Visitor;
-		impl<'de> serde::de::Visitor<'de> for Visitor {
+		impl serde::de::Visitor<'_> for Visitor {
 			type Value = Parity;
 
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -616,7 +616,7 @@ impl serde::Serialize for FlowControl {
 impl<'de> serde::Deserialize<'de> for FlowControl {
 	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
 		struct Visitor;
-		impl<'de> serde::de::Visitor<'de> for Visitor {
+		impl serde::de::Visitor<'_> for Visitor {
 			type Value = FlowControl;
 
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {

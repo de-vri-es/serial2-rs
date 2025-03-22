@@ -609,7 +609,7 @@ impl Drop for RegKey {
 }
 
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
-	let subkey = unsafe { CStr::from_bytes_with_nul_unchecked(b"Hardware\\DEVICEMAP\\SERIALCOMM\x00") };
+	let subkey = c"Hardware\\DEVICEMAP\\SERIALCOMM";
 	let device_map = match RegKey::open(winreg::HKEY_LOCAL_MACHINE, subkey, winnt::KEY_READ) {
 		Ok(x) => x,
 		Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {
