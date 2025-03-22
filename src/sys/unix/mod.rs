@@ -620,7 +620,7 @@ impl Settings {
 		cfg_if::cfg_if! {
 			if #[cfg(any(target_os = "android", target_os = "linux"))] {
 				use libc::{CBAUD, CBAUDEX, IBSHIFT};
-				let no_baud = !(CBAUD | CBAUDEX | (CBAUD | CBAUDEX) << IBSHIFT);
+				let no_baud = !(CBAUD | CBAUDEX | ((CBAUD | CBAUDEX) << IBSHIFT));
 				let same = true;
 				let same = same && (a.c_cflag & no_baud == b.c_cflag & no_baud);
 				let same = same && (a.c_iflag == b.c_iflag);
