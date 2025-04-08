@@ -9,7 +9,7 @@ pub use rs4xx::*;
 
 cfg_if! {
 	if #[cfg(any(target_arch = "sparc", target_arch = "sparc64"))] {
-		pub const BAUD_RATES: [(u32, u32); 30] = [
+		pub const BAUD_RATES: &[(u32, u32)] = &[
 			(libc::B50, 50),
 			(libc::B75, 75),
 			(libc::B110, 110),
@@ -42,7 +42,7 @@ cfg_if! {
 			(libc::B2000000, 2000000),
 		];
 	} else {
-		pub const BAUD_RATES: [(u32, u32); 30] = [
+		pub const BAUD_RATES: &[(u32, u32)] = &[
 			(libc::B50, 50),
 			(libc::B75, 75),
 			(libc::B110, 110),
