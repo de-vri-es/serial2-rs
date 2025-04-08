@@ -405,6 +405,13 @@ impl SerialPort {
 		self.inner.read_cd()
 	}
 
+	/// Set break state of the serial port.
+	///
+	/// This will hold the serial port in a logical low state when state is true.
+	pub fn set_break(&self, state: bool) -> std::io::Result<()> {
+		self.inner.set_break(state)
+	}
+
 	/// Get the RS-4xx mode of the serial port transceiver.
 	///
 	/// This is currently only supported on Linux.
