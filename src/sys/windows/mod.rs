@@ -291,10 +291,12 @@ impl SerialPort {
 	}
 
 	pub fn set_break(&self, state: bool) -> std::io::Result<()> {
-		if state {
-			commapi::SetCommBreak(&self.file)
-		} else {
-			commapi::ClearCommBreak(&self.file)
+		unsafe {
+			if state {
+				check_bool(commapi::SetCommBreak(self.file.as_raw_handle()))
+			} else {
+				check_bool(commapi::ClearCommBreak(self.file.as_raw_handle()))
+			}
 		}
 	}
 }
