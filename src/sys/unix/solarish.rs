@@ -3,7 +3,7 @@ use std::path::PathBuf;
 // All values taken from:
 // https://github.com/illumos/illumos-gate/blob/252adeb303174e992b64771bf9639e63a4d55418/usr/src/uts/common/sys/termios.h
 
-pub const BAUD_RATES: [(u32, u32); 23] = [
+pub const BAUD_RATES: &[(u32, u32)] = &[
 	(libc::B50, 50),
 	(libc::B75, 75),
 	(libc::B110, 110),
