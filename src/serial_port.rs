@@ -405,11 +405,12 @@ impl SerialPort {
 		self.inner.read_cd()
 	}
 
-	/// Set break state of the serial port.
+	/// Set or clear the break state of the serial port.
 	///
-	/// This will hold the serial port in a logical low state when state is true.
-	pub fn set_break(&self, state: bool) -> std::io::Result<()> {
-		self.inner.set_break(state)
+	/// The serial port will hold the data line in a logical low state while the break state is enabled.
+	/// This can be detected as a break condition on the other side of the line.
+	pub fn set_break(&self, enable: bool) -> std::io::Result<()> {
+		self.inner.set_break(enable)
 	}
 
 	/// Get the RS-4xx mode of the serial port transceiver.

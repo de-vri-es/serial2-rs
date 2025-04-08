@@ -290,9 +290,9 @@ impl SerialPort {
 		read_pin(&self.file, winbase::MS_RLSD_ON)
 	}
 
-	pub fn set_break(&self, state: bool) -> std::io::Result<()> {
+	pub fn set_break(&self, enable: bool) -> std::io::Result<()> {
 		unsafe {
-			if state {
+			if enable {
 				check_bool(commapi::SetCommBreak(self.file.as_raw_handle()))
 			} else {
 				check_bool(commapi::ClearCommBreak(self.file.as_raw_handle()))

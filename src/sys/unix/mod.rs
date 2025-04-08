@@ -328,9 +328,9 @@ impl SerialPort {
 		read_pin(&self.file, libc::TIOCM_CD)
 	}
 
-	pub fn set_break(&self, state: bool) -> std::io::Result<()> {
+	pub fn set_break(&self, enable: bool) -> std::io::Result<()> {
 		unsafe {
-			if state {
+			if enable {
 				check(libc::ioctl(self.file.as_raw_fd(), libc::TIOCSBRK as _))?;
 			} else {
 				check(libc::ioctl(self.file.as_raw_fd(), libc::TIOCCBRK as _))?;
