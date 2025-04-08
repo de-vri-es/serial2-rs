@@ -1,5 +1,5 @@
 # Unreleased
-- [fix][patch] Fix build for `powerpc64-ibm-aix` target.
+- [fix][patch] Fix build for AIX targets.
 
 # Version 0.2.29 - 2025-04-08
 - [add][minor] Add `SerialPort::set_break()` to hold the data line in break condition.
