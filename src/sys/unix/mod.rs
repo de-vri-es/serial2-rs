@@ -293,11 +293,12 @@ impl SerialPort {
 	pub fn discard_buffers(&self, discard_input: bool, discard_output: bool) -> std::io::Result<()> {
 		unsafe {
 			let mut flags = 0;
-			if discard_input {
-				flags |= libc::TCIFLUSH;
-			}
-			if discard_output {
-				flags |= libc::TCOFLUSH;
+			if discard_input && discard_output {
+				flags = libc::TCIOFLUSH;
+			} else if discard_input {
+				flags = libc::TCIFLUSH;
+			} else if discard_output {
+				flags = libc::TCOFLUSH;
 			}
 			check(libc::tcflush(self.file.as_raw_fd(), flags))?;
 			Ok(())
