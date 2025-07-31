@@ -513,7 +513,7 @@ impl Settings {
 					let baud_rate = libc::cfgetospeed(&self.termios);
 					#[allow(clippy::useless_conversion)] // Not useless on all platforms.
 					baud_rate.try_into()
-						.map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, format!("baud rate out of range: {} > {}", baud_rate, u32::MAX)))
+						.map_err(|_| std::io::Error::other(format!("baud rate out of range: {} > {}", baud_rate, u32::MAX)))
 				}
 			} else {
 				#[cfg(all(
