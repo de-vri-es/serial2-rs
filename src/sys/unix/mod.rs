@@ -91,6 +91,8 @@ cfg_if! {
 		#[derive(Clone)]
 		pub struct Settings {
 			pub termios: RawTermios,
+			#[cfg(target_os = "aix")]
+			pub rts_cts: bool,
 		}
 
 		impl Settings {
@@ -98,11 +100,19 @@ cfg_if! {
 				unsafe {
 					let mut termios = std::mem::zeroed();
 					check(libc::tcgetattr(file.as_raw_fd(), &mut termios))?;
-					Ok(Settings { termios })
+					Ok(Settings {
+						termios,
+						#[cfg(target_os = "aix")]
+						rts_cts: false,
+					})
 				}
 			}
 
 			fn set_on_file(&self, file: &mut std::fs::File) -> std::io::Result<()> {
+				#[cfg(target_os = "aix")]
+				if self.rts_cts {
+					return Err(std::io::Error::other("RTS/CTS flow control is not supported on AIX"));
+				}
 				unsafe {
 					check(libc::tcsetattr(file.as_raw_fd(), libc::TCSADRAIN, &self.termios))?;
 					Ok(())
@@ -594,15 +604,28 @@ impl Settings {
 		match flow_control {
 			crate::FlowControl::None => {
 				self.termios.c_iflag &= !(libc::IXON | libc::IXOFF);
-				self.termios.c_cflag &= !libc::CRTSCTS;
+				#[cfg(not(target_os = "aix"))]
+				{
+					self.termios.c_cflag &= !libc::CRTSCTS;
+				}
 			},
 			crate::FlowControl::XonXoff => {
 				self.termios.c_iflag |= libc::IXON | libc::IXOFF;
-				self.termios.c_cflag &= !libc::CRTSCTS;
+				#[cfg(not(target_os = "aix"))]
+				{
+					self.termios.c_cflag &= !libc::CRTSCTS;
+				}
 			},
 			crate::FlowControl::RtsCts => {
-				self.termios.c_iflag &= !(libc::IXON | libc::IXOFF);
-				self.termios.c_cflag |= libc::CRTSCTS;
+				#[cfg(target_os = "aix")]
+				{
+					self.rts_cts = true;
+				}
+				#[cfg(not(target_os = "aix"))]
+				{
+					self.termios.c_iflag &= !(libc::IXON | libc::IXOFF);
+					self.termios.c_cflag |= libc::CRTSCTS;
+				}
 			},
 		};
 	}
@@ -610,6 +633,9 @@ impl Settings {
 	pub fn get_flow_control(&self) -> std::io::Result<crate::FlowControl> {
 		let ixon = self.termios.c_iflag & libc::IXON != 0;
 		let ixoff = self.termios.c_iflag & libc::IXOFF != 0;
+		#[cfg(target_os = "aix")]
+		let crtscts = false;
+		#[cfg(not(target_os = "aix"))]
 		let crtscts = self.termios.c_cflag & libc::CRTSCTS != 0;
 
 		if !crtscts && !ixon && !ixoff {
