@@ -1,3 +1,6 @@
+# Unreleased
+- [fix][patch] Fix build for AIX targets.
+
 # Version 0.2.30 - 2025-07-31
 - [fix][minor] Fix `SerialPort::discard_buffers()` on Unix platforms.
 
