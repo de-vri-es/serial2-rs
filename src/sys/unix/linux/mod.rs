@@ -6,6 +6,40 @@ mod rs4xx;
 #[cfg(feature = "rs4xx")]
 pub use rs4xx::*;
 
+#[cfg(any(target_arch = "powerpc", target_arch = "powerpc64"))]
+pub const BAUD_RATES: &[(u32, u32)] = &[
+	(libc::B50, 50),
+	(libc::B75, 75),
+	(libc::B110, 110),
+	(libc::B134, 134),
+	(libc::B150, 150),
+	(libc::B200, 200),
+	(libc::B300, 300),
+	(libc::B600, 600),
+	(libc::B1200, 1200),
+	(libc::B1800, 1800),
+	(libc::B2400, 2400),
+	(libc::B4800, 4800),
+	(libc::B9600, 9600),
+	(libc::B19200, 19200),
+	(libc::B38400, 38400),
+	(libc::B57600, 57600),
+	(libc::B115200, 115200),
+	(libc::B230400, 230400),
+	(libc::B460800, 460800),
+	(libc::B500000, 500000),
+	(libc::B576000, 576000),
+	(libc::B921600, 921600),
+	(libc::B1000000, 1000000),
+	(libc::B1152000, 1152000),
+	(libc::B1500000, 1500000),
+	(libc::B2000000, 2000000),
+	(libc::B2500000, 2500000),
+	(libc::B3000000, 3000000),
+	(libc::B3500000, 3500000),
+	(libc::B4000000, 4000000),
+];
+
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 	use std::os::unix::ffi::OsStrExt;
 	use std::os::unix::fs::FileTypeExt;
