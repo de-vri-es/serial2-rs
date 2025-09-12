@@ -46,6 +46,8 @@ targets=(
 	x86_64-unknown-netbsd
 )
 
+failed=()
+
 for target in "${targets[@]}"; do
 	printf "Checking target: %s\n" "$target"
 	rustup target add "$target"
@@ -53,6 +55,15 @@ for target in "${targets[@]}"; do
 	cargo clippy --target "$target" "$@"
 	if (( $? != 0 )); then
 		printf "cargo clippy --target %s failed\n" "$target"
+		failed+=("$target")
 	fi
 	echo
 done
+
+if [[ "${#failed[@]}" > 0 ]]; then
+	printf "Failed targets:\n";
+	for target in "${failed[@]}"; do
+		printf "  %S\n" "$target"
+	done
+	exit 1;
+fi
