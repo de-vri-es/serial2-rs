@@ -527,15 +527,13 @@ impl Settings {
 					baud_rate.try_into()
 						.map_err(|_| std::io::Error::other(format!("baud rate out of range: {} > {}", baud_rate, u32::MAX)))
 				}
+			} else if #[cfg(all(
+				any(target_os = "android", target_os = "linux"),
+				not(any(target_arch = "powerpc", target_arch = "powerpc64"))
+			))]
+			{
+				Ok(self.termios.c_ospeed)
 			} else {
-				#[cfg(all(
-					any(target_os = "android", target_os = "linux"),
-					not(any(target_arch = "powerpc", target_arch = "powerpc64"))
-				))]
-				if self.termios.c_cflag & libc::CBAUD == libc::BOTHER {
-					return Ok(self.termios.c_ospeed);
-				}
-
 				unsafe {
 					let termios_speed = libc::cfgetospeed(&self.termios as *const _ as *const _ );
 					let &(_, bits_per_second) = BAUD_RATES.iter()
