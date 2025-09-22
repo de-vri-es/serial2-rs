@@ -1,3 +1,6 @@
+# Unreleased
+- [fix][patch] Improve example in main library documentation.
+
 # Version 0.2.32 - 2025-09-12
 - [fix][minor] Fix `get_baud_rate()` on Linux with glibc 2.42.
 

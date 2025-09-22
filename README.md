@@ -25,7 +25,7 @@ You can open and configure a serial port in one go with [`SerialPort::open()`].
 The second argument to `open()` must be a type that implements [`IntoSettings`].
 In the simplest case, it is enough to pass a `u32` for the baud rate.
 Doing that will also configure a character size of 8 bits with 1 stop bit and disables parity checks and flow control.
-For full control over the applied settings, pass a closure that receives the the current [`Settings`] and return the desired settings.
+For full control over the applied settings, pass a closure that receives the current [`Settings`] and return the desired settings.
 If you do, you will almost always want to call [`Settings::set_raw()`] before changing any other settings.
 
 The standard [`std::io::Read`] and [`std::io::Write`] traits are implemented for [`SerialPort`] and  [`&SerialPort`][`SerialPort`].
@@ -48,7 +48,7 @@ let port = SerialPort::open("/dev/ttyUSB0", 115200)?;
 let mut buffer = [0; 256];
 loop {
     let read = port.read(&mut buffer)?;
-    port.write(&buffer[..read])?;
+    port.write_all(&buffer[..read])?;
 }
 ```
 
