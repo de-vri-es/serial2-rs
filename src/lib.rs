@@ -47,7 +47,7 @@
 //! let mut buffer = [0; 256];
 //! loop {
 //!     let read = port.read(&mut buffer)?;
-//!     port.write(&buffer[..read])?;
+//!     port.write_all(&buffer[..read])?;
 //! }
 //! # }
 //! ```
