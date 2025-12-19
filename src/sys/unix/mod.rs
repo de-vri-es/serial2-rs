@@ -135,6 +135,16 @@ impl SerialPort {
 		Ok(Self::from_file(file))
 	}
 
+	pub fn close(&self) -> std::io::Result<Self> {
+		self.file = std::fs::OpenOptions::new()
+			.read(true)
+			.write(true)
+			.create(false)
+			.custom_flags(libc::O_NONBLOCK | libc::O_NOCTTY)
+			.open("/dev/null")?;
+		Ok(Self::from_file(file))
+	}
+
 	#[cfg(any(feature = "doc", all(unix, feature = "unix")))]
 	pub fn pair() -> std::io::Result<(Self, Self)> {
 		use std::os::unix::io::FromRawFd;

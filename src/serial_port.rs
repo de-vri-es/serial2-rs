@@ -60,6 +60,21 @@ impl SerialPort {
 		Ok(serial_port)
 	}
 
+	/// Explicitly close a serial port
+	/// As Rust does not implement std::fs::close() we must either call the underlying OS close() call
+	/// and mark the call unsafe, or do something else....
+	/// The issue is that once opened a serial port can't be opened again.
+	/// If our serial port lives the lifetime of the application then there is no way to close it
+	/// and give it to another application without opening another port, blocking that instead.
+	/// So instead we redirect the open file to /dev/null (unix) or \\.\nul on Windows.
+	/// Now it's still 'open' but has released ownership of the physical serial port.
+	/// As the original 'file' is no longer in scope it is implicitly closed by Rust.
+	pub fn close(&self) -> std::io::Result<Self> {
+		Ok(Self {
+			inner: self.inner.close()?,
+		})
+	}
+
 	/// Open a connected pair of pseudo-terminals.
 	#[cfg(any(feature = "doc", all(unix, feature = "unix")))]
 	#[cfg_attr(feature = "doc-cfg", doc(cfg(feature = "unix")))]
