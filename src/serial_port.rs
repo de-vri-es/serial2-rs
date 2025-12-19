@@ -69,7 +69,7 @@ impl SerialPort {
 	/// So instead we redirect the open file to /dev/null (unix) or \\.\nul on Windows.
 	/// Now it's still 'open' but has released ownership of the physical serial port.
 	/// As the original 'file' is no longer in scope it is implicitly closed by Rust.
-	pub fn close(&self) -> std::io::Result<Self> {
+	pub fn close(&mut self) -> std::io::Result<Self> {
 		Ok(Self {
 			inner: self.inner.close()?,
 		})

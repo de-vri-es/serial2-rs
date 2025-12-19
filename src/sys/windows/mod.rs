@@ -57,15 +57,15 @@ impl SerialPort {
 		Ok(Self::from_file(file))
 	}
 
-	pub fn close(&self) -> std::io::Result<Self> {
+	pub fn close(&mut self) -> std::io::Result<Self> {
 		use std::os::windows::fs::OpenOptionsExt;
-		let file = std::fs::OpenOptions::new()
+		self.file = std::fs::OpenOptions::new()
 			.read(true)
 			.write(true)
 			.create(false)
 			.custom_flags(winbase::FILE_FLAG_OVERLAPPED)
 			.open("\\\\.\\nul")?;
-		Ok(Self::from_file(file))
+		Ok(self.try_clone()?)
 	}
 
 	pub fn from_file(file: std::fs::File) -> Self {
