@@ -143,7 +143,7 @@ impl SerialPort {
 			.create(false)
 			.custom_flags(libc::O_NONBLOCK | libc::O_NOCTTY)
 			.open("/dev/null")?;
-		Ok(self.try_clone()?)
+		self.try_clone()
 	}
 
 	#[cfg(any(feature = "doc", all(unix, feature = "unix")))]

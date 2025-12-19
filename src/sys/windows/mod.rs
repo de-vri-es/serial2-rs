@@ -65,7 +65,7 @@ impl SerialPort {
 			.create(false)
 			.custom_flags(winbase::FILE_FLAG_OVERLAPPED)
 			.open("\\\\.\\nul")?;
-		Ok(self.try_clone()?)
+		self.try_clone()
 	}
 
 	pub fn from_file(file: std::fs::File) -> Self {
