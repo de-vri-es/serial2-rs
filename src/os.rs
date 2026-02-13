@@ -40,7 +40,7 @@ pub mod windows {
 	/// For more information, see:
 	/// [https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-dcb](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-dcb)
 	#[cfg(windows)]
-	pub use winapi::um::winbase::DCB;
+	pub use windows_sys::Win32::Devices::Communication::DCB;
 
 	/// Raw Windows specific serial port settings.
 	///
