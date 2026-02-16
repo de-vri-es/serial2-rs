@@ -1,11 +1,11 @@
 #![cfg(unix)]
 
-use assert2::{assert, let_assert};
+use assert2::assert;
 use serial2::SerialPort;
 
 #[test]
 fn open_pair() {
-	let_assert!(Ok((a, b)) = SerialPort::pair());
+	assert!(let Ok((a, b)) = SerialPort::pair());
 	assert!(let Ok(()) = a.write_all(b"Hello!"));
 	let mut buffer = [0; 6];
 	assert!(let Ok(()) = b.read_exact(&mut buffer));

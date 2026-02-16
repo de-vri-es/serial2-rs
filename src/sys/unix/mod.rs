@@ -139,7 +139,7 @@ impl SerialPort {
 	pub fn pair() -> std::io::Result<(Self, Self)> {
 		use std::os::unix::io::FromRawFd;
 		unsafe {
-			let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_CLOEXEC | libc::O_NOCTTY))?;
+			let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_CLOEXEC | libc::O_NOCTTY | libc::O_NONBLOCK))?;
 			let pty_a = std::fs::File::from_raw_fd(pty_a);
 			let pty_a = Self::from_file(pty_a);
 			let pty_b_name = pts_name(&pty_a)?;
