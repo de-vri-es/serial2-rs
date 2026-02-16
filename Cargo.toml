@@ -42,7 +42,7 @@ libc = "0.2.109"
 cfg-if = "1.0.0"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3.9", features = ["commapi", "fileapi", "handleapi", "ioapiset", "std", "synchapi", "winbase", "winerror", "winreg"] }
+windows-sys = {version = "0.61", features = ["Win32_Devices_Communication", "Win32_System_Registry", "Win32_System_IO", "Win32_System_Threading", "Win32_Storage_FileSystem", "Win32_System_WindowsProgramming", "Win32_Security"] }
 
 [dev-dependencies]
 assert2 = "0.3.11"
