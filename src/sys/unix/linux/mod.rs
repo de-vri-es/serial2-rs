@@ -67,6 +67,12 @@ pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 			},
 		}
 
+		// always allow tty0tty (null modem emulator) devices
+		if name.as_bytes().starts_with(b"tnt") {
+			entries.push(dev_path);
+			continue;
+		}
+
 		match name.as_bytes().strip_prefix(b"tty") {
 			// Skip entries called "tty";
 			Some(b"") => continue,
