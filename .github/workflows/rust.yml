@@ -19,25 +19,13 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --workspace --all-targets --color=always
+        run: cargo build --workspace --all-targets --color=always
       - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --all-targets --color=always
+        run: cargo test --workspace --all-targets --color=always
       - name: Build (with unix feature)
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --workspace --all-targets --color=always --features unix
+        run: cargp build --workspace --all-targets --color=always --features unix
       - name: Test (with unix feature)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --all-targets --color=always --features unix
+        run: cargo test --workspace --all-targets --color=always --features unix
       - name: Clippy
         uses: actions-rs-plus/clippy-check@v2.1.1
         with:
