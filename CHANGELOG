@@ -1,3 +1,6 @@
+# Unreleased
+- [add][minor] Include `tty0tty` devices in `available_ports()` on Linux.
+
 # Version 0.2.34 - 2026-02-16
 - [fix][minor] Make `SerialPort::pair()` open the first PTY in non-blocking mode.
 
