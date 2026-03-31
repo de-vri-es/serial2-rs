@@ -23,7 +23,7 @@ jobs:
       - name: Test
         run: cargo test --workspace --all-targets --color=always
       - name: Build (with unix feature)
-        run: cargp build --workspace --all-targets --color=always --features unix
+        run: cargo build --workspace --all-targets --color=always --features unix
       - name: Test (with unix feature)
         run: cargo test --workspace --all-targets --color=always --features unix
       - name: Clippy
