@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.35 - 2026-04-04
 - [add][minor] Include `tty0tty` devices in `available_ports()` on Linux.
 
 # Version 0.2.34 - 2026-02-16

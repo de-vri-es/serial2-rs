@@ -170,7 +170,7 @@ dependencies = [
 
 [[package]]
 name = "serial2"
-version = "0.2.34"
+version = "0.2.35"
 dependencies = [
  "assert2",
  "cfg-if",
