@@ -142,9 +142,9 @@ impl SerialPort {
 			let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_CLOEXEC | libc::O_NOCTTY | libc::O_NONBLOCK))?;
 			let pty_a = std::fs::File::from_raw_fd(pty_a);
 			let pty_a = Self::from_file(pty_a);
-			let pty_b_name = pts_name(&pty_a)?;
-			check(libc::unlockpt(pty_a.file.as_raw_fd()))?;
 			check(libc::grantpt(pty_a.file.as_raw_fd()))?;
+			check(libc::unlockpt(pty_a.file.as_raw_fd()))?;
+			let pty_b_name = pts_name(&pty_a)?;
 			let pty_b = Self::open(&pty_b_name)?;
 			Ok((pty_a, pty_b))
 		}
