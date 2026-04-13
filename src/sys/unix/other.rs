@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-pub const BAUD_RATES: &[(u32, u32)] = &[
+pub const BAUD_RATES: &[(libc::speed_t, u32)] = &[
 	// POSIX 2017.1: https://pubs.opengroup.org/onlinepubs/9699919799
 	(libc::B50, 50),
 	(libc::B75, 75),

@@ -7,7 +7,7 @@ mod rs4xx;
 pub use rs4xx::*;
 
 #[cfg(any(target_arch = "powerpc", target_arch = "powerpc64"))]
-pub const BAUD_RATES: &[(u32, u32)] = &[
+pub const BAUD_RATES: &[(libc::speed_t, u32)] = &[
 	(libc::B50, 50),
 	(libc::B75, 75),
 	(libc::B110, 110),
