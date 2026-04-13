@@ -420,9 +420,12 @@ fn pts_name(master: &SerialPort) -> std::io::Result<std::path::PathBuf> {
 				target_os = "ios",
 				target_os = "macos",
 				target_os = "netbsd",
+				target_os = "openbsd",
+				target_os = "dragonfly",
 				target_os = "illumos",
 				target_os = "solaris",
 				target_os = "aix",
+				target_os = "haiku",
 		))] {
 			static PTSNAME: std::sync::Mutex<()> = std::sync::Mutex::new(());
 			let _lock = PTSNAME.lock();
