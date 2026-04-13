@@ -139,12 +139,23 @@ impl SerialPort {
 	pub fn pair() -> std::io::Result<(Self, Self)> {
 		use std::os::unix::io::FromRawFd;
 		unsafe {
-			let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_CLOEXEC | libc::O_NOCTTY | libc::O_NONBLOCK))?;
+			cfg_if! {
+				if #[cfg(any(
+					target_os = "openbsd",
+					target_os = "dragonfly",
+				))] {
+					let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_NOCTTY))?;
+					check(libc::fcntl(pty_a, libc::F_SETFD, libc::FD_CLOEXEC))?;
+				} else {
+					let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_CLOEXEC | libc::O_NOCTTY))?;
+				}
+			}
+			check(libc::fcntl(pty_a, libc::F_SETFL, libc::O_NONBLOCK))?;
 			let pty_a = std::fs::File::from_raw_fd(pty_a);
 			let pty_a = Self::from_file(pty_a);
-			let pty_b_name = pts_name(&pty_a)?;
-			check(libc::unlockpt(pty_a.file.as_raw_fd()))?;
 			check(libc::grantpt(pty_a.file.as_raw_fd()))?;
+			check(libc::unlockpt(pty_a.file.as_raw_fd()))?;
+			let pty_b_name = pts_name(&pty_a)?;
 			let pty_b = Self::open(&pty_b_name)?;
 			Ok((pty_a, pty_b))
 		}
@@ -419,9 +430,12 @@ fn pts_name(master: &SerialPort) -> std::io::Result<std::path::PathBuf> {
 				target_os = "ios",
 				target_os = "macos",
 				target_os = "netbsd",
+				target_os = "openbsd",
+				target_os = "dragonfly",
 				target_os = "illumos",
 				target_os = "solaris",
 				target_os = "aix",
+				target_os = "haiku",
 		))] {
 			static PTSNAME: std::sync::Mutex<()> = std::sync::Mutex::new(());
 			let _lock = PTSNAME.lock();
