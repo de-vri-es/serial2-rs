@@ -139,7 +139,17 @@ impl SerialPort {
 	pub fn pair() -> std::io::Result<(Self, Self)> {
 		use std::os::unix::io::FromRawFd;
 		unsafe {
-			let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_CLOEXEC | libc::O_NOCTTY))?;
+			cfg_if! {
+				if #[cfg(any(
+					target_os = "openbsd",
+					target_os = "dragonfly",
+				))] {
+					let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_NOCTTY))?;
+					check(libc::fcntl(pty_a, libc::F_SETFD, libc::FD_CLOEXEC))?;
+				} else {
+					let pty_a = check(libc::posix_openpt(libc::O_RDWR | libc::O_CLOEXEC | libc::O_NOCTTY))?;
+				}
+			}
 			check(libc::fcntl(pty_a, libc::F_SETFL, libc::O_NONBLOCK))?;
 			let pty_a = std::fs::File::from_raw_fd(pty_a);
 			let pty_a = Self::from_file(pty_a);
