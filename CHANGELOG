@@ -1,4 +1,4 @@
-# Unreleased
+# Version 0.2.36 - 2026-04-13
 - [fix][minor] Fix build on Haiku.
 - [fix][minor] Fix `SerialPort::pair()` on OpenBSD, Haiku and DragonFlyBSD.
 
