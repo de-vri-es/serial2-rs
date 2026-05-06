@@ -1,3 +1,13 @@
+# Version 0.2.36 - 2026-04-13
+- [fix][minor] Fix build on Haiku.
+- [fix][minor] Fix `SerialPort::pair()` on OpenBSD, Haiku and DragonFlyBSD.
+
+# Version 0.2.35 - 2026-04-04
+- [add][minor] Include `tty0tty` devices in `available_ports()` on Linux.
+
+# Version 0.2.34 - 2026-02-16
+- [fix][minor] Make `SerialPort::pair()` open the first PTY in non-blocking mode.
+
 # Version 0.2.33 - 2025-09-22
 - [fix][patch] Improve example in main library documentation.
 

@@ -1,6 +1,6 @@
 [package]
 name = "serial2"
-version = "0.2.33"
+version = "0.2.36"
 description = "Cross platform serial ports"
 license = "BSD-2-Clause OR Apache-2.0"
 repository = "https://github.com/de-vri-es/serial2-rs"
@@ -45,7 +45,7 @@ cfg-if = "1.0.0"
 windows-sys = {version = "0.61", features = ["Win32_Devices_Communication", "Win32_System_Registry", "Win32_System_IO", "Win32_System_Threading", "Win32_Storage_FileSystem", "Win32_System_WindowsProgramming", "Win32_Security"] }
 
 [dev-dependencies]
-assert2 = "0.3.11"
+assert2 = "0.4.0"
 serde_json = "1.0.108"
 serial2 = { path = ".", features = ["serde", "unix", "windows"] }
 
