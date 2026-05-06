@@ -3,7 +3,6 @@ use std::io::{IoSlice, IoSliceMut};
 use std::os::windows::io::{AsRawHandle, RawHandle};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-
 use winapi::shared::minwindef::{BOOL, HKEY};
 use winapi::shared::winerror;
 use winapi::um::{commapi, fileapi, handleapi, ioapiset, minwinbase, synchapi, winbase, winnt, winreg};
@@ -56,6 +55,17 @@ impl SerialPort {
 			check_bool(commapi::SetCommTimeouts(file.as_raw_handle(), &mut timeouts))?;
 		}
 		Ok(Self::from_file(file))
+	}
+
+	pub fn close(&mut self) -> std::io::Result<Self> {
+		use std::os::windows::fs::OpenOptionsExt;
+		self.file = std::fs::OpenOptions::new()
+			.read(true)
+			.write(true)
+			.create(false)
+			.custom_flags(winbase::FILE_FLAG_OVERLAPPED)
+			.open("\\\\.\\nul")?;
+		self.try_clone()
 	}
 
 	pub fn from_file(file: std::fs::File) -> Self {
