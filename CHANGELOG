@@ -1,5 +1,5 @@
 # Version 0.2.37 - 2026-05-11
-- [change][minor] Switch from `winapi` to `windows_sys` for Windows platforms.
+- [change][minor] Switch from `winapi` to `windows-sys` for Windows platforms.
 
 # Version 0.2.36 - 2026-04-13
 - [fix][minor] Fix build on Haiku.
