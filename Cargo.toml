@@ -7,6 +7,7 @@ repository = "https://github.com/de-vri-es/serial2-rs"
 documentation = "https://docs.rs/serial2"
 keywords = ["serial", "serial-port", "COM-port", "RS232", "tty"]
 categories = ["hardware-support", "network-programming", "os", "science::robotics"]
+rust-version = "1.63"
 
 publish = ["crates-io"]
 edition = "2021"
@@ -42,7 +43,7 @@ libc = "0.2.109"
 cfg-if = "1.0.0"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3.9", features = ["commapi", "fileapi", "handleapi", "ioapiset", "std", "synchapi", "winbase", "winerror", "winreg"] }
+windows-sys = {version = "0.61", features = ["Win32_Devices_Communication", "Win32_System_Registry", "Win32_System_IO", "Win32_System_Threading", "Win32_Storage_FileSystem", "Win32_System_WindowsProgramming", "Win32_Security"] }
 
 [dev-dependencies]
 assert2 = "0.4.0"

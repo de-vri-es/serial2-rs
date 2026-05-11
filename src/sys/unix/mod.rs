@@ -111,7 +111,7 @@ cfg_if! {
 			fn set_on_file(&self, file: &mut std::fs::File) -> std::io::Result<()> {
 				#[cfg(target_os = "aix")]
 				if self.rts_cts {
-					return Err(std::io::Error::other("RTS/CTS flow control is not supported on AIX"));
+					return Err(std::io::Error::new(std::io::ErrorKind::Other, "RTS/CTS flow control is not supported on AIX"));
 				}
 				unsafe {
 					check(libc::tcsetattr(file.as_raw_fd(), libc::TCSADRAIN, &self.termios))?;
@@ -417,7 +417,7 @@ fn other_error<E>(msg: E) -> std::io::Error
 where
 	E: Into<Box<dyn std::error::Error + Send + Sync>>,
 {
-	std::io::Error::other(msg)
+	std::io::Error::new(std::io::ErrorKind::Other, msg)
 }
 
 #[cfg(any(doc, feature = "doc", all(unix, feature = "unix")))]
@@ -539,7 +539,7 @@ impl Settings {
 					let baud_rate = libc::cfgetospeed(&self.termios);
 					#[allow(clippy::useless_conversion)] // Not useless on all platforms.
 					baud_rate.try_into()
-						.map_err(|_| std::io::Error::other(format!("baud rate out of range: {} > {}", baud_rate, u32::MAX)))
+						.map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, format!("baud rate out of range: {} > {}", baud_rate, u32::MAX)))
 				}
 			} else if #[cfg(all(
 				any(target_os = "android", target_os = "linux"),
