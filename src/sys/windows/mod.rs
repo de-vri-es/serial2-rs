@@ -309,7 +309,7 @@ impl SerialPort {
 			let event = Event::create(false, false)?;
 			let mut read = 0;
 			let mut overlapped: OVERLAPPED = std::mem::zeroed();
-			overlapped.hEvent = event.handle;
+			overlapped.hEvent = event.as_raw_handle();
 			let ret = check_bool(ReadFile(
 				self.file.as_raw_handle(),
 				buf.as_mut_ptr().cast(),
@@ -349,7 +349,7 @@ impl SerialPort {
 			let event = Event::create(false, false)?;
 			let mut written = 0;
 			let mut overlapped: OVERLAPPED = std::mem::zeroed();
-			overlapped.hEvent = event.handle;
+			overlapped.hEvent = event.as_raw_handle();
 			let ret = check_bool(WriteFile(
 				self.file.as_raw_handle(),
 				buf.as_ptr().cast(),
@@ -445,7 +445,7 @@ impl SerialPort {
 }
 
 struct Event {
-	handle: RawHandle,
+	handle: OwnedHandle,
 }
 
 impl Event {
@@ -459,16 +459,15 @@ impl Event {
 				initially_signalled,
 				std::ptr::null(), // name
 			))?;
+			let handle = FromRawHandle::from_raw_handle(handle);
 			Ok(Self { handle })
 		}
 	}
 }
 
-impl Drop for Event {
-	fn drop(&mut self) {
-		unsafe {
-			CloseHandle(self.handle);
-		}
+impl AsRawHandle for Event {
+	fn as_raw_handle(&self) -> RawHandle {
+		self.handle.as_raw_handle()
 	}
 }
 
