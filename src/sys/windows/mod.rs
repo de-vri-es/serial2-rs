@@ -532,7 +532,7 @@ fn other_error<E>(msg: E) -> std::io::Error
 where
 	E: Into<Box<dyn std::error::Error + Send + Sync>>,
 {
-	std::io::Error::other(msg)
+	std::io::Error::new(std::io::ErrorKind::Other, msg)
 }
 
 impl Settings {
