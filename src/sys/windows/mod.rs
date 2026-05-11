@@ -1,18 +1,58 @@
 use std::ffi::OsString;
 use std::io::{IoSlice, IoSliceMut};
-use std::os::windows::io::{AsRawHandle, RawHandle};
+use std::os::windows::io::{AsRawHandle, RawHandle, OwnedHandle, FromRawHandle};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use windows_sys::core::*;
-use windows_sys::s;
-use windows_sys::Win32::Devices::Communication::*;
-use windows_sys::Win32::Foundation::*;
-use windows_sys::Win32::Storage::FileSystem::*;
-use windows_sys::Win32::System::Registry::*;
-use windows_sys::Win32::System::Threading::*;
-use windows_sys::Win32::System::WindowsProgramming::*;
-use windows_sys::Win32::System::IO::*;
+use windows_sys::Win32::Devices::Communication::CLRDTR;
+use windows_sys::Win32::Devices::Communication::CLRRTS;
+use windows_sys::Win32::Devices::Communication::COMMTIMEOUTS;
+use windows_sys::Win32::Devices::Communication::ClearCommBreak;
+use windows_sys::Win32::Devices::Communication::DCB;
+use windows_sys::Win32::Devices::Communication::EVENPARITY;
+use windows_sys::Win32::Devices::Communication::EscapeCommFunction;
+use windows_sys::Win32::Devices::Communication::GetCommModemStatus;
+use windows_sys::Win32::Devices::Communication::GetCommState;
+use windows_sys::Win32::Devices::Communication::GetCommTimeouts;
+use windows_sys::Win32::Devices::Communication::MS_CTS_ON;
+use windows_sys::Win32::Devices::Communication::MS_DSR_ON;
+use windows_sys::Win32::Devices::Communication::MS_RING_ON;
+use windows_sys::Win32::Devices::Communication::MS_RLSD_ON;
+use windows_sys::Win32::Devices::Communication::NOPARITY;
+use windows_sys::Win32::Devices::Communication::ODDPARITY;
+use windows_sys::Win32::Devices::Communication::ONESTOPBIT;
+use windows_sys::Win32::Devices::Communication::PURGE_RXCLEAR;
+use windows_sys::Win32::Devices::Communication::PURGE_TXCLEAR;
+use windows_sys::Win32::Devices::Communication::PurgeComm;
+use windows_sys::Win32::Devices::Communication::SETDTR;
+use windows_sys::Win32::Devices::Communication::SETRTS;
+use windows_sys::Win32::Devices::Communication::SetCommBreak;
+use windows_sys::Win32::Devices::Communication::SetCommState;
+use windows_sys::Win32::Devices::Communication::SetCommTimeouts;
+use windows_sys::Win32::Devices::Communication::TWOSTOPBITS;
+use windows_sys::Win32::Foundation::ERROR_IO_PENDING;
+use windows_sys::Win32::Foundation::ERROR_NO_MORE_ITEMS;
+use windows_sys::Win32::Storage::FileSystem::FILE_FLAG_OVERLAPPED;
+use windows_sys::Win32::Storage::FileSystem::FlushFileBuffers;
+use windows_sys::Win32::Storage::FileSystem::ReadFile;
+use windows_sys::Win32::Storage::FileSystem::WriteFile;
+use windows_sys::Win32::System::IO::GetOverlappedResult;
+use windows_sys::Win32::System::IO::OVERLAPPED;
+use windows_sys::Win32::System::Registry::HKEY;
+use windows_sys::Win32::System::Registry::HKEY_LOCAL_MACHINE;
+use windows_sys::Win32::System::Registry::KEY_READ;
+use windows_sys::Win32::System::Registry::REG_SAM_FLAGS;
+use windows_sys::Win32::System::Registry::REG_SZ;
+use windows_sys::Win32::System::Registry::RegCloseKey;
+use windows_sys::Win32::System::Registry::RegEnumValueA;
+use windows_sys::Win32::System::Registry::RegOpenKeyExA;
+use windows_sys::Win32::System::Registry::RegQueryInfoKeyA;
+use windows_sys::Win32::System::Threading::CreateEventA;
+use windows_sys::Win32::System::WindowsProgramming::DTR_CONTROL_DISABLE;
+use windows_sys::Win32::System::WindowsProgramming::RTS_CONTROL_DISABLE;
+use windows_sys::Win32::System::WindowsProgramming::RTS_CONTROL_TOGGLE;
+use windows_sys::core::BOOL;
+use windows_sys::core::PCSTR;
 
 pub struct SerialPort {
 	pub file: std::fs::File,
@@ -29,143 +69,6 @@ impl std::fmt::Debug for SerialPort {
 #[derive(Clone)]
 pub struct Settings {
 	pub dcb: DCB,
-}
-
-#[allow(non_snake_case)]
-pub(crate) trait DCBBitField {
-	fn set_fBinary(&mut self, value: bool);
-	fn set_fParity(&mut self, value: bool);
-	fn set_fOutxCtsFlow(&mut self, value: bool);
-	fn set_fOutxDsrFlow(&mut self, value: bool);
-	fn set_fDtrControl(&mut self, value: u32);
-	fn set_fDsrSensitivity(&mut self, value: bool);
-	fn set_fOutX(&mut self, value: bool);
-	fn set_fInX(&mut self, value: bool);
-	fn set_fErrorChar(&mut self, value: bool);
-	fn set_fNull(&mut self, value: bool);
-	fn set_fRtsControl(&mut self, value: u32);
-
-	fn fParity(&self) -> bool;
-	fn fOutxCtsFlow(&self) -> bool;
-	fn fOutxDsrFlow(&self) -> bool;
-	fn fRtsControl(&self) -> u32;
-	fn fDtrControl(&self) -> u32;
-	fn fOutX(&self) -> bool;
-	fn fInX(&self) -> bool;
-}
-
-impl DCBBitField for DCB {
-	fn set_fBinary(&mut self, value: bool) {
-		if value {
-			self._bitfield |= 1 << 0;
-		} else {
-			self._bitfield &= !(1 << 0);
-		}
-	}
-
-	fn set_fParity(&mut self, value: bool) {
-		if value {
-			self._bitfield |= 1 << 1;
-		} else {
-			self._bitfield &= !(1 << 1);
-		}
-	}
-
-	fn set_fOutxCtsFlow(&mut self, value: bool) {
-		if value {
-			self._bitfield |= 1 << 2;
-		} else {
-			self._bitfield &= !(1 << 2);
-		}
-	}
-
-	fn set_fOutxDsrFlow(&mut self, value: bool) {
-		if value {
-			self._bitfield |= 1 << 3;
-		} else {
-			self._bitfield &= !(1 << 3);
-		}
-	}
-
-	fn set_fDtrControl(&mut self, value: u32) {
-		// Clear bits 4-5 and set new value
-		self._bitfield &= !(0b11 << 4);
-		self._bitfield |= (value & 0b11) << 4;
-	}
-
-	fn set_fDsrSensitivity(&mut self, value: bool) {
-		if value {
-			self._bitfield |= 1 << 6;
-		} else {
-			self._bitfield &= !(1 << 6);
-		}
-	}
-
-	fn set_fOutX(&mut self, value: bool) {
-		if value {
-			self._bitfield |= 1 << 8;
-		} else {
-			self._bitfield &= !(1 << 8);
-		}
-	}
-
-	fn set_fInX(&mut self, value: bool) {
-		if value {
-			self._bitfield |= 1 << 9;
-		} else {
-			self._bitfield &= !(1 << 9);
-		}
-	}
-
-	fn set_fErrorChar(&mut self, value: bool) {
-		if value {
-			self._bitfield |= 1 << 10;
-		} else {
-			self._bitfield &= !(1 << 10);
-		}
-	}
-
-	fn set_fNull(&mut self, value: bool) {
-		if value {
-			self._bitfield |= 1 << 11;
-		} else {
-			self._bitfield &= !(1 << 11);
-		}
-	}
-
-	fn set_fRtsControl(&mut self, value: u32) {
-		// Clear bits 12-13 and set new value
-		self._bitfield &= !(0b11 << 12);
-		self._bitfield |= (value & 0b11) << 12;
-	}
-
-	fn fParity(&self) -> bool {
-		(self._bitfield & (1 << 1)) != 0
-	}
-
-	fn fOutxCtsFlow(&self) -> bool {
-		(self._bitfield & (1 << 2)) != 0
-	}
-
-	fn fOutxDsrFlow(&self) -> bool {
-		(self._bitfield & (1 << 3)) != 0
-	}
-
-	fn fRtsControl(&self) -> u32 {
-		(self._bitfield >> 12) & 0b11
-	}
-
-	fn fDtrControl(&self) -> u32 {
-		(self._bitfield >> 4) & 0b11
-	}
-
-	fn fOutX(&self) -> bool {
-		(self._bitfield & (1 << 8)) != 0
-	}
-
-	fn fInX(&self) -> bool {
-		(self._bitfield & (1 << 9)) != 0
-	}
 }
 
 impl SerialPort {
@@ -761,7 +664,7 @@ impl Drop for RegKey {
 }
 
 pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
-	let subkey = s!("Hardware\\DEVICEMAP\\SERIALCOMM");
+	let subkey = windows_sys::s!("Hardware\\DEVICEMAP\\SERIALCOMM");
 	let device_map = match RegKey::open(HKEY_LOCAL_MACHINE, subkey, KEY_READ) {
 		Ok(x) => x,
 		Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => {
@@ -789,4 +692,141 @@ pub fn enumerate() -> std::io::Result<Vec<PathBuf>> {
 	}
 
 	Ok(entries)
+}
+
+#[allow(non_snake_case)]
+pub(crate) trait DCBBitField {
+	fn set_fBinary(&mut self, value: bool);
+	fn set_fParity(&mut self, value: bool);
+	fn set_fOutxCtsFlow(&mut self, value: bool);
+	fn set_fOutxDsrFlow(&mut self, value: bool);
+	fn set_fDtrControl(&mut self, value: u32);
+	fn set_fDsrSensitivity(&mut self, value: bool);
+	fn set_fOutX(&mut self, value: bool);
+	fn set_fInX(&mut self, value: bool);
+	fn set_fErrorChar(&mut self, value: bool);
+	fn set_fNull(&mut self, value: bool);
+	fn set_fRtsControl(&mut self, value: u32);
+
+	fn fParity(&self) -> bool;
+	fn fOutxCtsFlow(&self) -> bool;
+	fn fOutxDsrFlow(&self) -> bool;
+	fn fRtsControl(&self) -> u32;
+	fn fDtrControl(&self) -> u32;
+	fn fOutX(&self) -> bool;
+	fn fInX(&self) -> bool;
+}
+
+impl DCBBitField for DCB {
+	fn set_fBinary(&mut self, value: bool) {
+		if value {
+			self._bitfield |= 1 << 0;
+		} else {
+			self._bitfield &= !(1 << 0);
+		}
+	}
+
+	fn set_fParity(&mut self, value: bool) {
+		if value {
+			self._bitfield |= 1 << 1;
+		} else {
+			self._bitfield &= !(1 << 1);
+		}
+	}
+
+	fn set_fOutxCtsFlow(&mut self, value: bool) {
+		if value {
+			self._bitfield |= 1 << 2;
+		} else {
+			self._bitfield &= !(1 << 2);
+		}
+	}
+
+	fn set_fOutxDsrFlow(&mut self, value: bool) {
+		if value {
+			self._bitfield |= 1 << 3;
+		} else {
+			self._bitfield &= !(1 << 3);
+		}
+	}
+
+	fn set_fDtrControl(&mut self, value: u32) {
+		// Clear bits 4-5 and set new value
+		self._bitfield &= !(0b11 << 4);
+		self._bitfield |= (value & 0b11) << 4;
+	}
+
+	fn set_fDsrSensitivity(&mut self, value: bool) {
+		if value {
+			self._bitfield |= 1 << 6;
+		} else {
+			self._bitfield &= !(1 << 6);
+		}
+	}
+
+	fn set_fOutX(&mut self, value: bool) {
+		if value {
+			self._bitfield |= 1 << 8;
+		} else {
+			self._bitfield &= !(1 << 8);
+		}
+	}
+
+	fn set_fInX(&mut self, value: bool) {
+		if value {
+			self._bitfield |= 1 << 9;
+		} else {
+			self._bitfield &= !(1 << 9);
+		}
+	}
+
+	fn set_fErrorChar(&mut self, value: bool) {
+		if value {
+			self._bitfield |= 1 << 10;
+		} else {
+			self._bitfield &= !(1 << 10);
+		}
+	}
+
+	fn set_fNull(&mut self, value: bool) {
+		if value {
+			self._bitfield |= 1 << 11;
+		} else {
+			self._bitfield &= !(1 << 11);
+		}
+	}
+
+	fn set_fRtsControl(&mut self, value: u32) {
+		// Clear bits 12-13 and set new value
+		self._bitfield &= !(0b11 << 12);
+		self._bitfield |= (value & 0b11) << 12;
+	}
+
+	fn fParity(&self) -> bool {
+		(self._bitfield & (1 << 1)) != 0
+	}
+
+	fn fOutxCtsFlow(&self) -> bool {
+		(self._bitfield & (1 << 2)) != 0
+	}
+
+	fn fOutxDsrFlow(&self) -> bool {
+		(self._bitfield & (1 << 3)) != 0
+	}
+
+	fn fRtsControl(&self) -> u32 {
+		(self._bitfield >> 12) & 0b11
+	}
+
+	fn fDtrControl(&self) -> u32 {
+		(self._bitfield >> 4) & 0b11
+	}
+
+	fn fOutX(&self) -> bool {
+		(self._bitfield & (1 << 8)) != 0
+	}
+
+	fn fInX(&self) -> bool {
+		(self._bitfield & (1 << 9)) != 0
+	}
 }
