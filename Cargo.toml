@@ -48,6 +48,7 @@ windows-sys = {version = "0.61", features = ["Win32_Devices_Communication", "Win
 [dev-dependencies]
 assert2 = "0.4.0"
 serde_json = "1.0.108"
+toml = "1.1.4"
 serial2 = { path = ".", features = ["serde", "unix", "windows"] }
 
 [package.metadata.docs.rs]

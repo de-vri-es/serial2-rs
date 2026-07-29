@@ -539,6 +539,11 @@ impl<'de> serde::Deserialize<'de> for CharSize {
 				formatter.write_str(Self::Value::EXPECTED)
 			}
 
+			fn visit_i64<E: serde::de::Error>(self, data: i64) -> Result<Self::Value, E> {
+				Self::Value::try_from(data)
+					.map_err(|e| E::invalid_value(serde::de::Unexpected::Signed(e.unexpected), &e.expected))
+			}
+
 			fn visit_u64<E: serde::de::Error>(self, data: u64) -> Result<Self::Value, E> {
 				Self::Value::try_from(data)
 					.map_err(|e| E::invalid_value(serde::de::Unexpected::Unsigned(e.unexpected), &e.expected))
@@ -565,6 +570,11 @@ impl<'de> serde::Deserialize<'de> for StopBits {
 
 			fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
 				formatter.write_str(Self::Value::EXPECTED)
+			}
+
+			fn visit_i64<E: serde::de::Error>(self, data: i64) -> Result<Self::Value, E> {
+				Self::Value::try_from(data)
+					.map_err(|e| E::invalid_value(serde::de::Unexpected::Signed(e.unexpected), &e.expected))
 			}
 
 			fn visit_u64<E: serde::de::Error>(self, data: u64) -> Result<Self::Value, E> {
