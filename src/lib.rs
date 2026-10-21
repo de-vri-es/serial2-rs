@@ -35,6 +35,58 @@
 //!
 //! The [`SerialPort::available_ports()`] function can be used to get a list of available serial ports on supported platforms.
 //!
+//! # Closing a port
+//!
+//! A `SerialPort` owns an open OS handle. Leaving its scope or calling `drop(port)`
+//! closes that handle. Every handle created by `try_clone()` must also be dropped.
+//! Dropping an `Arc<SerialPort>` only drops the port when the last strong owner is gone;
+//! it does not disconnect other owners or cancel their I/O.
+//!
+//! For a connection that can be opened and closed, store an `Option<SerialPort>`.
+//! With shared state such as `Arc<Mutex<Option<SerialPort>>>`, take the port out of
+//! that state, release the mutex, and then drop the port:
+//!
+//! ```no_run
+//! use serial2::SerialPort;
+//! use std::sync::{Arc, Mutex};
+//!
+//! # fn example() -> std::io::Result<()> {
+//! let connection = Arc::new(Mutex::new(Some(
+//!     SerialPort::open("/dev/ttyUSB0", 115200)?,
+//! )));
+//! let other_owner = Arc::clone(&connection);
+//!
+//! let port = {
+//!     let mut guard = connection.lock().unwrap();
+//!     guard.take()
+//! }; // Release the mutex before closing the handle.
+//! drop(port);
+//!
+//! // Other owners now see that the connection is closed.
+//! assert!(other_owner.lock().unwrap().is_none());
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! For a reader running in another thread, set a finite read timeout before starting
+//! it, signal it to stop, and have it check that signal between reads (including
+//! after timeouts). Join the thread and drop every port handle before reopening.
+//! Do not hold a mutex across a blocking read if shutdown needs that same mutex,
+//! or while joining a thread that needs to lock it.
+//!
+//! `flush()` waits for queued output to be transmitted and is not bounded by the
+//! write timeout. It can block indefinitely if flow control stops transmission or
+//! the device/driver stops making progress. Dropping a port does not call `flush()`.
+//! If losing pending output is acceptable, `discard_output_buffer()` discards it
+//! instead of waiting for transmission; this does not guarantee that a device
+//! or driver will complete its own close operation promptly.
+//!
+//! On Linux, trace a hang with `strace -f -tt -T -o serial.trace ./your-program`.
+//! A thread waiting in `futex` suggests synchronization to inspect; a wait in
+//! `poll`, a drain/configuration `ioctl`, or `close` points to a different part of
+//! the shutdown path. Include the trace, device driver, kernel and library versions
+//! when reporting a hang, especially on embedded systems such as Yocto.
+//!
 //! # Example
 //! This example opens a serial port and echoes back everything that is read.
 //!

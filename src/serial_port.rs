@@ -8,6 +8,12 @@ use crate::{sys, IntoSettings, Settings};
 use crate::rs4xx;
 
 /// A serial port.
+///
+/// Dropping this object closes its handle. All handles created with [`Self::try_clone()`]
+/// must also be dropped to release the port completely.
+/// If the object is shared through an [`std::sync::Arc`], dropping one `Arc` only
+/// closes the handle when it was the last owner.
+/// See the [crate documentation](crate#closing-a-port) for shutdown guidance.
 pub struct SerialPort {
 	inner: sys::SerialPort,
 }
@@ -112,6 +118,8 @@ impl SerialPort {
 	/// Try to clone the serial port handle.
 	///
 	/// The cloned object refers to the same serial port.
+	/// Each handle is closed independently when dropped. Dropping the original
+	/// does not close its clones or stop reads and writes through those clones.
 	///
 	/// Mixing reads and writes on different handles to the same serial port from different threads may lead to unexpect results.
 	/// The data may end up interleaved in unpredictable ways.
@@ -246,6 +254,10 @@ impl SerialPort {
 	/// Flush all data queued to be written.
 	///
 	/// This will block until the OS buffer has been fully transmitted.
+	/// The write timeout does not bound this operation. If transmission is stopped
+	/// by flow control or a device/driver problem, flushing can block indefinitely.
+	/// Dropping the port does not call this method. If pending output may be lost,
+	/// [`Self::discard_output_buffer()`] can be used instead of waiting for it.
 	///
 	/// This is identical to [`std::io::Write::flush()`], except that this function takes a const reference `&self`.
 	pub fn flush(&self) -> std::io::Result<()> {
