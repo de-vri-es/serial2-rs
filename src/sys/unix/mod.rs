@@ -123,6 +123,18 @@ cfg_if! {
 }
 
 impl SerialPort {
+	pub fn close(self) -> std::io::Result<()> {
+		use std::os::unix::io::IntoRawFd;
+		let fd = self.file.into_raw_fd();
+		// SAFETY: into_raw_fd transfers ownership to us, so File will not close
+		// the descriptor again. Do not retry on EINTR: on Linux (and other
+		// systems) the descriptor has already been released and may be reused.
+		unsafe {
+			check(libc::close(fd))?;
+		}
+		Ok(())
+	}
+
 	pub fn open(path: &Path) -> std::io::Result<Self> {
 		use std::os::unix::fs::OpenOptionsExt;
 		let file = std::fs::OpenOptions::new()

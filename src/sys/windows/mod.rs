@@ -1,6 +1,6 @@
 use std::ffi::OsString;
 use std::io::{IoSlice, IoSliceMut};
-use std::os::windows::io::{AsRawHandle, RawHandle, OwnedHandle, FromRawHandle};
+use std::os::windows::io::{AsRawHandle, FromRawHandle, IntoRawHandle, OwnedHandle, RawHandle};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -30,6 +30,7 @@ use windows_sys::Win32::Devices::Communication::SetCommBreak;
 use windows_sys::Win32::Devices::Communication::SetCommState;
 use windows_sys::Win32::Devices::Communication::SetCommTimeouts;
 use windows_sys::Win32::Devices::Communication::TWOSTOPBITS;
+use windows_sys::Win32::Foundation::CloseHandle;
 use windows_sys::Win32::Foundation::ERROR_IO_PENDING;
 use windows_sys::Win32::Foundation::ERROR_NO_MORE_ITEMS;
 use windows_sys::Win32::Storage::FileSystem::FILE_FLAG_OVERLAPPED;
@@ -72,6 +73,13 @@ pub struct Settings {
 }
 
 impl SerialPort {
+	pub fn close(self) -> std::io::Result<()> {
+		let handle = self.file.into_raw_handle();
+		// SAFETY: into_raw_handle transfers ownership to us, so File will not
+		// close the handle again, including when CloseHandle reports an error.
+		unsafe { check_bool(CloseHandle(handle)) }
+	}
+
 	pub fn open(name: &Path) -> std::io::Result<Self> {
 		use std::os::windows::fs::OpenOptionsExt;
 

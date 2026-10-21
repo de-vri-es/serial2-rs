@@ -13,6 +13,41 @@ pub struct SerialPort {
 }
 
 impl SerialPort {
+	/// Close this handle and report any error from the operating system.
+	///
+	/// This consumes the port, even if closing returns an error. Unlike dropping
+	/// the port, this method lets you observe errors from the close operation.
+	/// On Unix, the close syscall is not retried after an error, because the
+	/// descriptor may already have been reused by another thread.
+	///
+	/// This does not call [`Self::flush()`], discard buffers, change modem signals,
+	/// or close handles created by [`Self::try_clone()`]. Stop any threads using
+	/// those handles separately. The operating system or device driver may still
+	/// block while closing; the read and write timeouts do not bound this method.
+	///
+	/// # Example
+	/// ```no_run
+	/// # fn example() -> std::io::Result<()> {
+	/// let port = serial2::SerialPort::open("/dev/ttyUSB0", 115200)?;
+	/// // Use the connection, then release this handle and check for errors.
+	/// port.close()?;
+	/// # Ok(())
+	/// # }
+	/// ```
+	///
+	/// The closed port cannot be used again:
+	/// ```compile_fail
+	/// # fn example() -> std::io::Result<()> {
+	/// let port = serial2::SerialPort::open("/dev/ttyUSB0", 115200)?;
+	/// port.close()?;
+	/// port.write_all(b"closed")?;
+	/// # Ok(())
+	/// # }
+	/// ```
+	pub fn close(self) -> std::io::Result<()> {
+		self.inner.close()
+	}
+
 	/// Open and configure a serial port by path or name.
 	///
 	/// On Unix systems, the `name` parameter must be a path to a TTY device.
