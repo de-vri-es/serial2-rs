@@ -7,28 +7,28 @@ use std::time::Duration;
 
 #[test]
 fn close_releases_the_terminal() -> io::Result<()> {
-	let (master, mut slave) = SerialPort::pair()?;
-	slave.set_read_timeout(Duration::from_secs(1))?;
-	master.close()?;
-	// Closing the last master handle produces EOF on the slave.
-	assert_eq!(slave.read(&mut [0])?, 0);
+	let (a, mut b) = SerialPort::pair()?;
+	b.set_read_timeout(Duration::from_secs(1))?;
+	a.close()?;
+	// Closing the last handle for a produces EOF on b.
+	assert_eq!(b.read(&mut [0])?, 0);
 	Ok(())
 }
 
 #[test]
 fn close_preserves_other_handles() -> io::Result<()> {
-	let (master, mut slave) = SerialPort::pair()?;
-	slave.set_read_timeout(Duration::from_secs(1))?;
-	let clone = master.try_clone()?;
-	master.close()?;
+	let (a, mut b) = SerialPort::pair()?;
+	b.set_read_timeout(Duration::from_secs(1))?;
+	let clone = a.try_clone()?;
+	a.close()?;
 
 	clone.write_all(b"still open")?;
 	let mut buffer = [0; 10];
-	slave.read_exact(&mut buffer)?;
+	b.read_exact(&mut buffer)?;
 	assert_eq!(&buffer, b"still open");
 
 	clone.close()?;
-	assert_eq!(slave.read(&mut [0])?, 0);
+	assert_eq!(b.read(&mut [0])?, 0);
 	Ok(())
 }
 
@@ -37,35 +37,35 @@ fn reopen_after_close() -> io::Result<()> {
 	use std::ffi::{CStr, OsStr};
 	use std::os::unix::{ffi::OsStrExt, io::AsRawFd};
 
-	let (mut master, slave) = SerialPort::pair()?;
-	master.set_read_timeout(Duration::from_secs(1))?;
+	let (mut a, b) = SerialPort::pair()?;
+	a.set_read_timeout(Duration::from_secs(1))?;
 	let mut name = [0; 256];
-	// SAFETY: slave owns a valid descriptor and name is a writable buffer.
-	let result = unsafe { libc::ttyname_r(slave.as_raw_fd(), name.as_mut_ptr(), name.len()) };
+	// SAFETY: b owns a valid descriptor and name is a writable buffer.
+	let result = unsafe { libc::ttyname_r(b.as_raw_fd(), name.as_mut_ptr(), name.len()) };
 	if result != 0 {
 		return Err(io::Error::from_raw_os_error(result));
 	}
 	// ttyname_r writes a NUL-terminated name on success.
 	let name = unsafe { CStr::from_ptr(name.as_ptr()) };
 	let path = OsStr::from_bytes(name.to_bytes());
-	slave.close()?;
+	b.close()?;
 
 	for _ in 0..16 {
 		let port = SerialPort::open(path, 115200)?;
 		port.write_all(b"reopened")?;
 		let mut buffer = [0; 8];
-		master.read_exact(&mut buffer)?;
+		a.read_exact(&mut buffer)?;
 		assert_eq!(&buffer, b"reopened");
 		port.close()?;
 	}
-	master.close()
+	a.close()
 }
 
 #[test]
 fn close_shared_connection_while_other_state_owners_remain() -> io::Result<()> {
-	let (master, mut slave) = SerialPort::pair()?;
-	slave.set_read_timeout(Duration::from_secs(1))?;
-	let connection = Arc::new(Mutex::new(Some(master)));
+	let (a, mut b) = SerialPort::pair()?;
+	b.set_read_timeout(Duration::from_secs(1))?;
+	let connection = Arc::new(Mutex::new(Some(a)));
 	let other_owner = Arc::clone(&connection);
 	let port = {
 		let mut guard = connection.lock().unwrap();
@@ -75,7 +75,7 @@ fn close_shared_connection_while_other_state_owners_remain() -> io::Result<()> {
 	// The state remains shared, but shutdown does not hold the mutex.
 	assert!(other_owner.try_lock().unwrap().is_none());
 	port.unwrap().close()?;
-	assert_eq!(slave.read(&mut [0])?, 0);
+	assert_eq!(b.read(&mut [0])?, 0);
 	Ok(())
 }
 
@@ -84,8 +84,8 @@ fn stop_reader_before_closing_connection() -> io::Result<()> {
 	use std::sync::atomic::{AtomicBool, Ordering};
 	use std::sync::mpsc;
 
-	let (master, mut reader) = SerialPort::pair()?;
-	reader.set_read_timeout(Duration::from_millis(20))?;
+	let (a, mut b) = SerialPort::pair()?;
+	b.set_read_timeout(Duration::from_millis(20))?;
 	let stop = Arc::new(AtomicBool::new(false));
 	let reader_stop = Arc::clone(&stop);
 	let (ready_tx, ready_rx) = mpsc::channel();
@@ -95,7 +95,7 @@ fn stop_reader_before_closing_connection() -> io::Result<()> {
 		let result = (|| {
 			// Always attempt one read so the idle read/timeout path is exercised.
 			loop {
-				match reader.read(&mut [0]) {
+				match b.read(&mut [0]) {
 					Ok(0) => break,
 					Ok(_) => (),
 					Err(e) if e.kind() == io::ErrorKind::TimedOut => (),
@@ -106,7 +106,7 @@ fn stop_reader_before_closing_connection() -> io::Result<()> {
 					break;
 				}
 			}
-			reader.close()
+			b.close()
 		})();
 		done_tx.send(result).unwrap();
 	});
@@ -116,5 +116,5 @@ fn stop_reader_before_closing_connection() -> io::Result<()> {
 	// A broken timeout/shutdown path fails instead of hanging the test on join.
 	done_rx.recv_timeout(Duration::from_secs(5)).unwrap()?;
 	thread.join().unwrap();
-	master.close()
+	a.close()
 }
