@@ -13,34 +13,19 @@ pub struct SerialPort {
 }
 
 impl SerialPort {
-	/// Close this handle and report any error from the operating system.
+	/// Close the serial port handle.
 	///
-	/// This consumes the port, even if closing returns an error. Unlike dropping
-	/// the port, this method lets you observe errors from the close operation.
-	/// On Unix, the close syscall is not retried after an error, because the
-	/// descriptor may already have been reused by another thread.
+	/// This is equivalent to simply dropping the serial port object,
+	/// except that it reports errors from the OS.
 	///
-	/// This does not call [`Self::flush()`], discard buffers, change modem signals,
-	/// or close handles created by [`Self::try_clone()`]. Stop any threads using
-	/// those handles separately. The operating system or device driver may still
-	/// block while closing; the read and write timeouts do not bound this method.
+	/// This does not perform any explicit cleanup besides closing the file descriptor (or file handle, for Windows). The OS may or may not perform extra cleanup when the last handle for a serial port is closed.
 	///
 	/// # Example
 	/// ```no_run
 	/// # fn example() -> std::io::Result<()> {
-	/// let port = serial2::SerialPort::open("/dev/ttyUSB0", 115200)?;
+	/// let serial_port = serial2::SerialPort::open("/dev/ttyUSB0", 115200)?;
 	/// // Use the connection, then release this handle and check for errors.
-	/// port.close()?;
-	/// # Ok(())
-	/// # }
-	/// ```
-	///
-	/// The closed port cannot be used again:
-	/// ```compile_fail
-	/// # fn example() -> std::io::Result<()> {
-	/// let port = serial2::SerialPort::open("/dev/ttyUSB0", 115200)?;
-	/// port.close()?;
-	/// port.write_all(b"closed")?;
+	/// serial_port.close()?;
 	/// # Ok(())
 	/// # }
 	/// ```
