@@ -1,4 +1,5 @@
 # Unreleased
+- [add][minor] Add a `SerialPort::close()` to allow handling errors when closing a serial port.
 - [fix][minor] Fix compilation for `target_os = "emscripten"` by making `set_break` report `std::io::ErrorKind::Unsupported`.
 
 # Version 0.2.38 - 2026-07-31

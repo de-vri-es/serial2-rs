@@ -13,6 +13,29 @@ pub struct SerialPort {
 }
 
 impl SerialPort {
+	/// Close the serial port handle.
+	///
+	/// This is equivalent to simply dropping the serial port object,
+	/// except that it reports errors from the OS.
+	///
+	/// This does not perform any explicit cleanup besides closing the file descriptor (or file handle, for Windows).
+	/// The OS may or may not perform extra cleanup when the last handle for a serial port is closed.
+	///
+	/// This function may or may not return errors from previous reads or writes that had not truly completed yet.
+	///
+	/// # Example
+	/// ```no_run
+	/// # fn example() -> std::io::Result<()> {
+	/// let serial_port = serial2::SerialPort::open("/dev/ttyUSB0", 115200)?;
+	/// // Use the connection, then release this handle and check for errors.
+	/// serial_port.close()?;
+	/// # Ok(())
+	/// # }
+	/// ```
+	pub fn close(self) -> std::io::Result<()> {
+		self.inner.close()
+	}
+
 	/// Open and configure a serial port by path or name.
 	///
 	/// On Unix systems, the `name` parameter must be a path to a TTY device.
