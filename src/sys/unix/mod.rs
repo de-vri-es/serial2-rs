@@ -365,6 +365,7 @@ impl SerialPort {
 		read_pin(&self.file, libc::TIOCM_CD)
 	}
 
+	#[cfg(not(target_os = "emscripten"))]
 	pub fn set_break(&self, enable: bool) -> std::io::Result<()> {
 		unsafe {
 			if enable {
@@ -374,6 +375,12 @@ impl SerialPort {
 			}
 			Ok(())
 		}
+	}
+
+	#[cfg(target_os = "emscripten")]
+	pub fn set_break(&self, _enable: bool) -> std::io::Result<()> {
+		// Emscripten does not implement the persistent break ioctls.
+		Err(std::io::ErrorKind::Unsupported.into())
 	}
 }
 
