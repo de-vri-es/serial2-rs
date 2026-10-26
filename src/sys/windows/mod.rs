@@ -75,8 +75,8 @@ pub struct Settings {
 impl SerialPort {
 	pub fn close(self) -> std::io::Result<()> {
 		let handle = self.file.into_raw_handle();
-		// SAFETY: into_raw_handle transfers ownership to us, so File will not
-		// close the handle again, including when CloseHandle reports an error.
+		// SAFETY: File is guaranteed to wrap a valid file handle,
+		// and calling `into_raw_handle()` gives us unique ownership, so we can close it.
 		unsafe { check_bool(CloseHandle(handle)) }
 	}
 

@@ -126,9 +126,12 @@ impl SerialPort {
 	pub fn close(self) -> std::io::Result<()> {
 		use std::os::unix::io::IntoRawFd;
 		let fd = self.file.into_raw_fd();
-		// SAFETY: into_raw_fd transfers ownership to us, so File will not close
-		// the descriptor again. Do not retry on EINTR: on Linux (and other
-		// systems) the descriptor has already been released and may be reused.
+		// SAFETY: File is guaranteed to have a valid file descriptor,
+		// and by calling `into_raw_fd()` we get sole ownership of it.
+		// NOTE: On most Unix systems, the file descriptor is invalidated even when `close()` reports an error.
+		// This usually includes `EINTR`.
+		// It's better to leak an FD than to close a re-used FD, so we don't retry close.
+		// If we know exactly which `target_os` does need a retry after `EINT` we can add exceptions.
 		unsafe {
 			check(libc::close(fd))?;
 		}

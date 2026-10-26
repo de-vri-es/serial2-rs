@@ -18,7 +18,10 @@ impl SerialPort {
 	/// This is equivalent to simply dropping the serial port object,
 	/// except that it reports errors from the OS.
 	///
-	/// This does not perform any explicit cleanup besides closing the file descriptor (or file handle, for Windows). The OS may or may not perform extra cleanup when the last handle for a serial port is closed.
+	/// This does not perform any explicit cleanup besides closing the file descriptor (or file handle, for Windows).
+	/// The OS may or may not perform extra cleanup when the last handle for a serial port is closed.
+	///
+	/// This function may or may not return errors from previous reads or writes that had not truly completed yet.
 	///
 	/// # Example
 	/// ```no_run
